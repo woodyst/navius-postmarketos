@@ -4,3 +4,4 @@
 *.so
 *.so.*
 /extras/mimic/_build/
+*.po~
