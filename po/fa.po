@@ -1,0 +1,3465 @@
+# Navius — فارسی
+# Copyright (C) 2026 Navius contributors
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: navius.woodyst\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-08 18:30+0000\n"
+"PO-Revision-Date: 2026-05-24 00:00+0000\n"
+"Last-Translator: Claude\n"
+"Language-Team: فارسی\n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: qml/TripSharePanel.qml:51
+msgid "🔴 Compartiendo viaje"
+msgstr "🔴 در حال اشتراک"
+
+#: qml/TripSharePanel.qml:52
+msgid "Generando enlace…"
+msgstr "در حال ایجاد پیوند…"
+
+#: qml/TripSharePanel.qml:53 qml/HelpPanel.qml:164 qml/Main.qml:6641
+#: qml/TourOverlay.qml:72
+msgid "Compartir viaje"
+msgstr "اشتراک‌گذاری سفر"
+
+#: qml/TripSharePanel.qml:61
+msgid ""
+"Genera un enlace para que otros puedan seguir tu posición y ruta en tiempo "
+"real desde cualquier navegador."
+msgstr ""
+"پیوندی بسازید تا دیگران بتوانند موقعیت و مسیر شما را در زمان واقعی از هر "
+"مرورگری دنبال کنند."
+
+#: qml/TripSharePanel.qml:111
+msgid "✓ Copiado"
+msgstr "✓ کپی شد"
+
+#: qml/TripSharePanel.qml:111
+msgid "Copiar"
+msgstr "کپی"
+
+#: qml/TripSharePanel.qml:147
+msgid "Generando…"
+msgstr "در حال ایجاد…"
+
+#: qml/TripSharePanel.qml:148
+msgid "Abrir en navegador"
+msgstr "باز کردن در مرورگر"
+
+#: qml/TripSharePanel.qml:149
+msgid "Crear enlace"
+msgstr "ایجاد پیوند"
+
+#: qml/TripSharePanel.qml:172
+msgid "Detener"
+msgstr "توقف"
+
+#: qml/TripSharePanel.qml:187 qml/Main.qml:7718 qml/Main.qml:8190
+#: qml/LoginPanel.qml:151 qml/AboutDialog.qml:253 qml/ParkingDialog.qml:162
+#: qml/TourOverlay.qml:314
+msgid "Cerrar"
+msgstr "بستن"
+
+#: qml/HelpPanel.qml:24 qml/PreferencesPanel.qml:3019
+msgid "Manual de usuario"
+msgstr "راهنمای کاربر"
+
+#: qml/HelpPanel.qml:56 qml/TourOverlay.qml:32
+msgid "El mapa"
+msgstr "نقشه"
+
+#: qml/HelpPanel.qml:58
+msgid "Navegar por el mapa"
+msgstr "پیمایش روی نقشه"
+
+#: qml/HelpPanel.qml:59
+msgid ""
+"Desliza un dedo para mover el mapa. Pellizca para hacer zoom o usa la barra "
+"lateral. Toca la brújula para recentrar en tu posición y activar el "
+"seguimiento GPS."
+msgstr ""
+"یک انگشت را بکشید تا نقشه حرکت کند. برای بزرگ‌نمایی نیشگون بگیرید یا از نوار "
+"کناری استفاده کنید. برای مرکز کردن موقعیت و فعال کردن ردیابی GPS به قطب‌نما "
+"ضربه بزنید."
+
+#: qml/HelpPanel.qml:60
+msgid "Modo 2D y 3D"
+msgstr "حالت ۲ بعدی و ۳ بعدی"
+
+#: qml/HelpPanel.qml:61
+msgid ""
+"El botón 2D/3D alterna entre vista plana y perspectiva inclinada de "
+"conducción. En 3D puedes ver los edificios extruidos en el área urbana."
+msgstr ""
+"دکمه 2D/3D بین نمای مسطح و دیدگاه مایل رانندگی جابجا می‌شود. در حالت 3D "
+"می‌توانید ساختمان‌های برجسته را در مناطق شهری ببینید."
+
+#: qml/HelpPanel.qml:62
+msgid "Modo día / noche / automático"
+msgstr "حالت روز / شب / خودکار"
+
+#: qml/HelpPanel.qml:63
+msgid ""
+"En Ajustes → Ajustes rápidos puedes fijar el modo de color del mapa, o "
+"dejarlo en «auto» para que cambie con la hora del día."
+msgstr ""
+"در تنظیمات → تنظیمات سریع می‌توانید حالت رنگ نقشه را ثابت کنید یا آن را روی "
+"«خودکار» بگذارید تا با ساعت روز تغییر کند."
+
+#: qml/HelpPanel.qml:64
+msgid "Orientación del mapa"
+msgstr "جهت‌گیری نقشه"
+
+#: qml/HelpPanel.qml:65
+msgid "Cambia entre Norte arriba y Rumbo arriba en Ajustes → Ajustes rápidos."
+msgstr "در تنظیمات → تنظیمات سریع بین شمال بالا و مسیر بالا جابجا شوید."
+
+#: qml/HelpPanel.qml:66
+msgid "Estilos de mapa"
+msgstr "سبک‌های نقشه"
+
+#: qml/HelpPanel.qml:67
+msgid ""
+"El botón de estilo del mapa (en el mapa) te permite ciclar entre varios "
+"estilos: Auto (cambia con el sol), Satélite (fotos aéreas), Positron "
+"(claro), Vivo/Bright (colores vivos), Fiord (oscuro suave, usado por Auto de "
+"noche) y Noche/Dark (oscuro intenso). El nombre del estilo actual aparece "
+"bajo el icono."
+msgstr ""
+"دکمه سبک نقشه (روی نقشه) به شما اجازه می‌دهد بین سبک‌های مختلف جابجا شوید: "
+"خودکار (با آفتاب تغییر می‌کند)، ماهواره (عکس هوایی)، Positron (روشن)، زنده/"
+"Bright (رنگ‌های زنده)، Fiord (تاریک ملایم، استفاده شده توسط خودکار در شب) و "
+"شب/Dark (تاریک شدید). نام سبک فعلی زیر آیکون نمایش داده می‌شود."
+
+#: qml/HelpPanel.qml:72
+msgid "Buscar y planificar"
+msgstr "جستجو و برنامه‌ریزی"
+
+#: qml/HelpPanel.qml:74 qml/TourOverlay.qml:37
+msgid "Buscar un destino"
+msgstr "جستجوی مقصد"
+
+#: qml/HelpPanel.qml:75
+msgid ""
+"Toca el botón «Iniciar navegación» en la parte superior para abrir el panel "
+"de planificación. Escribe el nombre de un lugar, dirección o coordenadas. La "
+"búsqueda usa OpenStreetMap."
+msgstr ""
+"دکمه «شروع ناوبری» را در بالا لمس کنید تا پانل برنامه‌ریزی باز شود. نام یک "
+"مکان، آدرس یا مختصات را وارد کنید. جستجو از OpenStreetMap استفاده می‌کند."
+
+#: qml/HelpPanel.qml:76
+msgid "Ruta con múltiples paradas"
+msgstr "مسیر با چند توقف"
+
+#: qml/HelpPanel.qml:77
+msgid ""
+"Añade tantos destinos como necesites. La ruta pasará por todos en el orden "
+"indicado. Puedes reordenarlos o eliminarlos."
+msgstr ""
+"هر تعداد مقصد که نیاز دارید اضافه کنید. مسیر به ترتیب مشخص از همه آن‌ها عبور "
+"می‌کند. می‌توانید آن‌ها را مرتب کنید یا حذف کنید."
+
+#: qml/HelpPanel.qml:78
+msgid "Opciones de ruta"
+msgstr "گزینه‌های مسیر"
+
+#: qml/HelpPanel.qml:79
+msgid ""
+"Antes de calcular puedes excluir: peajes, autopistas, ferries y pistas de "
+"tierra. También puedes elegir el tipo de vehículo en la pantalla de "
+"selección de ruta."
+msgstr ""
+"قبل از محاسبه می‌توانید موارد زیر را حذف کنید: عوارض، آزادراه‌ها، فری‌ها و "
+"جاده‌های خاکی. همچنین می‌توانید نوع وسیله نقلیه را در صفحه انتخاب مسیر انتخاب "
+"کنید."
+
+#: qml/HelpPanel.qml:80
+msgid "Buscar POI cercanos"
+msgstr "جستجوی POI‌های نزدیک"
+
+#: qml/HelpPanel.qml:81
+msgid ""
+"En el panel de planificación aparece la sección «POI cercanos». Selecciona "
+"la categoría y elige el resultado para añadirlo como destino. Las "
+"gasolineras muestran el precio del combustible cuando está disponible en "
+"OSM. Otros POIs muestran información adicional: horario, teléfono, web, etc."
+msgstr ""
+"در پانل برنامه‌ریزی بخش «POIهای نزدیک» نمایش داده می‌شود. دسته‌بندی را انتخاب "
+"کنید و نتیجه را برای افزودن به عنوان مقصد انتخاب کنید. پمپ‌های بنزین قیمت "
+"سوخت را در صورت موجود بودن در OSM نشان می‌دهند. سایر POIها اطلاعات اضافی نشان "
+"می‌دهند: ساعات کاری، تلفن، وب‌سایت، و غیره."
+
+#: qml/HelpPanel.qml:82
+msgid "Historial y favoritos"
+msgstr "تاریخچه و موارد دلخواه"
+
+#: qml/HelpPanel.qml:83
+msgid ""
+"Los últimos 50 destinos se guardan en el historial. Puedes marcar cualquier "
+"lugar como favorito y darle un nombre personalizado."
+msgstr ""
+"۵۰ مقصد آخر در تاریخچه ذخیره می‌شوند. می‌توانید هر مکانی را به عنوان مورد "
+"دلخواه علامت‌گذاری کنید و نام شخصی‌سازی شده‌ای به آن بدهید."
+
+#: qml/HelpPanel.qml:88 qml/TourOverlay.qml:47
+msgid "TODOs por destino"
+msgstr "وظایف بر اساس مقصد"
+
+#: qml/HelpPanel.qml:90
+msgid "Añadir tareas a un destino"
+msgstr "افزودن وظایف به مقصد"
+
+#: qml/HelpPanel.qml:91
+msgid ""
+"Toca «+ Tarea» junto a cualquier destino del panel para añadir un TODO. Las "
+"tareas quedan asociadas a esa ubicación geográfica."
+msgstr ""
+"«+ وظیفه» را در کنار هر مقصد در پانل لمس کنید تا یک TODO اضافه کنید. وظایف "
+"با آن موقعیت جغرافیایی مرتبط می‌مانند."
+
+#: qml/HelpPanel.qml:92
+msgid "Gestionar TODOs durante la navegación"
+msgstr "مدیریت وظایف در طول ناوبری"
+
+#: qml/HelpPanel.qml:93
+msgid ""
+"Al llegar a un destino con TODOs, aparece un aviso en la pantalla. Toca "
+"«Abrir» para ver la lista y marcar las tareas como completadas."
+msgstr ""
+"هنگام رسیدن به مقصدی با TODO، یک هشدار روی صفحه نمایش داده می‌شود. «باز کردن» "
+"را لمس کنید تا لیست را ببینید و وظایف را به عنوان تکمیل شده علامت‌گذاری کنید."
+
+#: qml/HelpPanel.qml:94
+msgid "Persistencia de TODOs"
+msgstr "ذخیره‌سازی TODOs"
+
+#: qml/HelpPanel.qml:95
+msgid ""
+"Los TODOs se guardan por coordenadas y persisten entre sesiones. La próxima "
+"vez que planifiques una ruta al mismo lugar, aparecerán de nuevo."
+msgstr ""
+"TODOها بر اساس مختصات ذخیره می‌شوند و بین نشست‌ها پایدار هستند. دفعه بعدی که "
+"مسیری به همان مکان برنامه‌ریزی کنید، دوباره ظاهر خواهند شد."
+
+#: qml/HelpPanel.qml:100 qml/TourOverlay.qml:52
+msgid "Hora de salida y planes guardados"
+msgstr "زمان حرکت و برنامه‌های ذخیره‌شده"
+
+#: qml/HelpPanel.qml:102
+msgid "Programar hora de salida"
+msgstr "برنامه‌ریزی زمان حرکت"
+
+#: qml/HelpPanel.qml:103
+msgid ""
+"Activa «Hora de salida» en la parte inferior del panel de planificación. "
+"Selecciona el día (hoy, mañana…) y la hora con los selectores. La ruta usará "
+"el tráfico predicho para ese momento."
+msgstr ""
+"«زمان حرکت» را در قسمت پایین پانل برنامه‌ریزی فعال کنید. روز (امروز، فردا...) "
+"و ساعت را با انتخابگرها انتخاب کنید. مسیر از ترافیک پیش‌بینی‌شده برای آن لحظه "
+"استفاده خواهد کرد."
+
+#: qml/HelpPanel.qml:104
+msgid "Guardar un plan"
+msgstr "ذخیره یک برنامه"
+
+#: qml/HelpPanel.qml:105
+msgid ""
+"Pulsa el botón ⊕ junto a CALCULAR RUTA para guardar el plan completo "
+"(destinos + TODOs + hora de salida + opciones de ruta)."
+msgstr ""
+"دکمه ⊕ کنار محاسبه مسیر را فشار دهید تا برنامه کامل ذخیره شود (مقاصد + "
+"TODOها + زمان حرکت + گزینه‌های مسیر)."
+
+#: qml/HelpPanel.qml:106
+msgid "Cargar un plan guardado"
+msgstr "بارگذاری برنامه ذخیره‌شده"
+
+#: qml/HelpPanel.qml:107
+msgid ""
+"Los planes aparecen en la sección «Planes guardados» al inicio del panel. "
+"Toca un plan para cargarlo. Si su fecha de salida ya pasó, se actualiza "
+"automáticamente al próximo día."
+msgstr ""
+"برنامه‌ها در بخش «برنامه‌های ذخیره‌شده» در ابتدای پانل نمایش داده می‌شوند. یک "
+"برنامه را لمس کنید تا بارگذاری شود. اگر تاریخ حرکت گذشته باشد، به‌طور خودکار "
+"به روز بعدی به‌روز می‌شود."
+
+#: qml/HelpPanel.qml:108
+msgid "Eliminar un plan"
+msgstr "حذف یک برنامه"
+
+#: qml/HelpPanel.qml:109
+msgid "Toca el icono de papelera junto al plan para borrarlo definitivamente."
+msgstr "برای حذف دائمی برنامه، آیکون سطل زباله کنار آن را لمس کنید."
+
+#: qml/HelpPanel.qml:114 qml/SearchPanel.qml:714 qml/PreferencesPanel.qml:1324
+msgid "Navegación"
+msgstr "ناوبری"
+
+#: qml/HelpPanel.qml:116
+msgid "Instrucciones de voz"
+msgstr "دستورالعمل‌های صوتی"
+
+#: qml/HelpPanel.qml:117
+msgid ""
+"La voz avisa con antelación de cada maniobra. Las instrucciones se generan "
+"en el motor TTS configurado en Ajustes → Voz."
+msgstr ""
+"صدا از قبل از هر مانور هشدار می‌دهد. دستورالعمل‌ها در موتور TTS پیکربندی‌شده در "
+"تنظیمات → صدا تولید می‌شوند."
+
+#: qml/HelpPanel.qml:118
+msgid "Barra de navegación"
+msgstr "نوار ناوبری"
+
+#: qml/HelpPanel.qml:119
+msgid ""
+"La barra superior muestra: icono de maniobra, distancia al giro, nombre de "
+"la calle, velocidad actual, límite de velocidad y ETA (hora de llegada "
+"estimada)."
+msgstr ""
+"نوار بالایی نشان می‌دهد: آیکون مانور، فاصله تا پیچ، نام خیابان، سرعت فعلی، "
+"محدودیت سرعت و ETA (زمان تخمینی رسیدن)."
+
+#: qml/HelpPanel.qml:120
+msgid "Recálculo de ruta"
+msgstr "محاسبه مجدد مسیر"
+
+#: qml/HelpPanel.qml:121
+msgid "Si te desvías, Navius recalcula la ruta automáticamente."
+msgstr "اگر از مسیر خارج شوید، Navius به‌طور خودکار مسیر را محاسبه مجدد می‌کند."
+
+#: qml/HelpPanel.qml:122
+msgid "Finalizar navegación"
+msgstr "پایان ناوبری"
+
+#: qml/HelpPanel.qml:123
+msgid "Toca el botón de stop en la barra de navegación o cierra el panel."
+msgstr "دکمه توقف را در نوار ناوبری لمس کنید یا پانل را ببندید."
+
+#: qml/HelpPanel.qml:128
+msgid "Voz (TTS)"
+msgstr "صدا (TTS)"
+
+#: qml/HelpPanel.qml:130
+msgid "Motores disponibles"
+msgstr "موتورهای موجود"
+
+#: qml/HelpPanel.qml:131
+msgid ""
+"Piper (neural, alta calidad), Mimic HTS (español, buena calidad) y PicoTTS "
+"(básico, muy rápido). Configúralo en Ajustes → Voz."
+msgstr ""
+"Piper (عصبی، کیفیت بالا)، Mimic HTS (اسپانیایی، کیفیت خوب) و PicoTTS (پایه، "
+"بسیار سریع). آن را در تنظیمات → صدا پیکربندی کنید."
+
+#: qml/HelpPanel.qml:132
+msgid "Voces Piper"
+msgstr "صداهای Piper"
+
+#: qml/HelpPanel.qml:133
+msgid ""
+"Piper soporta múltiples idiomas y voces .onnx. Descarga voces adicionales "
+"desde Ajustes → Voz → Ver voces disponibles."
+msgstr ""
+"Piper از زبان‌ها و صداهای .onnx متعدد پشتیبانی می‌کند. صداهای بیشتر را از "
+"تنظیمات → صدا → مشاهده صداهای موجود دانلود کنید."
+
+#: qml/HelpPanel.qml:134
+msgid "Test de voz"
+msgstr "آزمایش صدا"
+
+#: qml/HelpPanel.qml:135
+msgid ""
+"En Ajustes → Voz hay un campo para escribir texto de prueba y escucharlo con "
+"el motor actual."
+msgstr ""
+"در تنظیمات → صدا یک فیلد برای نوشتن متن آزمایشی و شنیدن آن با موتور فعلی "
+"وجود دارد."
+
+#: qml/HelpPanel.qml:140
+msgid "GPS y satélites"
+msgstr "GPS و ماهواره‌ها"
+
+#: qml/HelpPanel.qml:142 qml/TourOverlay.qml:92
+msgid "Vista de satélites"
+msgstr "نمای ماهواره‌ها"
+
+#: qml/HelpPanel.qml:143
+msgid ""
+"El panel de satélites (icono de antena) muestra la posición y señal SNR de "
+"cada satélite en una vista polar acimutal."
+msgstr ""
+"پانل ماهواره‌ها (آیکون آنتن) موقعیت و سیگنال SNR هر ماهواره را در نمای قطبی "
+"آزیموتال نشان می‌دهد."
+
+#: qml/HelpPanel.qml:144
+msgid "Fix GPS"
+msgstr "Fix GPS"
+
+#: qml/HelpPanel.qml:145
+msgid ""
+"El indicador de fix muestra: sin señal, fix 2D (posición sin altitud) o fix "
+"3D (posición + altitud). La navegación requiere fix 3D."
+msgstr ""
+"نشانگر fix نشان می‌دهد: بدون سیگنال، fix 2D (موقعیت بدون ارتفاع) یا fix 3D "
+"(موقعیت + ارتفاع). ناوبری به fix 3D نیاز دارد."
+
+#: qml/HelpPanel.qml:146
+msgid "Dead-reckoning"
+msgstr "Dead-reckoning"
+
+#: qml/HelpPanel.qml:147
+msgid ""
+"Navius interpola la posición GPS a 10-30 Hz entre lecturas reales para que "
+"el icono de posición se mueva con fluidez. Configúralo en Ajustes → General."
+msgstr ""
+"Navius موقعیت GPS را با فرکانس ۱۰-۳۰ هرتز بین خوانش‌های واقعی درونیابی می‌کند "
+"تا آیکون موقعیت به صورت روان حرکت کند. آن را در تنظیمات → عمومی پیکربندی "
+"کنید."
+
+#: qml/HelpPanel.qml:148 qml/PreferencesPanel.qml:1911
+msgid "Velocidad GPS Doppler"
+msgstr "سرعت GPS دوپلر"
+
+#: qml/HelpPanel.qml:149
+msgid ""
+"Los chips GPS modernos calculan la velocidad por efecto Doppler de la señal "
+"satelital, lo que es más preciso que calcularla por diferencia de posiciones "
+"consecutivas, especialmente a baja velocidad y en arranques o frenadas "
+"bruscas. Activa esta opción en Ajustes → Navegación para usar la velocidad "
+"del hardware directamente. Si observas valores erráticos con tu dispositivo "
+"concreto, desactívala para volver al cálculo clásico."
+msgstr ""
+"چیپ‌های GPS مدرن سرعت را از طریق اثر دوپلر سیگنال ماهواره‌ای محاسبه می‌کنند که "
+"دقیق‌تر از محاسبه از طریق تفاوت موقعیت‌های متوالی است، به‌ویژه در سرعت‌های پایین "
+"و شتاب‌گیری یا ترمز ناگهانی. این گزینه را در تنظیمات → ناوبری فعال کنید تا از "
+"سرعت سخت‌افزار مستقیماً استفاده شود. اگر مقادیر ناپایداری با دستگاه خاص خود "
+"مشاهده کردید، آن را غیرفعال کنید تا به محاسبه کلاسیک برگردید."
+
+#: qml/HelpPanel.qml:154 qml/TourOverlay.qml:102
+msgid "Grabación de tracks"
+msgstr "ضبط مسیرها"
+
+#: qml/HelpPanel.qml:156
+msgid "Grabar un track GPS"
+msgstr "ضبط مسیر GPS"
+
+#: qml/HelpPanel.qml:157
+msgid ""
+"Activa la grabación en Ajustes → Navegación. El track se guarda en SQLite "
+"con marca de tiempo y distancia acumulada."
+msgstr ""
+"ضبط را در تنظیمات → ناوبری فعال کنید. مسیر در SQLite با تایم‌استمپ و مسافت "
+"انباشته ذخیره می‌شود."
+
+#: qml/HelpPanel.qml:158
+msgid "Exportar a GPX"
+msgstr "صادرکردن به GPX"
+
+#: qml/HelpPanel.qml:159
+msgid ""
+"En el panel de tracks puedes exportar cualquier track grabado al formato GPX "
+"estándar, compatible con aplicaciones externas."
+msgstr ""
+"در پانل مسیرها می‌توانید هر مسیر ضبط‌شده را به فرمت استاندارد GPX، سازگار با "
+"برنامه‌های خارجی، صادر کنید."
+
+#: qml/HelpPanel.qml:166
+msgid "¿Qué es el compartir viaje?"
+msgstr "اشتراک‌گذاری سفر چیست؟"
+
+#: qml/HelpPanel.qml:167
+msgid ""
+"Permite que otras personas sigan tu posición y ruta en tiempo real desde "
+"cualquier navegador web, sin necesidad de tener Navius instalado. Necesitas "
+"una cuenta Navius activa (sesión iniciada)."
+msgstr ""
+"به دیگران اجازه می‌دهد موقعیت و مسیر شما را در زمان واقعی از هر مرورگر وب "
+"دنبال کنند، بدون نیاز به نصب Navius. به یک حساب فعال Navius (وارد شده) نیاز "
+"دارید."
+
+#: qml/HelpPanel.qml:168
+msgid "Cómo activar el share"
+msgstr "نحوه فعال‌سازی share"
+
+#: qml/HelpPanel.qml:169
+msgid ""
+"Abre el menú ≡ → toca «Compartir viaje» → «Crear enlace». Navius genera un "
+"enlace único que puedes copiar o compartir directamente por WhatsApp, "
+"Telegram o cualquier otra app. Mientras el share está activo, el ítem del "
+"menú aparece en rojo con el texto «Compartiendo»."
+msgstr ""
+"منوی ≡ را باز کنید → «اشتراک‌گذاری سفر» را لمس کنید → «ایجاد پیوند». Navius "
+"یک پیوند منحصربه‌فرد ایجاد می‌کند که می‌توانید آن را کپی کنید یا مستقیماً از "
+"طریق WhatsApp، Telegram یا هر برنامه دیگری به اشتراک بگذارید. در حالی که "
+"اشتراک‌گذاری فعال است، آیتم منو با متن «در حال اشتراک‌گذاری» به رنگ قرمز نمایش "
+"داده می‌شود."
+
+#: qml/HelpPanel.qml:170
+msgid "¿Qué ve el seguidor?"
+msgstr "دنبال‌کننده چه می‌بیند؟"
+
+#: qml/HelpPanel.qml:171
+msgid ""
+"La página web del seguidor muestra el mapa con tu posición actualizada cada "
+"5 segundos, tu velocidad, la ruta activa (solo el tramo restante) y los "
+"destinos con distancia y ETA. El seguidor puede cambiar el estilo del mapa "
+"(día/noche/positron/bright) y usar el botón ◎ Centrar para volver a seguir "
+"tu posición si mueve el mapa."
+msgstr ""
+"صفحه وب دنبال‌کننده نقشه را با موقعیت شما که هر ۵ ثانیه به‌روز می‌شود، سرعت "
+"شما، مسیر فعال (فقط بخش باقی‌مانده) و مقاصد با فاصله و ETA نشان می‌دهد. "
+"دنبال‌کننده می‌تواند سبک نقشه (روز/شب/positron/bright) را تغییر دهد و از دکمه "
+"◎ مرکز کردن برای بازگشت به دنبال کردن موقعیت شما در صورت حرکت نقشه استفاده "
+"کند."
+
+#: qml/HelpPanel.qml:172
+msgid "¿Qué pasa si cierro Navius?"
+msgstr "اگر Navius را ببندم چه می‌شود؟"
+
+#: qml/HelpPanel.qml:173
+msgid ""
+"Si Navius se cierra o pasa a segundo plano, el seguidor ve el aviso «Navius "
+"cerrado · Última posición conocida». El enlace sigue siendo válido 24 horas."
+msgstr ""
+"اگر Navius بسته شود یا به پس‌زمینه برود، دنبال‌کننده هشدار «Navius بسته است · "
+"آخرین موقعیت شناخته‌شده» را می‌بیند. پیوند تا ۲۴ ساعت معتبر باقی می‌ماند."
+
+#: qml/HelpPanel.qml:174
+msgid "Renovación automática de sesión"
+msgstr "تجدید خودکار نشست"
+
+#: qml/HelpPanel.qml:175
+msgid ""
+"Si tu sesión ha expirado al intentar compartir, Navius renueva el token "
+"automáticamente (hasta 90 días tras la caducidad) sin que tengas que volver "
+"a hacer login."
+msgstr ""
+"اگر نشست شما در هنگام اشتراک‌گذاری منقضی شده باشد، Navius به‌طور خودکار توکن "
+"را تجدید می‌کند (تا ۹۰ روز پس از انقضا) بدون اینکه نیاز باشد دوباره وارد شوید."
+
+#: qml/HelpPanel.qml:176
+msgid "Cómo detener el share"
+msgstr "نحوه متوقف‌کردن share"
+
+#: qml/HelpPanel.qml:177
+msgid ""
+"Menú ≡ → «Compartiendo» (en rojo) → «Detener». El enlace se revoca "
+"inmediatamente."
+msgstr ""
+"منوی ≡ → «در حال اشتراک‌گذاری» (به رنگ قرمز) → «توقف». پیوند بلافاصله ابطال "
+"می‌شود."
+
+#: qml/HelpPanel.qml:182
+msgid "Servidor Valhalla"
+msgstr "سرور Valhalla"
+
+#: qml/HelpPanel.qml:184
+msgid "Servidor oficial"
+msgstr "سرور رسمی"
+
+#: qml/HelpPanel.qml:185
+msgid ""
+"valhalla.egpsistemas.com está preconfigurado y ofrece rutas para todo el "
+"mundo con tráfico predicho, sin límite de uso para usuarios de Navius."
+msgstr ""
+"valhalla.egpsistemas.com از پیش پیکربندی شده است و مسیرها را برای تمام جهان "
+"با ترافیک پیش‌بینی‌شده، بدون محدودیت استفاده برای کاربران Navius ارائه می‌دهد."
+
+#: qml/HelpPanel.qml:186
+msgid "Servidor propio"
+msgstr "سرور شخصی"
+
+#: qml/HelpPanel.qml:187
+msgid ""
+"Puedes instalar tu propio servidor Valhalla y configurar su URL en Ajustes → "
+"Servidor Valhalla. Útil si quieres datos locales o privacidad total."
+msgstr ""
+"می‌توانید سرور Valhalla خود را نصب کنید و URL آن را در تنظیمات → سرور "
+"Valhalla پیکربندی کنید. مفید است اگر داده‌های محلی یا حریم خصوصی کامل "
+"می‌خواهید."
+
+#: qml/HelpPanel.qml:188
+msgid "Tráfico predicho"
+msgstr "ترافیک پیش‌بینی‌شده"
+
+#: qml/HelpPanel.qml:189
+msgid ""
+"Valhalla usa perfiles sintéticos por hora del día y día de la semana para "
+"estimar velocidades según el tipo de vía. Las rutas programadas con hora de "
+"salida aplican automáticamente el perfil correspondiente."
+msgstr ""
+"Valhalla از پروفایل‌های مصنوعی بر اساس ساعت روز و روز هفته برای تخمین سرعت‌ها "
+"بر اساس نوع جاده استفاده می‌کند. مسیرهای برنامه‌ریزی‌شده با زمان حرکت به‌طور "
+"خودکار پروفایل مربوطه را اعمال می‌کنند."
+
+#: qml/HelpPanel.qml:190
+msgid "Mapas offline con OSM Scout Server"
+msgstr "نقشه‌های آفلاین با OSM Scout Server"
+
+#: qml/HelpPanel.qml:191
+msgid ""
+"Instala OSM Scout Server desde la OpenStore de Ubuntu Touch para calcular "
+"rutas y buscar lugares completamente sin conexión. Navius lo detecta "
+"automáticamente en Ajustes → Servidor Valhalla → Detectar servidor local."
+msgstr ""
+"OSM Scout Server را از OpenStore اوبونتو Touch نصب کنید تا مسیرها را محاسبه "
+"کنید و مکان‌ها را کاملاً آفلاین جستجو کنید. Navius آن را به‌طور خودکار در "
+"تنظیمات → سرور Valhalla → شناسایی سرور محلی شناسایی می‌کند."
+
+#: qml/HelpPanel.qml:196 qml/Main.qml:6819 qml/PreferencesPanel.qml:140
+#: qml/TourOverlay.qml:112
+msgid "Ajustes"
+msgstr "تنظیمات"
+
+#: qml/HelpPanel.qml:198
+msgid "Nivel de opciones: Mínimo, Medio, Avanzado"
+msgstr "سطح گزینه‌ها: حداقل، متوسط، پیشرفته"
+
+#: qml/HelpPanel.qml:199
+msgid ""
+"El selector de nivel en la parte superior del panel de ajustes oculta o "
+"muestra opciones según su complejidad. Mínimo: solo lo esencial. Medio: "
+"opciones adicionales de navegación. Avanzado: configuración técnica completa."
+msgstr ""
+"انتخابگر سطح در قسمت بالای پانل تنظیمات گزینه‌ها را بر اساس پیچیدگی پنهان یا "
+"نشان می‌دهد. حداقل: فقط ضروری‌ها. متوسط: گزینه‌های اضافی ناوبری. پیشرفته: "
+"پیکربندی فنی کامل."
+
+#: qml/HelpPanel.qml:200
+msgid "Controles [−] y [+]"
+msgstr "کنترل‌های [−] و [+]"
+
+#: qml/HelpPanel.qml:201
+msgid ""
+"Los valores numéricos (frecuencia GPS, distancias, tiempos...) se ajustan "
+"con botones [−] y [+] en lugar de sliders. Esto evita que al hacer scroll "
+"por el panel se cambie el valor accidentalmente."
+msgstr ""
+"مقادیر عددی (فرکانس GPS، فاصله‌ها، زمان‌ها...) با دکمه‌های [−] و [+] به جای "
+"اسلایدرها تنظیم می‌شوند. این از تغییر تصادفی مقدار هنگام اسکرول در پانل "
+"جلوگیری می‌کند."
+
+#: qml/HelpPanel.qml:202
+msgid "Indicador ↺ de valor por defecto"
+msgstr "نشانگر ↺ مقدار پیش‌فرض"
+
+#: qml/HelpPanel.qml:203
+msgid ""
+"Junto a cada opción con valor personalizado aparece el valor por defecto con "
+"el símbolo ↺ (por ejemplo: ↺ 8 m, ↺ 15 s, ↺ act.). Si el valor ya es el "
+"predeterminado, el indicador no aparece."
+msgstr ""
+"در کنار هر گزینه با مقدار سفارشی، مقدار پیش‌فرض با نماد ↺ نمایش داده می‌شود "
+"(مثلاً: ↺ 8 m، ↺ 15 s، ↺ فعال). اگر مقدار قبلاً پیش‌فرض باشد، نشانگر نمایش داده "
+"نمی‌شود."
+
+#: qml/HelpPanel.qml:204 qml/PreferencesPanel.qml:203
+msgid "Restaurar valores por defecto"
+msgstr "بازگردانی مقادیر پیش‌فرض"
+
+#: qml/HelpPanel.qml:205
+msgid ""
+"En la parte superior del panel hay un botón ↺ Restaurar valores por defecto. "
+"Requiere dos toques para confirmar: el primero muestra el aviso ⚠, el "
+"segundo (en menos de 3 segundos) aplica el reinicio. Si no confirmas a "
+"tiempo, la acción se cancela automáticamente."
+msgstr ""
+"در قسمت بالای پانل یک دکمه ↺ بازگردانی مقادیر پیش‌فرض وجود دارد. برای تأیید "
+"به دو لمس نیاز دارد: اولی هشدار ⚠ را نشان می‌دهد، دومی (در کمتر از ۳ ثانیه) "
+"بازنشانی را اعمال می‌کند. اگر به موقع تأیید نکنید، عملیات به‌طور خودکار لغو "
+"می‌شود."
+
+#: qml/HelpPanel.qml:210
+msgid "Anuncios"
+msgstr "تبلیغات"
+
+#: qml/HelpPanel.qml:212
+msgid "¿Qué son los anuncios de Navius?"
+msgstr "تبلیغات Navius چیست؟"
+
+#: qml/HelpPanel.qml:213
+msgid ""
+"Navius puede mostrar ocasionalmente carteles de negocios locales y de la "
+"propia app en la carretera. Están diseñados para ser discretos: aparecen "
+"como señales al borde de la vía y en un pequeño panel en la parte inferior "
+"de la pantalla, sin interrumpir la navegación."
+msgstr ""
+"Navius ممکن است گاه‌گاهی بنرهای کسب‌وکارهای محلی و خود برنامه را در جاده نشان "
+"دهد. آن‌ها برای گسسته بودن طراحی شده‌اند: به صورت علائم در کنار جاده و در یک "
+"پانل کوچک در قسمت پایین صفحه ظاهر می‌شوند، بدون اینکه ناوبری را قطع کنند."
+
+#: qml/HelpPanel.qml:214
+msgid "¿Son intrusivos?"
+msgstr "آیا مزاحم هستند؟"
+
+#: qml/HelpPanel.qml:215
+msgid ""
+"No. Los anuncios respetan un intervalo mínimo de 1 hora entre apariciones, "
+"no producen sonido adicional ni bloquean el mapa. Puedes cerrarlos en "
+"cualquier momento tocando la X del panel."
+msgstr ""
+"خیر. آگهی‌ها حداقل فاصله ۱ ساعته بین ظهور را رعایت می‌کنند، صدای اضافی تولید "
+"نمی‌کنند و نقشه را مسدود نمی‌کنند. می‌توانید آن‌ها را در هر زمانی با لمس X پانل "
+"ببندید."
+
+#: qml/HelpPanel.qml:216
+msgid "¿Cómo colaboran con Navius?"
+msgstr "چطور به Navius کمک می‌کنند؟"
+
+#: qml/HelpPanel.qml:217
+msgid ""
+"Navius es una aplicación gratuita y de código abierto. Ver un anuncio ya "
+"supone una pequeña ayuda; si además haces click en él, contribuyes "
+"directamente a financiar el desarrollo y mantenimiento de la app. ¡Gracias "
+"por tu apoyo!"
+msgstr ""
+"Navius یک برنامه رایگان و متن‌باز است. دیدن یک آگهی کمک کوچکی است؛ اگر علاوه "
+"بر آن روی آن کلیک کنید، مستقیماً به تأمین مالی توسعه و نگهداری برنامه کمک "
+"می‌کنید. با تشکر از حمایت شما!"
+
+#: qml/HelpPanel.qml:218
+msgid "¿Qué datos se registran?"
+msgstr "چه داده‌هایی ثبت می‌شوند؟"
+
+#: qml/HelpPanel.qml:219
+msgid ""
+"Cuando el panel de anuncio aparece se registra una impresión anónima. Si "
+"haces click, el servidor anota el momento del click para estadísticas de "
+"rendimiento del anuncio. No se comparten datos con terceros."
+msgstr ""
+"هنگامی که پانل آگهی ظاهر می‌شود، یک نمایش ناشناس ثبت می‌شود. اگر کلیک کنید، "
+"سرور لحظه کلیک را برای آمار عملکرد آگهی یادداشت می‌کند. هیچ داده‌ای با اشخاص "
+"ثالث به اشتراک گذاشته نمی‌شود."
+
+#: qml/HelpPanel.qml:315 qml/AboutDialog.qml:177
+msgid "Apoya el desarrollo"
+msgstr "از توسعه حمایت کنید"
+
+#: qml/HelpPanel.qml:324 qml/AboutDialog.qml:185
+msgid ""
+"Si Navius te resulta útil, considera hacer una donación para ayudar a "
+"mantener los servidores y seguir mejorando la app."
+msgstr ""
+"اگر Navius برای شما مفید است، یک کمک مالی برای کمک به نگهداری سرورها و بهبود "
+"مستمر برنامه در نظر بگیرید."
+
+#: qml/HelpPanel.qml:344 qml/AboutDialog.qml:207
+msgid "Donar con Liberapay"
+msgstr "کمک مالی با Liberapay"
+
+#: qml/NaviusLogo.qml:49
+msgid "Navegación comunitaria"
+msgstr "ناوبری اجتماعی"
+
+#: qml/ServerFallbackDialog.qml:68
+msgid "no disponible"
+msgstr "در دسترس نیست"
+
+#: qml/ServerFallbackDialog.qml:75
+msgid "El servidor no ha respondido en el tiempo esperado."
+msgstr "سرور در زمان مورد انتظار پاسخ نداده است."
+
+#: qml/ServerFallbackDialog.qml:83
+msgid ""
+"OSM Scout Server no detectado. Instálalo desde la OpenStore para usar mapas "
+"y rutas offline."
+msgstr ""
+"OSM Scout Server شناسایی نشد. آن را از OpenStore نصب کنید تا از نقشه‌ها و "
+"مسیرهای آفلاین استفاده کنید."
+
+#: qml/ServerFallbackDialog.qml:108
+msgid "Detectando OSM Scout…"
+msgstr "در حال شناسایی OSM Scout…"
+
+#: qml/ServerFallbackDialog.qml:108
+msgid "Usar OSM Scout Server"
+msgstr "استفاده از OSM Scout Server"
+
+#: qml/ServerFallbackDialog.qml:127
+msgid "Reintentar"
+msgstr "تلاش مجدد"
+
+#: qml/ServerFallbackDialog.qml:143 qml/SearchPanel.qml:2148
+#: qml/VehicleSetupDialog.qml:160 qml/SharedLocationDialog.qml:163
+#: qml/Main.qml:8279 qml/AlertasOverlay.qml:410 qml/LoginPanel.qml:400
+#: qml/PreferencesPanel.qml:422 qml/PreferencesPanel.qml:934
+#: qml/PreferencesPanel.qml:2182
+msgid "Cancelar"
+msgstr "لغو"
+
+#: qml/WhatsNewDialog.qml:22
+msgid ""
+"Búsqueda de puntos de interés cerca de ti: gasolineras, parking, "
+"restaurantes, hoteles y más"
+msgstr "جستجوی مکان‌های جالب نزدیک: پمپ بنزین، پارکینگ، رستوران، هتل و بیشتر"
+
+#: qml/WhatsNewDialog.qml:23
+msgid ""
+"Detección automática de rutas más rápidas por tráfico durante la navegación"
+msgstr "تشخیص خودکار مسیرهای سریع‌تر به دلیل ترافیک در حین ناوبری"
+
+#: qml/WhatsNewDialog.qml:24
+msgid "Opción para limpiar caché de Google Maps en el menú de Ajustes"
+msgstr "گزینه پاک کردن حافظه کش Google Maps در منوی تنظیمات"
+
+#: qml/WhatsNewDialog.qml:25
+msgid ""
+"Pantalla de novedades al iniciar con opción para desactivarla en Ajustes"
+msgstr "صفحه تازه‌ها هنگام شروع با گزینه غیرفعال‌سازی در تنظیمات"
+
+#: qml/WhatsNewDialog.qml:89
+msgid "Novedades"
+msgstr "تازه‌ها"
+
+#: qml/WhatsNewDialog.qml:150
+msgid "Entendido"
+msgstr "متوجه شدم"
+
+#: qml/SearchPanel.qml:113 qml/SearchPanel.qml:123
+msgid "Sin destino"
+msgstr "بدون مقصد"
+
+#: qml/SearchPanel.qml:120
+msgid "Sin GPS"
+msgstr "بدون GPS"
+
+#: qml/SearchPanel.qml:338
+msgid "Buscando «%1»"
+msgstr "در حال جستجوی «%1»"
+
+#: qml/SearchPanel.qml:346
+msgid "El servidor de búsqueda no ha respondido."
+msgstr "سرور جستجو پاسخ نداده است."
+
+#: qml/SearchPanel.qml:349
+msgid "Error de red: "
+msgstr "خطای شبکه: "
+
+#: qml/SearchPanel.qml:353
+msgid "Sin resultados para «"
+msgstr "نتیجه‌ای برای «"
+
+#: qml/SearchPanel.qml:383
+msgid "El servidor de puntos de interés no ha respondido."
+msgstr "سرور نقاط مورد توجه پاسخ نداده است."
+
+#: qml/SearchPanel.qml:386
+msgid "Error: "
+msgstr "خطا: "
+
+#: qml/SearchPanel.qml:388
+msgid "Sin resultados cerca"
+msgstr "نتیجه‌ای در نزدیکی نیست"
+
+#: qml/SearchPanel.qml:452
+msgid "hoy"
+msgstr "امروز"
+
+#: qml/SearchPanel.qml:453
+msgid "mañana"
+msgstr "فردا"
+
+#: qml/SearchPanel.qml:455
+msgid "dom"
+msgstr "یک"
+
+#: qml/SearchPanel.qml:455
+msgid "lun"
+msgstr "دو"
+
+#: qml/SearchPanel.qml:455 qml/SearchPanel.qml:457
+msgid "mar"
+msgstr "سه"
+
+#: qml/SearchPanel.qml:455
+msgid "mié"
+msgstr "چهار"
+
+#: qml/SearchPanel.qml:456
+msgid "jue"
+msgstr "پنج"
+
+#: qml/SearchPanel.qml:456
+msgid "vie"
+msgstr "جمعه"
+
+#: qml/SearchPanel.qml:456
+msgid "sáb"
+msgstr "شنبه"
+
+#: qml/SearchPanel.qml:457
+msgid "ene"
+msgstr "ژان"
+
+#: qml/SearchPanel.qml:457
+msgid "feb"
+msgstr "فوری"
+
+#: qml/SearchPanel.qml:457
+msgid "abr"
+msgstr "آوریل"
+
+#: qml/SearchPanel.qml:458
+msgid "may"
+msgstr "مه"
+
+#: qml/SearchPanel.qml:458
+msgid "jun"
+msgstr "ژوئن"
+
+#: qml/SearchPanel.qml:458
+msgid "jul"
+msgstr "ژوئیه"
+
+#: qml/SearchPanel.qml:458
+msgid "ago"
+msgstr "اوت"
+
+#: qml/SearchPanel.qml:459
+msgid "sep"
+msgstr "سپت"
+
+#: qml/SearchPanel.qml:459
+msgid "oct"
+msgstr "اکت"
+
+#: qml/SearchPanel.qml:459
+msgid "nov"
+msgstr "نوامبر"
+
+#: qml/SearchPanel.qml:459
+msgid "dic"
+msgstr "دسامبر"
+
+#: qml/SearchPanel.qml:471
+msgid "Salida: ahora"
+msgstr "حرکت: همین حالا"
+
+#: qml/SearchPanel.qml:476
+msgid "Salida: "
+msgstr "حرکت: "
+
+#: qml/SearchPanel.qml:649
+msgid "Esperando posición GPS…"
+msgstr "در انتظار موقعیت GPS…"
+
+#: qml/SearchPanel.qml:653
+msgid "Se necesita al menos un destino"
+msgstr "حداقل یک مقصد لازم است"
+
+#: qml/SearchPanel.qml:658 qml/SearchPanel.qml:2186
+msgid "Calculando ruta…"
+msgstr "در حال محاسبه مسیر…"
+
+#: qml/SearchPanel.qml:669
+msgid "El servidor de rutas no ha respondido."
+msgstr "سرور مسیریابی پاسخ نداده است."
+
+#: qml/SearchPanel.qml:672
+msgid "No se encontró ruta"
+msgstr "مسیری یافت نشد"
+
+#: qml/SearchPanel.qml:748
+msgid "Buscar punto de inicio…"
+msgstr "جستجوی نقطه شروع…"
+
+#: qml/SearchPanel.qml:748
+msgid "Buscar destino…"
+msgstr "جستجوی مقصد…"
+
+#: qml/SearchPanel.qml:853
+msgid "Sin peaje"
+msgstr "بدون عوارض"
+
+#: qml/SearchPanel.qml:854
+msgid "Sin ferry"
+msgstr "بدون کشتی"
+
+#: qml/SearchPanel.qml:855
+msgid "Sin tierra"
+msgstr "بدون جاده خاکی"
+
+#: qml/SearchPanel.qml:856
+msgid "Sin autopista"
+msgstr "بدون آزادراه"
+
+#: qml/SearchPanel.qml:888
+msgid "Buscar en Google Maps"
+msgstr "جستجو در Google Maps"
+
+#: qml/SearchPanel.qml:908
+msgid "Salir ahora"
+msgstr "حرکت همین الان"
+
+#: qml/SearchPanel.qml:916
+msgid "Hora de salida"
+msgstr "ساعت حرکت"
+
+#: qml/SearchPanel.qml:1004
+msgid "CALCULAR RUTA"
+msgstr "محاسبه مسیر"
+
+#: qml/SearchPanel.qml:1028
+msgid "Previsualizar en mapa"
+msgstr "پیش‌نمایش روی نقشه"
+
+#: qml/SearchPanel.qml:1041 qml/RouteSelectPanel.qml:208
+msgid "INICIAR NAVEGACIÓN"
+msgstr "شروع ناوبری"
+
+#: qml/SearchPanel.qml:1056
+msgid "Borrar ruta"
+msgstr "حذف مسیر"
+
+#: qml/SearchPanel.qml:1089 qml/SatelliteView.qml:144 qml/SatelliteView.qml:350
+msgid "Buscando…"
+msgstr "در حال جستجو…"
+
+#: qml/SearchPanel.qml:1106
+msgid "Precios: "
+msgstr "قیمت‌ها: "
+
+#: qml/SearchPanel.qml:1207
+msgid "Planes guardados"
+msgstr "برنامه‌های ذخیره‌شده"
+
+#: qml/SearchPanel.qml:1264
+msgid "Mi posición (GPS)"
+msgstr "موقعیت من (GPS)"
+
+#: qml/SearchPanel.qml:1310
+msgid "Mi posición actual"
+msgstr "موقعیت فعلی من"
+
+#: qml/SearchPanel.qml:1558
+msgid "Mover a:"
+msgstr "انتقال به:"
+
+#: qml/SearchPanel.qml:1572 qml/MsgDetailPopup.qml:188
+#: qml/MessagesPanel.qml:361
+msgid "Destino"
+msgstr "مقصد"
+
+#: qml/SearchPanel.qml:1623
+msgid "Anteriores"
+msgstr "قبلی‌ها"
+
+#: qml/SearchPanel.qml:1702
+msgid "TODO tarea"
+msgstr "وظیفه TODO"
+
+#: qml/SearchPanel.qml:1742
+msgid "Puntos de interés"
+msgstr "مکان‌های جالب"
+
+#: qml/SearchPanel.qml:1766 qml/InstructionListPanel.qml:284
+msgid "Cercanos"
+msgstr "نزدیک"
+
+#: qml/SearchPanel.qml:1767 qml/SearchPanel.qml:1816
+#: qml/InstructionListPanel.qml:285
+msgid "En ruta"
+msgstr "در مسیر"
+
+#: qml/SearchPanel.qml:1768 qml/InstructionListPanel.qml:286
+msgid "Cerca destino"
+msgstr "نزدیک مقصد"
+
+#: qml/SearchPanel.qml:1817
+msgid "Cerca del destino"
+msgstr "نزدیک مقصد"
+
+#: qml/SearchPanel.qml:1818
+msgid "Cerca de mí"
+msgstr "نزدیک من"
+
+#: qml/SearchPanel.qml:1829 qml/InstructionListPanel.qml:343
+msgid "Gasolina"
+msgstr "بنزین"
+
+#: qml/SearchPanel.qml:1830 qml/InstructionListPanel.qml:344 qml/Main.qml:6698
+msgid "Parking"
+msgstr "پارکینگ"
+
+#: qml/SearchPanel.qml:1831 qml/InstructionListPanel.qml:345
+msgid "Comer"
+msgstr "غذا"
+
+#: qml/SearchPanel.qml:1832 qml/InstructionListPanel.qml:346
+msgid "Hotel"
+msgstr "هتل"
+
+#: qml/SearchPanel.qml:1833 qml/InstructionListPanel.qml:347
+msgid "Café"
+msgstr "کافه"
+
+#: qml/SearchPanel.qml:1834 qml/InstructionListPanel.qml:348
+msgid "Súper"
+msgstr "سوپرمارکت"
+
+#: qml/SearchPanel.qml:1835 qml/InstructionListPanel.qml:349
+msgid "Hospital"
+msgstr "بیمارستان"
+
+#: qml/SearchPanel.qml:1836 qml/InstructionListPanel.qml:350
+msgid "Cajero"
+msgstr "خودپرداز"
+
+#: qml/SearchPanel.qml:1877
+msgid "Favoritos"
+msgstr "موردعلاقه‌ها"
+
+#: qml/SearchPanel.qml:1951
+msgid "Destinos recientes"
+msgstr "مقاصد اخیر"
+
+#: qml/SearchPanel.qml:2029 qml/RouteSelectPanel.qml:145
+msgid "Rutas disponibles"
+msgstr "مسیرهای موجود"
+
+#: qml/SearchPanel.qml:2044 qml/RouteSelectPanel.qml:170 qml/Main.qml:8910
+msgid "Ruta más rápida"
+msgstr "سریع‌ترین مسیر"
+
+#: qml/SearchPanel.qml:2044 qml/RouteSelectPanel.qml:171
+msgid "Alternativa "
+msgstr "جایگزین "
+
+#: qml/SearchPanel.qml:2104
+msgid "Guardar favorito"
+msgstr "ذخیره در موردعلاقه‌ها"
+
+#: qml/SearchPanel.qml:2125
+msgid "Nombre del favorito"
+msgstr "نام مکان موردعلاقه"
+
+#: qml/SearchPanel.qml:2159 qml/Main.qml:9879 qml/PreferencesPanel.qml:944
+msgid "Guardar"
+msgstr "ذخیره"
+
+#: qml/InstructionListPanel.qml:57
+msgid "Indicaciones"
+msgstr "راهنمایی‌ها"
+
+#: qml/InstructionListPanel.qml:156 qml/InstructionListPanel.qml:157
+msgid "Este destino"
+msgstr "این مقصد"
+
+#: qml/InstructionListPanel.qml:164
+msgid "Completado"
+msgstr "تکمیل شد"
+
+#: qml/InstructionListPanel.qml:192
+msgid "Tareas en esta parada"
+msgstr "وظایف در این توقف"
+
+#: qml/InstructionListPanel.qml:396
+msgid "Editar ruta"
+msgstr "ویرایش مسیر"
+
+#: qml/VehicleSetupDialog.qml:51 qml/Main.qml:2243 qml/PreferencesPanel.qml:394
+msgid "Coche"
+msgstr "خودرو"
+
+#: qml/VehicleSetupDialog.qml:52 qml/Main.qml:2244 qml/PreferencesPanel.qml:395
+msgid "Moto"
+msgstr "موتورسیکلت"
+
+#: qml/VehicleSetupDialog.qml:53 qml/Main.qml:2245 qml/PreferencesPanel.qml:396
+msgid "Scooter"
+msgstr "اسکوتر"
+
+#: qml/VehicleSetupDialog.qml:54 qml/Main.qml:2246 qml/PreferencesPanel.qml:397
+msgid "Camión"
+msgstr "کامیون"
+
+#: qml/VehicleSetupDialog.qml:55 qml/Main.qml:2247 qml/PreferencesPanel.qml:398
+msgid "Bicicleta"
+msgstr "دوچرخه"
+
+#: qml/VehicleSetupDialog.qml:82 qml/TourOverlay.qml:27
+msgid "Bienvenido a Navius"
+msgstr "به Navius خوش آمدید"
+
+#: qml/VehicleSetupDialog.qml:82
+msgid "Nuevo vehículo"
+msgstr "وسیله نقلیه جدید"
+
+#: qml/VehicleSetupDialog.qml:88
+msgid "Crea tu primer vehículo para empezar a navegar."
+msgstr "اولین وسیله خود را برای شروع ناوبری ایجاد کنید."
+
+#: qml/VehicleSetupDialog.qml:93 qml/PreferencesPanel.qml:543
+msgid "Nombre"
+msgstr "نام"
+
+#: qml/VehicleSetupDialog.qml:102
+msgid "Mi coche"
+msgstr "ماشین من"
+
+#: qml/VehicleSetupDialog.qml:110 qml/PreferencesPanel.qml:560
+msgid "Tipo"
+msgstr "نوع"
+
+#: qml/VehicleSetupDialog.qml:141
+msgid "Crear"
+msgstr "ایجاد"
+
+#: qml/SharedLocationDialog.qml:61 qml/Main.qml:9549
+msgid "Ubicación compartida"
+msgstr "موقعیت اشتراکی"
+
+#: qml/SharedLocationDialog.qml:90
+msgid "Nombre del lugar"
+msgstr "نام مکان"
+
+#: qml/SharedLocationDialog.qml:109
+msgid "Establecer destino"
+msgstr "تنظیم مقصد"
+
+#: qml/SharedLocationDialog.qml:129
+msgid "Establecer origen (sim GPS)"
+msgstr "تنظیم مبدا (شبیه‌سازی GPS)"
+
+#: qml/SharedLocationDialog.qml:149
+msgid "Añadir como siguiente destino"
+msgstr "افزودن به عنوان مقصد بعدی"
+
+#: qml/TtsVoicesPanel.qml:231
+msgid "✓ Instalada"
+msgstr "✓ نصب شده"
+
+#: qml/TtsVoicesPanel.qml:233
+msgid "Error"
+msgstr "خطا"
+
+#: qml/TtsVoicesPanel.qml:233
+msgid "No instalada"
+msgstr "نصب نشده"
+
+#: qml/TtsVoicesPanel.qml:243
+msgid "Descargar"
+msgstr "دانلود"
+
+#: qml/TtsVoicesPanel.qml:259
+msgid "Desinstalar"
+msgstr "حذف"
+
+#: qml/TtsVoicesPanel.qml:282
+msgid "Voces TTS"
+msgstr "صداهای TTS"
+
+#: qml/TtsVoicesPanel.qml:308
+msgid "Motor de reserva"
+msgstr "موتور پشتیبان"
+
+#: qml/TtsVoicesPanel.qml:327
+msgid "✓ Siempre disponible — integrado en la app"
+msgstr "✓ همیشه موجود — یکپارچه در برنامه"
+
+#: qml/TtsVoicesPanel.qml:338
+msgid "Calidad media"
+msgstr "کیفیت متوسط"
+
+#: qml/TtsVoicesPanel.qml:354
+msgid "✓ Disponible"
+msgstr "✓ موجود"
+
+#: qml/TtsVoicesPanel.qml:355
+msgid "Pendiente de compilar (clickable build)"
+msgstr "در انتظار ساخت (clickable build)"
+
+#: qml/TtsVoicesPanel.qml:367
+msgid "Alta calidad (neuronal)"
+msgstr "کیفیت بالا (عصبی)"
+
+#: qml/MediaPanel.qml:222 qml/Main.qml:6804
+msgid "Música"
+msgstr "موسیقی"
+
+#: qml/MediaPanel.qml:228
+msgid "Añadir"
+msgstr "افزودن"
+
+#: qml/MediaPanel.qml:297
+msgid "La biblioteca está vacía"
+msgstr "کتابخانه خالی است"
+
+#: qml/MediaPanel.qml:303
+msgid "Pulsa «＋ Añadir» para importar música desde el gestor de archivos."
+msgstr "«＋ افزودن» را بزنید تا موسیقی از مدیر فایل وارد شود."
+
+#: qml/MediaPanel.qml:356
+msgid "Sin pista"
+msgstr "بدون سرنخ"
+
+#: qml/MediaPanel.qml:492
+msgid "Bajar volumen al hablar"
+msgstr "کاهش صدا هنگام صحبت"
+
+#: qml/MediaPanel.qml:501
+msgid "¿Cómo evitar duplicar la música?"
+msgstr "چطور از تکراری شدن موسیقی جلوگیری کنیم؟"
+
+#: qml/MediaPanel.qml:518
+msgid ""
+"Al añadir música, los ficheros se copian a la carpeta de la app, ocupando "
+"espacio extra. Para no duplicarlos, un usuario avanzado puede crear enlaces "
+"simbólicos a su carpeta ~/Music desde una Terminal (o por SSH). Navius "
+"reproducirá los enlaces sin copiar nada:"
+msgstr ""
+"هنگام افزودن موسیقی، فایل‌ها به پوشه برنامه کپی می‌شوند و فضای اضافی اشغال "
+"می‌کنند. برای جلوگیری از تکرار، یک کاربر پیشرفته می‌تواند از یک ترمینال (یا از "
+"طریق SSH) پیوندهای نمادین به پوشه ~/Music خود ایجاد کند. Navius پیوندها را "
+"بدون کپی کردن هیچ چیز پخش می‌کند:"
+
+#: qml/MediaPanel.qml:540
+msgid ""
+"Después, vuelve a abrir el reproductor para ver tu música. Para quitar un "
+"enlace usa la papelera 🗑 (no borra el fichero original)."
+msgstr ""
+"سپس، پخش‌کننده را دوباره باز کنید تا موسیقی خود را ببینید. برای حذف یک پیوند "
+"از سطل زباله 🗑 استفاده کنید (فایل اصلی را حذف نمی‌کند)."
+
+#: qml/OsmScoutDialog.qml:42
+msgid ""
+"Abre OSM Scout Server para usar rutas offline.\n"
+"Detectando automáticamente cada 3 s…"
+msgstr ""
+"OSM Scout Server را برای مسیرهای آفلاین باز کنید.\n"
+"شناسایی خودکار هر ۳ ثانیه…"
+
+#: qml/OsmScoutDialog.qml:62
+msgid "Usar servidor público"
+msgstr "استفاده از سرور عمومی"
+
+#: qml/OfflineBanner.qml:47
+msgid "Sin conexión — Mapas disponibles vía OSM Scout"
+msgstr "بدون اتصال — نقشه‌ها از طریق OSM Scout در دسترس"
+
+#: qml/OfflineBanner.qml:48
+msgid "Sin conexión — el mapa no está disponible"
+msgstr "بدون اتصال — نقشه در دسترس نیست"
+
+#: qml/MsgDetailPopup.qml:156 qml/MessagesPanel.qml:337
+msgid "Abrir enlace"
+msgstr "باز کردن لینک"
+
+#: qml/MsgDetailPopup.qml:175 qml/MessagesPanel.qml:351
+msgid "Ir a"
+msgstr "رفتن به"
+
+#: qml/MsgDetailPopup.qml:175 qml/Main.qml:7452 qml/MessagesPanel.qml:351
+msgid "Añadir destino"
+msgstr "افزودن مقصد"
+
+#: qml/MsgDetailPopup.qml:209 qml/TourOverlay.qml:316
+msgid "Anterior"
+msgstr "قبلی"
+
+#: qml/MsgDetailPopup.qml:219
+msgid "Leído"
+msgstr "خوانده شد"
+
+#: qml/MsgDetailPopup.qml:237 qml/TourOverlay.qml:340
+msgid "Siguiente"
+msgstr "بعدی"
+
+#: qml/TrafficRouteDialog.qml:48
+msgid "Ruta más rápida disponible"
+msgstr "سریع‌ترین مسیر موجود است"
+
+#: qml/TrafficRouteDialog.qml:65
+msgid "Ruta actual"
+msgstr "مسیر فعلی"
+
+#: qml/TrafficRouteDialog.qml:85
+msgid "Ruta rápida"
+msgstr "مسیر سریع"
+
+#: qml/TrafficRouteDialog.qml:107
+msgid "Usar ruta más rápida"
+msgstr "استفاده از سریع‌ترین مسیر"
+
+#: qml/TrafficRouteDialog.qml:118
+msgid "Mantener ruta actual"
+msgstr "ادامه مسیر فعلی"
+
+#: qml/StopTodoPanel.qml:55
+msgid "Historial de tareas"
+msgstr "تاریخچه وظایف"
+
+#: qml/StopTodoPanel.qml:55
+msgid "Lista de tareas"
+msgstr "فهرست وظایف"
+
+#: qml/StopTodoPanel.qml:93
+msgid "No hay destinos en la ruta"
+msgstr "مقصدی در مسیر وجود ندارد"
+
+#: qml/StopTodoPanel.qml:130
+msgid "Destino %1"
+msgstr "مقصد %1"
+
+#: qml/StopTodoPanel.qml:149
+msgid "Sin tareas"
+msgstr "بدون وظیفه"
+
+#: qml/StopTodoPanel.qml:161
+msgid "Pendientes"
+msgstr "در انتظار"
+
+#: qml/StopTodoPanel.qml:273
+msgid "Completadas"
+msgstr "تکمیل‌شده‌ها"
+
+#: qml/StopTodoPanel.qml:399
+msgid "Sin historial de tareas"
+msgstr "بدون تاریخچه وظایف"
+
+#: qml/Main.qml:1341
+msgid "✓ Configuración guardada en el servidor"
+msgstr "✓ پیکربندی در سرور ذخیره شد"
+
+#: qml/Main.qml:1360
+msgid "Sin conexión: no se pudo cargar la configuración del servidor"
+msgstr "بدون اتصال: بارگذاری پیکربندی از سرور ممکن نشد"
+
+#: qml/Main.qml:1362
+msgid "Error al cargar configuración del servidor: "
+msgstr "خطا در بارگذاری پیکربندی از سرور: "
+
+#: qml/Main.qml:1461
+msgid "Error al procesar la respuesta del servidor"
+msgstr "خطا در پردازش پاسخ سرور"
+
+#: qml/Main.qml:1470
+msgid "Sesión no válida — vuelve a iniciar sesión"
+msgstr "نشست نامعتبر — دوباره وارد شوید"
+
+#: qml/Main.qml:1475
+msgid "Sin conexión con el servidor"
+msgstr "بدون اتصال به سرور"
+
+#: qml/Main.qml:1478
+msgid "Error del servidor (%1)"
+msgstr "خطای سرور (%1)"
+
+#: qml/Main.qml:2213 qml/Main.qml:2248 qml/ParkingDialog.qml:111
+msgid "A pie"
+msgstr "پیاده"
+
+#: qml/Main.qml:2275
+msgid "No se pudo calcular la ruta al aparcamiento"
+msgstr "محاسبهٔ مسیر تا محل پارک ممکن نشد"
+
+#: qml/Main.qml:2420 qml/Main.qml:7886 qml/Main.qml:8607
+msgid "OSM Scout · rutas y mapas offline"
+msgstr "OSM Scout · مسیرها و نقشه‌های آفلاین"
+
+#: qml/Main.qml:2432
+msgid "Servidor: "
+msgstr "سرور: "
+
+#: qml/Main.qml:2998
+msgid "Reproducción terminada"
+msgstr "پخش پایان یافت"
+
+#: qml/Main.qml:4183
+msgid "GPS recuperado"
+msgstr "GPS بازیابی شد"
+
+#: qml/Main.qml:4698
+msgid "Rumbo"
+msgstr "سمت"
+
+#: qml/Main.qml:4716
+msgid "km/h ◄"
+msgstr "km/h ◄"
+
+#: qml/Main.qml:4716
+msgid "km/h"
+msgstr "km/h"
+
+#: qml/Main.qml:4755
+msgid "Fallo GPS ON"
+msgstr "خطای GPS روشن"
+
+#: qml/Main.qml:4755 qml/Main.qml:6945
+msgid "Fallo GPS"
+msgstr "خطای GPS"
+
+#: qml/Main.qml:4782
+msgid "Rev."
+msgstr "معکوس"
+
+#: qml/Main.qml:4871
+msgid "Ctrl ON"
+msgstr "کنترل روشن"
+
+#: qml/Main.qml:4871
+msgid "Ctrl"
+msgstr "کنترل"
+
+#: qml/Main.qml:4919
+msgid "Con ruta"
+msgstr "با مسیر"
+
+#: qml/Main.qml:4958
+msgid "Hdg blend"
+msgstr "Hdg blend"
+
+#: qml/Main.qml:4969
+msgid "Sin ruta"
+msgstr "بدون مسیر"
+
+#: qml/Main.qml:4983
+msgid "Hdg accel"
+msgstr "Hdg accel"
+
+#: qml/Main.qml:4999
+msgid "Pos sin nav"
+msgstr "Pos sin nav"
+
+#: qml/Main.qml:5268
+msgid "Seguir ruta"
+msgstr "دنبال کردن مسیر"
+
+#: qml/Main.qml:5295
+msgid "SIMULACIÓN GPS"
+msgstr "شبیه‌سازی GPS"
+
+#: qml/Main.qml:5324
+msgid "OSM Scout Server  ·  límites de velocidad por tramo"
+msgstr "OSM Scout Server  ·  محدودیت سرعت در هر بخش"
+
+#: qml/Main.qml:5599
+msgid "Mapa 3D"
+msgstr "نقشهٔ سه‌بعدی"
+
+#: qml/Main.qml:5600
+msgid "Mapa"
+msgstr "نقشه"
+
+#: qml/Main.qml:5601 qml/PreferencesPanel.qml:25
+msgid "Satélite"
+msgstr "ماهواره‌ای"
+
+#: qml/Main.qml:5602 qml/PreferencesPanel.qml:29
+msgid "Claro"
+msgstr "روشن"
+
+#: qml/Main.qml:5603 qml/PreferencesPanel.qml:29
+msgid "Vivo"
+msgstr "پررنگ"
+
+#: qml/Main.qml:5605 qml/PreferencesPanel.qml:30 qml/PreferencesPanel.qml:332
+msgid "Noche"
+msgstr "شب"
+
+#: qml/Main.qml:5841 qml/Main.qml:5863
+msgid "Alerta"
+msgstr "هشدار"
+
+#: qml/Main.qml:5891 qml/PreferencesPanel.qml:24 qml/PreferencesPanel.qml:332
+msgid "Auto"
+msgstr "خودکار"
+
+#: qml/Main.qml:6540
+msgid "Silenciado"
+msgstr "بی‌صدا"
+
+#: qml/Main.qml:6541
+msgid "Indicaciones y alertas por voz"
+msgstr "راهنمایی و هشدار صوتی"
+
+#: qml/Main.qml:6542
+msgid "Indicaciones voz, alertas pitido"
+msgstr "راهنمایی صوتی، هشدار بوق"
+
+#: qml/Main.qml:6543
+msgid "Solo indicaciones por voz"
+msgstr "فقط راهنمایی صوتی"
+
+#: qml/Main.qml:6544
+msgid "Indicaciones pitido, alertas voz"
+msgstr "راهنمایی بوق، هشدار صوتی"
+
+#: qml/Main.qml:6545 qml/Main.qml:6609
+msgid "Solo pitidos"
+msgstr "فقط بوق"
+
+#: qml/Main.qml:6546
+msgid "Solo indicaciones (pitido)"
+msgstr "فقط راهنمایی (بوق)"
+
+#: qml/Main.qml:6547
+msgid "Solo alertas por voz"
+msgstr "فقط هشدار صوتی"
+
+#: qml/Main.qml:6548
+msgid "Solo alertas (pitido)"
+msgstr "فقط هشدار (بوق)"
+
+#: qml/Main.qml:6607
+msgid "Voz + alertas"
+msgstr "صدا + هشدارها"
+
+#: qml/Main.qml:6608
+msgid "Solo alertas"
+msgstr "فقط هشدارها"
+
+#: qml/Main.qml:6609
+msgid "Silencio"
+msgstr "سکوت"
+
+#: qml/Main.qml:6641
+msgid "Compartiendo"
+msgstr "در حال اشتراک‌گذاری"
+
+#: qml/Main.qml:6666
+msgid "Prev. Ruta"
+msgstr "پیش‌نمایش مسیر"
+
+#: qml/Main.qml:6681
+msgid "Tareas"
+msgstr "وظایف"
+
+#: qml/Main.qml:6708
+msgid "🅿 Aparcamiento guardado · "
+msgstr "🅿 محل پارک ذخیره شد · "
+
+#: qml/Main.qml:6725
+msgid "Borrar aparcamiento"
+msgstr "حذف پارکینگ"
+
+#: qml/Main.qml:6736
+msgid "🗑 Aparcamiento eliminado · "
+msgstr "🗑 محل پارک حذف شد · "
+
+#: qml/Main.qml:6753
+msgid "Ver vehículo"
+msgstr "نمایش خودرو"
+
+#: qml/Main.qml:6786 qml/ParkingDialog.qml:61
+msgid "Ir al aparcamiento"
+msgstr "رفتن به پارکینگ"
+
+#: qml/Main.qml:6836 qml/LoginPanel.qml:110
+msgid "Mi cuenta"
+msgstr "حساب من"
+
+#: qml/Main.qml:6836
+msgid "Login"
+msgstr "ورود"
+
+#: qml/Main.qml:6852 qml/MessagesPanel.qml:106
+msgid "Mensajes"
+msgstr "پیام‌ها"
+
+#: qml/Main.qml:6882
+msgid "Bloq. Mapa"
+msgstr "قفل نقشه"
+
+#: qml/Main.qml:6899 qml/PreferencesPanel.qml:3120
+msgid "Debug"
+msgstr "Debug"
+
+#: qml/Main.qml:6914
+msgid "Sim GPS"
+msgstr "Sim GPS"
+
+#: qml/Main.qml:6945
+msgid "GPS on"
+msgstr "GPS روشن"
+
+#: qml/Main.qml:6960
+msgid "Reanudar"
+msgstr "ادامه"
+
+#: qml/Main.qml:6960
+msgid "Pausar sim"
+msgstr "مکث شبیه‌سازی"
+
+#: qml/Main.qml:6976 qml/PreferencesPanel.qml:1779
+msgid "Suavizado GPS"
+msgstr "هموارسازی GPS"
+
+#: qml/Main.qml:6993
+#, fuzzy
+msgid "IMU debug"
+msgstr "POIs debug"
+
+#: qml/Main.qml:7010
+msgid "Bisector"
+msgstr "Bisector"
+
+#: qml/Main.qml:7027
+msgid "POIs debug"
+msgstr "POIs debug"
+
+#: qml/Main.qml:7057
+msgid "Donar"
+msgstr "کمک مالی"
+
+#: qml/Main.qml:7264
+msgid "INICIO"
+msgstr "شروع"
+
+#: qml/Main.qml:7301
+msgid "FIN"
+msgstr "پایان"
+
+#: qml/Main.qml:7432
+msgid "Inicio sim"
+msgstr "شروع شبیه‌سازی"
+
+#: qml/Main.qml:7496
+msgid "🚨  Añadir alerta aquí"
+msgstr "🚨  افزودن هشدار اینجا"
+
+#: qml/Main.qml:7525
+msgid "📍 Establecer posición GPS"
+msgstr "📍 تنظیم موقعیت GPS"
+
+#: qml/Main.qml:7650
+msgid "👍  Confirmar"
+msgstr "👍  تأیید"
+
+#: qml/Main.qml:7673
+msgid "👎  Desmentir"
+msgstr "👎  رد گزارش"
+
+#: qml/Main.qml:7698
+msgid "🗑  Cancelar mi alerta"
+msgstr "🗑  لغو هشدار من"
+
+#: qml/Main.qml:7782
+msgid "Satélites"
+msgstr "ماهواره‌ها"
+
+#: qml/Main.qml:7889
+msgid "OSM Scout no disponible · usando "
+msgstr "OSM Scout در دسترس نیست · استفاده از "
+
+#: qml/Main.qml:7947
+msgid "Caché de mapas eliminada"
+msgstr "کش نقشه‌ها پاک شد"
+
+#: qml/Main.qml:8161
+msgid "Límite comunitario"
+msgstr "محدودیت اجتماعی"
+
+#: qml/Main.qml:8168
+msgid "Eliminar este límite"
+msgstr "حذف این محدودیت"
+
+#: qml/Main.qml:8235
+msgid "Límite de velocidad aquí"
+msgstr "محدودیت سرعت اینجا"
+
+#: qml/Main.qml:8374
+msgid "⚙  Configuración en el servidor"
+msgstr "⚙  پیکربندی در سرور"
+
+#: qml/Main.qml:8390
+msgid "Tienes cambios locales no sincronizados. ¿Cuál configuración usar?"
+msgstr "تغییرات محلی همگام‌نشده دارید. از کدام پیکربندی استفاده شود؟"
+
+#: qml/Main.qml:8402
+msgid "Usar del servidor"
+msgstr "استفاده از نسخهٔ سرور"
+
+#: qml/Main.qml:8412
+msgid "✓ Configuración del servidor aplicada"
+msgstr "✓ پیکربندی سرور اعمال شد"
+
+#: qml/Main.qml:8421
+msgid "Mantener la local"
+msgstr "نگه داشتن نسخهٔ محلی"
+
+#: qml/Main.qml:8524
+msgid "Cacheando mapa… detalle"
+msgstr "در حال کش کردن نقشه… جزئیات"
+
+#: qml/Main.qml:8544
+msgid "Cacheando mapa… "
+msgstr "در حال کش کردن نقشه… "
+
+#: qml/Main.qml:8574
+msgid "Mapa online: OSM Scout"
+msgstr "نقشهٔ آنلاین: OSM Scout"
+
+#: qml/Main.qml:8576
+msgid "Mapa online: OSM Scout (no disponible · usando Mapbox)"
+msgstr "نقشهٔ آنلاین: OSM Scout (در دسترس نیست · استفاده از Mapbox)"
+
+#: qml/Main.qml:8578
+msgid "Mapa online: Mapbox"
+msgstr "نقشهٔ آنلاین: Mapbox"
+
+#: qml/Main.qml:8583
+msgid "Sin internet: fallback a OSM Scout"
+msgstr "بدون اینترنت: استفاده از OSM Scout به‌عنوان جایگزین"
+
+#: qml/Main.qml:8585
+msgid "Sin internet: fallback OSM Scout (no disponible)"
+msgstr "بدون اینترنت: جایگزین OSM Scout (در دسترس نیست)"
+
+#: qml/Main.qml:8587
+msgid "Sin internet: caché de tiles"
+msgstr "بدون اینترنت: کش کاشی‌ها"
+
+#: qml/Main.qml:8644
+msgid "Mapas: servidor no disponible · usando OSM Scout"
+msgstr "نقشه‌ها: سرور در دسترس نیست · استفاده از OSM Scout"
+
+#: qml/Main.qml:8646
+msgid "Mapas: servidor no disponible · usando servidor público"
+msgstr "نقشه‌ها: سرور در دسترس نیست · استفاده از سرور عمومی"
+
+#: qml/Main.qml:8666
+msgid "Servidor de mapas recuperado · restaurando"
+msgstr "سرور نقشه بازیابی شد · در حال بازگردانی"
+
+#: qml/Main.qml:8684 qml/Main.qml:8692
+msgid "Sin internet · usando OSM Scout Server"
+msgstr "بدون اینترنت · استفاده از OSM Scout Server"
+
+#: qml/Main.qml:8708 qml/Main.qml:8713
+msgid "Conexión restaurada · volviendo a mapas online"
+msgstr "اتصال بازگردانده شد · بازگشت به نقشه‌های آنلاین"
+
+#: qml/Main.qml:8772
+msgid "Cacheando mapa… 0%"
+msgstr "در حال کش کردن نقشه… 0%"
+
+#: qml/Main.qml:8875
+msgid "Tienes un mensaje nuevo"
+msgstr "یک پیام جدید دارید"
+
+#: qml/Main.qml:8876
+msgid "Tienes %1 mensajes nuevos"
+msgstr "%1 پیام جدید دارید"
+
+#: qml/Main.qml:8914
+msgid "Ahorra"
+msgstr "صرفه‌جویی"
+
+#: qml/Main.qml:8924
+msgid "Revisar"
+msgstr "بررسی"
+
+#: qml/Main.qml:8933
+msgid "Ignorar"
+msgstr "نادیده گرفتن"
+
+#: qml/Main.qml:8989
+msgid "Pre-procesando motor TTS"
+msgstr "پیش‌پردازش موتور TTS"
+
+#: qml/Main.qml:8990
+msgid "GPS impreciso. Simulando trayecto."
+msgstr "GPS نادقیق. شبیه‌سازی مسیر."
+
+#: qml/Main.qml:8993
+msgid "Cargando mapa…"
+msgstr "در حال بارگذاری نقشه…"
+
+#: qml/Main.qml:9767
+msgid "¿Has llegado a"
+msgstr "آیا به"
+
+#: qml/Main.qml:9768
+msgid "el destino"
+msgstr "مقصد"
+
+#: qml/Main.qml:9777
+msgid "Sí, he llegado"
+msgstr "بله، رسیدم"
+
+#: qml/Main.qml:9788
+msgid "Todavía no"
+msgstr "هنوز نه"
+
+#: qml/Main.qml:9820
+msgid "Tareas pendientes"
+msgstr "وظایف در انتظار"
+
+#: qml/Main.qml:9829
+msgid "Abrir"
+msgstr "باز کردن"
+
+#: qml/Main.qml:9870
+msgid "🅿 ¿Guardar aparcamiento aquí?"
+msgstr "🅿 محل پارک اینجا ذخیره شود؟"
+
+#: qml/Main.qml:9888
+msgid "🅿 Aparcamiento guardado"
+msgstr "🅿 محل پارک ذخیره شد"
+
+#: qml/AlertasOverlay.qml:249
+msgid "Añadir alerta"
+msgstr "افزودن هشدار"
+
+#: qml/AlertasOverlay.qml:359
+msgid "Enviar"
+msgstr "ارسال"
+
+#: qml/AlertasOverlay.qml:382
+msgid "Al otro lado"
+msgstr "سمت مخالف"
+
+#: qml/NavBar.qml:729
+msgid "SENTIDO CONTRARIO"
+msgstr "مسیر خلاف جهت"
+
+#: qml/NavBar.qml:826
+msgid "Reiniciar navegación"
+msgstr "راه‌اندازی مجدد ناوبری"
+
+#: qml/NavBar.qml:852
+msgid "Iniciar navegación"
+msgstr "شروع ناوبری"
+
+#: qml/NavBar.qml:857 qml/SpeedView.qml:61
+msgid "Buscando GPS…"
+msgstr "در جستجوی GPS…"
+
+#: qml/NavBar.qml:927
+msgid "Recalculando ruta…"
+msgstr "در حال محاسبه مجدد مسیر…"
+
+#: qml/NavBar.qml:928
+msgid "Fuera de ruta"
+msgstr "خارج از مسیر"
+
+#: qml/NavBar.qml:957
+msgid "Ruta pausada"
+msgstr "مسیر متوقف شد"
+
+#: qml/NavBar.qml:1060
+msgid "Parar"
+msgstr "توقف"
+
+#: qml/LoginPanel.qml:110 qml/LoginPanel.qml:385
+msgid "Crear cuenta"
+msgstr "ایجاد حساب"
+
+#: qml/LoginPanel.qml:110
+msgid "Iniciar sesión"
+msgstr "ورود به سیستم"
+
+#: qml/LoginPanel.qml:140 qml/PreferencesPanel.qml:2862
+msgid "Cerrar sesión"
+msgstr "خروج"
+
+#: qml/LoginPanel.qml:164
+msgid "Para iniciar sesión debes aceptar la política de privacidad de Navius."
+msgstr ""
+
+#: qml/LoginPanel.qml:170 qml/PreferencesPanel.qml:2969
+#, fuzzy
+msgid "Ver política de privacidad"
+msgstr "مشاهده سیاست حریم خصوصی کامل"
+
+#: qml/LoginPanel.qml:191 qml/LoginPanel.qml:385
+msgid "Entrar"
+msgstr "ورود"
+
+#: qml/LoginPanel.qml:202
+msgid "Registro"
+msgstr "ثبت‌نام"
+
+#: qml/LoginPanel.qml:211
+msgid "Email"
+msgstr "ایمیل"
+
+#: qml/LoginPanel.qml:234
+msgid "Contraseña"
+msgstr "رمز عبور"
+
+#: qml/LoginPanel.qml:259
+msgid "Confirmar contraseña"
+msgstr "تأیید رمز عبور"
+
+#: qml/LoginPanel.qml:300
+msgid "Recordar sesión"
+msgstr "مرا به خاطر بسپار"
+
+#: qml/LoginPanel.qml:328
+msgid "Reenviar email de verificación"
+msgstr "ارسال مجدد ایمیل تأیید"
+
+#: qml/LoginPanel.qml:368
+msgid ""
+"Acepto que mi ubicación se use para mostrar anuncios cercanos, alertas "
+"comunitarias y estadísticas de uso mientras tengo sesión iniciada."
+msgstr ""
+
+#: qml/AboutDialog.qml:68
+msgid "Servidor oficial de rutas"
+msgstr "سرور رسمی مسیریابی"
+
+#: qml/AboutDialog.qml:87
+msgid "• Mapa del planeta completo (OpenStreetMap)"
+msgstr "• نقشه کامل جهان (OpenStreetMap)"
+
+#: qml/AboutDialog.qml:88
+msgid "• Tráfico predicho por hora y día de la semana"
+msgstr "• پیش‌بینی ترافیک بر اساس ساعت و روز هفته"
+
+#: qml/AboutDialog.qml:89
+msgid "• Todos los tipos de vehículo"
+msgstr "• همه انواع وسایل نقلیه"
+
+#: qml/AboutDialog.qml:90
+msgid "• Rutas alternativas, sin peajes, sin autopistas"
+msgstr "• مسیرهای جایگزین، بدون عوارض، بدون بزرگراه"
+
+#: qml/AboutDialog.qml:91
+msgid "• Sin límite de uso para usuarios de Navius"
+msgstr "• استفاده نامحدود برای کاربران Navius"
+
+#: qml/AboutDialog.qml:112
+msgid "Tecnología"
+msgstr "فناوری"
+
+#: qml/AboutDialog.qml:120
+msgid "Interfaz: QML + Lomiri Components"
+msgstr "رابط: QML + Lomiri Components"
+
+#: qml/AboutDialog.qml:121
+msgid "Backend: Rust (QObjects)"
+msgstr "پشتیبان: Rust (QObjects)"
+
+#: qml/AboutDialog.qml:122
+msgid "Mapas: MapLibre GL (vectorial)"
+msgstr "نقشه‌ها: MapLibre GL (برداری)"
+
+#: qml/AboutDialog.qml:123
+msgid "Rutas: Valhalla (motor de routing)"
+msgstr "مسیرها: Valhalla (موتور مسیریابی)"
+
+#: qml/AboutDialog.qml:124
+msgid "GPS: lomiri-location-service (LLS)"
+msgstr "GPS: lomiri-location-service (LLS)"
+
+#: qml/AboutDialog.qml:151
+msgid "Anuncios y apoyo"
+msgstr "تبلیغات و حمایت"
+
+#: qml/AboutDialog.qml:158
+msgid ""
+"Navius es gratuita y de código abierto. Los anuncios son discretos — "
+"aparecen como carteles en la carretera sin interrumpir la navegación. Ver un "
+"anuncio ya ayuda; hacer click contribuye directamente al desarrollo de la "
+"app. ¡Gracias!"
+msgstr ""
+"Navius رایگان و متن‌باز است. آگهی‌ها گسسته هستند — مانند پوسترهای کنار جاده "
+"بدون قطع ناوبری ظاهر می‌شوند. دیدن یک آگهی کمک‌کننده است؛ کلیک کردن مستقیماً به "
+"توسعه برنامه کمک می‌کند. با تشکر!"
+
+#: qml/AboutDialog.qml:237
+msgid "Licencia GNU GPL v3. Software libre."
+msgstr "مجوز GNU GPL v3. نرم‌افزار آزاد."
+
+#: qml/RouteRestoreDialog.qml:21
+msgid "Ruta activa al cerrar la app"
+msgstr "مسیر فعال هنگام بستن برنامه"
+
+#: qml/RouteRestoreDialog.qml:26
+msgid "¿Continuar con la ruta anterior?"
+msgstr "ادامه مسیر قبلی؟"
+
+#: qml/RouteRestoreDialog.qml:34
+msgid "Sí, continuar"
+msgstr "بله، ادامه"
+
+#: qml/RouteRestoreDialog.qml:41
+msgid "No, cancelar"
+msgstr "نه، لغو"
+
+#: qml/MessagesPanel.qml:157
+msgid "Cargando mensajes…"
+msgstr "در حال بارگذاری پیام‌ها…"
+
+#: qml/MessagesPanel.qml:165
+msgid "Sin mensajes"
+msgstr "بدون پیام"
+
+#: qml/MessagesPanel.qml:315
+msgid "Ver en grande"
+msgstr "نمایش بزرگ"
+
+#: qml/ParkingDialog.qml:66
+msgid "Vehículo: "
+msgstr "وسیله نقلیه: "
+
+#: qml/ParkingDialog.qml:74
+msgid "Vehículo aparcado"
+msgstr "وسیله پارک شده"
+
+#: qml/ParkingDialog.qml:102
+msgid "Modo de desplazamiento"
+msgstr "حالت حرکت"
+
+#: qml/ParkingDialog.qml:124
+msgid "En "
+msgstr "در "
+
+#: qml/ParkingDialog.qml:124
+msgid "vehículo"
+msgstr "وسیله نقلیه"
+
+#: qml/ParkingDialog.qml:144
+msgid "Navegar"
+msgstr "ناوبری"
+
+#: qml/PrivacyBanner.qml:52
+msgid "Privacidad y uso de datos"
+msgstr "حریم خصوصی و استفاده از داده‌ها"
+
+#: qml/PrivacyBanner.qml:62
+msgid ""
+"Navius puede usarse sin cuenta y sin enviar ningún dato. Si utilizas los "
+"servidores públicos de Navius (rutas, mapas, alertas, anuncios), la "
+"aplicación enviará datos de posicionamiento al servidor para:"
+msgstr ""
+"Navius را می‌توان بدون حساب کاربری و بدون ارسال هیچ داده‌ای استفاده کرد. اگر "
+"از سرورهای عمومی Navius (مسیرها، نقشه‌ها، هشدارها، آگهی‌ها) استفاده کنید، "
+"برنامه داده‌های موقعیت مکانی را برای موارد زیر به سرور ارسال خواهد کرد:"
+
+#: qml/PrivacyBanner.qml:70
+msgid "Calcular rutas y tráfico predictivo (Valhalla)"
+msgstr "محاسبه مسیرها و ترافیک پیش‌بینی‌شده (Valhalla)"
+
+#: qml/PrivacyBanner.qml:71
+msgid "Mostrar alertas comunitarias (accidentes, obras, radares)"
+msgstr "نمایش هشدارهای اجتماعی (تصادفات، کارهای عمرانی، دوربین‌های سرعت)"
+
+#: qml/PrivacyBanner.qml:72
+msgid "Mostrar anuncios en ruta según tu ubicación"
+msgstr "نمایش آگهی‌ها در مسیر بر اساس موقعیت شما"
+
+#: qml/PrivacyBanner.qml:73
+msgid "Compartir tu viaje en tiempo real (función opcional)"
+msgstr "اشتراک‌گذاری سفر شما به صورت زنده (قابلیت اختیاری)"
+
+#: qml/PrivacyBanner.qml:92
+msgid ""
+"Si no deseas compartir datos, puedes usar Navius con OSM Scout Server u "
+"otros servidores Valhalla públicos no operados por Navius. Sin aceptar no "
+"podrás iniciar sesión ni usar las funciones comunitarias."
+msgstr ""
+"اگر نمی‌خواهید داده‌ها را به اشتراک بگذارید، می‌توانید از Navius با OSM Scout "
+"Server یا دیگر سرورهای عمومی Valhalla که توسط Navius اداره نمی‌شوند استفاده "
+"کنید. بدون پذیرش، نمی‌توانید وارد شوید یا از قابلیت‌های اجتماعی استفاده کنید."
+
+#: qml/PrivacyBanner.qml:116
+msgid ""
+"Acepto la política de privacidad de Navius y el uso de mis datos de posición "
+"para los servicios indicados."
+msgstr ""
+"سیاست حریم خصوصی Navius و استفاده از داده‌های موقعیت مکانی‌ام برای خدمات "
+"ذکرشده را می‌پذیرم."
+
+#: qml/PrivacyBanner.qml:125
+msgid "Ver política de privacidad completa"
+msgstr "مشاهده سیاست حریم خصوصی کامل"
+
+#: qml/PrivacyBanner.qml:139
+msgid "Aceptar y continuar"
+msgstr "پذیرش و ادامه"
+
+#: qml/PrivacyBanner.qml:155
+msgid "Continuar sin aceptar (sin funciones Navius)"
+msgstr "ادامه بدون پذیرش (بدون قابلیت‌های Navius)"
+
+#: qml/SatelliteView.qml:144 qml/SatelliteView.qml:350
+msgid "Activo"
+msgstr "فعال"
+
+#: qml/SatelliteView.qml:204 qml/SatelliteView.qml:207
+#: qml/SatelliteView.qml:415 qml/SatelliteView.qml:418
+msgid "Esperando satélites…"
+msgstr "در انتظار ماهواره‌ها…"
+
+#: qml/SatelliteView.qml:206
+msgid ""
+"Sin satélites visibles\n"
+"(se necesita visibilidad del cielo)"
+msgstr ""
+"ماهواره‌ای قابل مشاهده نیست\n"
+"(نیاز به دید آسمان)"
+
+#: qml/SatelliteView.qml:208 qml/SatelliteView.qml:419
+msgid "Pulsa Iniciar para activar el GPS"
+msgstr "برای فعال‌سازی GPS دکمه شروع را بزنید"
+
+#: qml/SatelliteView.qml:417
+msgid "Sin satélites visibles"
+msgstr "ماهواره‌ای قابل مشاهده نیست"
+
+#: qml/PreferencesPanel.qml:30
+msgid "Fiord"
+msgstr "فیورد"
+
+#: qml/PreferencesPanel.qml:201
+msgid "Restaurado"
+msgstr "بازگردانده شد"
+
+#: qml/PreferencesPanel.qml:202 qml/PreferencesPanel.qml:1267
+#: qml/PreferencesPanel.qml:1295 qml/PreferencesPanel.qml:2051
+#: qml/PreferencesPanel.qml:2727
+msgid "Toca de nuevo para confirmar"
+msgstr "دوباره لمس کنید تا تایید شود"
+
+#: qml/PreferencesPanel.qml:277
+msgid "Nivel de opciones"
+msgstr "سطح گزینه‌ها"
+
+#: qml/PreferencesPanel.qml:280
+msgid "Mínimo"
+msgstr "حداقل"
+
+#: qml/PreferencesPanel.qml:280
+msgid "Medio"
+msgstr "متوسط"
+
+#: qml/PreferencesPanel.qml:280
+msgid "Avanzado"
+msgstr "پیشرفته"
+
+#: qml/PreferencesPanel.qml:297
+msgid "Ajustes rápidos"
+msgstr "تنظیمات سریع"
+
+#: qml/PreferencesPanel.qml:327
+msgid "Modo de luz"
+msgstr "حالت نور"
+
+#: qml/PreferencesPanel.qml:332
+msgid "Día"
+msgstr "روز"
+
+#: qml/PreferencesPanel.qml:359
+msgid "Estilo de mapa"
+msgstr "سبک نقشه"
+
+#: qml/PreferencesPanel.qml:409
+msgid "Vehículos"
+msgstr "وسایل نقلیه"
+
+#: qml/PreferencesPanel.qml:422
+msgid "+ Añadir"
+msgstr "+ افزودن"
+
+#: qml/PreferencesPanel.qml:488 qml/PreferencesPanel.qml:3751
+msgid "Borrar"
+msgstr "حذف"
+
+#: qml/PreferencesPanel.qml:504
+msgid "Sí"
+msgstr "بله"
+
+#: qml/PreferencesPanel.qml:520 qml/PreferencesPanel.qml:1356
+#: qml/PreferencesPanel.qml:1386
+msgid "No"
+msgstr "خیر"
+
+#: qml/PreferencesPanel.qml:586
+msgid "Crear vehículo"
+msgstr "ایجاد وسیله نقلیه"
+
+#: qml/PreferencesPanel.qml:617
+msgid "General"
+msgstr "عمومی"
+
+#: qml/PreferencesPanel.qml:648
+msgid "Tamaño de texto"
+msgstr "اندازه متن"
+
+#: qml/PreferencesPanel.qml:676
+msgid "Sistema de medidas"
+msgstr "سیستم اندازه‌گیری"
+
+#: qml/PreferencesPanel.qml:679
+msgid "Métrico"
+msgstr "متریک"
+
+#: qml/PreferencesPanel.qml:679
+msgid "Imperial"
+msgstr "امپریال"
+
+#: qml/PreferencesPanel.qml:698
+msgid "Mostrar novedades al inicio"
+msgstr "نمایش اخبار جدید در شروع"
+
+#: qml/PreferencesPanel.qml:701
+msgid "Pantalla de cambios en cada deploy"
+msgstr "نمایش تغییرات در هر به‌روزرسانی"
+
+#: qml/PreferencesPanel.qml:724 qml/PreferencesPanel.qml:767
+msgid "Servidor de rutas"
+msgstr "سرور مسیریابی"
+
+#: qml/PreferencesPanel.qml:781
+msgid "Preferir OSM Scout Server si disponible"
+msgstr "ترجیح OSM Scout Server در صورت دسترسی"
+
+#: qml/PreferencesPanel.qml:782
+msgid "Enrutamiento offline · se detecta al arrancar"
+msgstr "مسیریابی آفلاین · در هنگام راه‌اندازی تشخیص داده می‌شود"
+
+#: qml/PreferencesPanel.qml:806
+msgid "Detectar"
+msgstr "تشخیص"
+
+#: qml/PreferencesPanel.qml:824
+msgid "Servidor Navius"
+msgstr "سرور Navius"
+
+#: qml/PreferencesPanel.qml:889
+msgid "Añadir servidor"
+msgstr "افزودن سرور"
+
+#: qml/PreferencesPanel.qml:902
+msgid "Nombre (ej. Mi servidor)"
+msgstr "نام (مثلاً سرور من)"
+
+#: qml/PreferencesPanel.qml:979
+msgid "Mapa online"
+msgstr "نقشه آنلاین"
+
+#: qml/PreferencesPanel.qml:1025
+msgid "Servidor de tiles"
+msgstr "سرور کاشی نقشه"
+
+#: qml/PreferencesPanel.qml:1071 qml/PreferencesPanel.qml:1161
+msgid "Externo"
+msgstr "خارجی"
+
+#: qml/PreferencesPanel.qml:1090
+msgid "Tema de día"
+msgstr "تم روز"
+
+#: qml/PreferencesPanel.qml:1115
+msgid "Servidor de POIs y radares"
+msgstr "سرور POI و دوربین‌ها"
+
+#: qml/PreferencesPanel.qml:1180
+msgid "Sin internet"
+msgstr "بدون اینترنت"
+
+#: qml/PreferencesPanel.qml:1199
+msgid "Caché"
+msgstr "کش"
+
+#: qml/PreferencesPanel.qml:1236
+msgid "Espacio máximo en disco"
+msgstr "حداکثر فضای دیسک"
+
+#: qml/PreferencesPanel.qml:1266 qml/PreferencesPanel.qml:1294
+#: qml/PreferencesPanel.qml:2726
+msgid "Caché eliminada"
+msgstr "کش حذف شد"
+
+#: qml/PreferencesPanel.qml:1268
+msgid "Limpiar caché de mapas"
+msgstr "پاکسازی کش نقشه"
+
+#: qml/PreferencesPanel.qml:1296
+msgid "Limpiar caché Google Maps"
+msgstr "پاکسازی کش Google Maps"
+
+#: qml/PreferencesPanel.qml:1352
+msgid "Sonido de alertas"
+msgstr "صدای هشدارها"
+
+#: qml/PreferencesPanel.qml:1356 qml/PreferencesPanel.qml:1386
+#: qml/PreferencesPanel.qml:2292
+msgid "Voz"
+msgstr "صدا"
+
+#: qml/PreferencesPanel.qml:1356 qml/PreferencesPanel.qml:1386
+msgid "Pitido"
+msgstr "بوق"
+
+#: qml/PreferencesPanel.qml:1382
+msgid "Sonido de indicaciones"
+msgstr "صدای راهنمایی"
+
+#: qml/PreferencesPanel.qml:1412
+msgid "Radares fijos"
+msgstr "دوربین‌های ثابت"
+
+#: qml/PreferencesPanel.qml:1415
+msgid "Iconos y alertas de radares de velocidad fijos"
+msgstr "آیکون‌ها و هشدارهای دوربین‌های سرعت ثابت"
+
+#: qml/PreferencesPanel.qml:1437
+msgid "Radares de tramo"
+msgstr "دوربین‌های بازه‌ای"
+
+#: qml/PreferencesPanel.qml:1440
+msgid "Zonas de control de velocidad media + barra de progreso"
+msgstr "مناطق کنترل سرعت متوسط + نوار پیشرفت"
+
+#: qml/PreferencesPanel.qml:1463
+msgid "Aviso de exceso de velocidad"
+msgstr "هشدار تجاوز از سرعت"
+
+#: qml/PreferencesPanel.qml:1466
+msgid "Parpadeo al superar el límite"
+msgstr "چشمک زدن هنگام تجاوز از محدودیت"
+
+#: qml/PreferencesPanel.qml:1489
+msgid "Margen exceso de velocidad"
+msgstr "حاشیه تجاوز از سرعت"
+
+#: qml/PreferencesPanel.qml:1493
+msgid "Sin margen"
+msgstr "بدون حاشیه"
+
+#: qml/PreferencesPanel.qml:1516
+msgid "Zoom automático"
+msgstr "زوم خودکار"
+
+#: qml/PreferencesPanel.qml:1519
+msgid "Ajusta el zoom según la velocidad"
+msgstr "زوم را بر اساس سرعت تنظیم می‌کند"
+
+#: qml/PreferencesPanel.qml:1545
+msgid "Anticipación zoom automático"
+msgstr "پیش‌بینی زوم خودکار"
+
+#: qml/PreferencesPanel.qml:1554
+msgid ""
+"Ajuste de zoom automático para que se vea al menos la distancia a recorrer "
+"en este tiempo"
+msgstr "تنظیم زوم خودکار برای نمایش حداقل مسافت قابل طی در این زمان"
+
+#: qml/PreferencesPanel.qml:1579
+msgid "Ajustar movimiento a ruta"
+msgstr "تطبیق حرکت با مسیر"
+
+#: qml/PreferencesPanel.qml:1582
+msgid "Zoom según velocidades Valhalla de los tramos por delante"
+msgstr "زوم بر اساس سرعت‌های Valhalla در قطعات پیش رو"
+
+#: qml/PreferencesPanel.qml:1608
+msgid "Anticipación giro de ruta"
+msgstr "پیش‌بینی پیچ مسیر"
+
+#: qml/PreferencesPanel.qml:1617
+msgid "Segundos de ruta por delante para anticipar el giro del mapa"
+msgstr "ثانیه‌های مسیر جلوتر برای پیش‌بینی چرخش نقشه"
+
+#: qml/PreferencesPanel.qml:1645
+msgid "Ángulo máximo de giro predictivo"
+msgstr "حداکثر زاویه چرخش پیش‌بینی‌شده"
+
+#: qml/PreferencesPanel.qml:1654
+msgid "Máximo desvío angular del mapa respecto al heading real en modo giro"
+msgstr "حداکثر انحراف زاویه‌ای نقشه نسبت به مسیر واقعی در حالت چرخش"
+
+#: qml/PreferencesPanel.qml:1679
+msgid "Ajuste de posición a la ruta"
+msgstr "تنظیم موقعیت روی مسیر"
+
+#: qml/PreferencesPanel.qml:1682
+msgid "Centrar el vehículo sobre el shape de la ruta"
+msgstr "مرکز کردن خودرو روی شکل مسیر"
+
+#: qml/PreferencesPanel.qml:1708
+msgid "Distancia máxima de ajuste"
+msgstr "حداکثر فاصله تنظیم"
+
+#: qml/PreferencesPanel.qml:1717
+msgid ""
+"Ajustar posición visual si el GPS está a menos de esta distancia de la ruta"
+msgstr "تنظیم موقعیت بصری اگر GPS در کمتر از این فاصله از مسیر باشد"
+
+#: qml/PreferencesPanel.qml:1745
+msgid "Desvío para recalcular ruta"
+msgstr "انحراف برای محاسبه مجدد مسیر"
+
+#: qml/PreferencesPanel.qml:1754
+msgid "Distancia fuera de la ruta antes de recalcular"
+msgstr "فاصله خارج از مسیر قبل از محاسبه مجدد"
+
+#: qml/PreferencesPanel.qml:1782
+msgid "Suavizar el movimiento del vehículo y el mapa entre ticks GPS"
+msgstr "هموارسازی حرکت خودرو و نقشه بین تیک‌های GPS"
+
+#: qml/PreferencesPanel.qml:1805
+msgid "Frecuencia de suavizado"
+msgstr "فرکانس هموارسازی"
+
+#: qml/PreferencesPanel.qml:1833
+msgid "Slider de zoom"
+msgstr "نوار لغزنده زوم"
+
+#: qml/PreferencesPanel.qml:1836
+msgid "Barra lateral para ajustar el zoom"
+msgstr "نوار جانبی برای تنظیم زوم"
+
+#: qml/PreferencesPanel.qml:1859
+msgid "Inhibir suspensión de pantalla"
+msgstr "جلوگیری از خاموش شدن نمایشگر"
+
+#: qml/PreferencesPanel.qml:1862
+msgid "Mantiene la pantalla encendida mientras la app está abierta"
+msgstr "صفحه را در حین باز بودن برنامه روشن نگه می‌دارد"
+
+#: qml/PreferencesPanel.qml:1885
+msgid "Mostrar velocidad máxima de la vía"
+msgstr "نمایش حداکثر سرعت جاده"
+
+#: qml/PreferencesPanel.qml:1888
+msgid "Fuente no fiable (OSM/Valhalla). Solo activa si hay radar comunitario"
+msgstr "منبع غیرقابل اعتماد (OSM/Valhalla). فقط با دوربین اجتماعی فعال کنید"
+
+#: qml/PreferencesPanel.qml:1914
+msgid ""
+"Usa la velocidad Doppler del chip GPS en vez de calcularla por diferencia de "
+"posiciones. Más precisa a baja velocidad y en aceleraciones. Desactiva si "
+"notas velocidades erráticas."
+msgstr ""
+"از سرعت دوپلر چیپ GPS به جای محاسبه از اختلاف موقعیت استفاده می‌کند. در سرعت "
+"پایین و شتاب‌گیری دقیق‌تر است. اگر سرعت‌های نامنظم مشاهده کردید غیرفعال کنید."
+
+#: qml/PreferencesPanel.qml:1938
+msgid "Grabación de rutas"
+msgstr "ضبط مسیرها"
+
+#: qml/PreferencesPanel.qml:2025
+msgid "Grabación GPS"
+msgstr "ضبط GPS"
+
+#: qml/PreferencesPanel.qml:2029
+msgid "Grabando"
+msgstr "در حال ضبط"
+
+#: qml/PreferencesPanel.qml:2030
+msgid "Grabando…"
+msgstr "در حال ضبط…"
+
+#: qml/PreferencesPanel.qml:2031
+msgid "Graba posición y velocidad"
+msgstr "موقعیت و سرعت را ضبط می‌کند"
+
+#: qml/PreferencesPanel.qml:2050
+msgid "Rutas eliminadas"
+msgstr "مسیرها حذف شدند"
+
+#: qml/PreferencesPanel.qml:2052
+msgid "Borrar todas las rutas grabadas"
+msgstr "حذف همه مسیرهای ضبط‌شده"
+
+#: qml/PreferencesPanel.qml:2072
+msgid "Rutas grabadas"
+msgstr "مسیرهای ضبط‌شده"
+
+#: qml/PreferencesPanel.qml:2083
+msgid "Ninguna ruta grabada aún"
+msgstr "هنوز هیچ مسیری ضبط نشده"
+
+#: qml/PreferencesPanel.qml:2123
+msgid "Simular"
+msgstr "شبیه‌سازی"
+
+#: qml/PreferencesPanel.qml:2131
+msgid "GPS crudo"
+msgstr "GPS خام"
+
+#: qml/PreferencesPanel.qml:2187
+msgid "Eliminar"
+msgstr "حذف"
+
+#: qml/PreferencesPanel.qml:2221
+msgid "OK"
+msgstr "تایید"
+
+#: qml/PreferencesPanel.qml:2378
+msgid "Idioma de voz"
+msgstr "زبان صدا"
+
+#: qml/PreferencesPanel.qml:2383
+msgid "Sistema"
+msgstr "سیستم"
+
+#: qml/PreferencesPanel.qml:2410
+msgid "Voz Piper"
+msgstr "صدای Piper"
+
+#: qml/PreferencesPanel.qml:2421 qml/PreferencesPanel.qml:2489
+#: qml/PreferencesPanel.qml:2558
+msgid "Automático"
+msgstr "خودکار"
+
+#: qml/PreferencesPanel.qml:2478
+msgid "Voz PicoTTS"
+msgstr "صدای PicoTTS"
+
+#: qml/PreferencesPanel.qml:2547
+msgid "Voz espeak-ng"
+msgstr "صدای espeak-ng"
+
+#: qml/PreferencesPanel.qml:2621
+msgid "Procesando voz…"
+msgstr "در حال پردازش صدا…"
+
+#: qml/PreferencesPanel.qml:2631
+msgid "Motor TTS"
+msgstr "موتور TTS"
+
+#: qml/PreferencesPanel.qml:2710
+msgid "Gestionar voces TTS"
+msgstr "مدیریت صداهای TTS"
+
+#: qml/PreferencesPanel.qml:2728
+msgid "Limpiar caché audio en ruta"
+msgstr "پاکسازی کش صوتی مسیر"
+
+#: qml/PreferencesPanel.qml:2755
+msgid "Media"
+msgstr "متوسط"
+
+#: qml/PreferencesPanel.qml:2787
+msgid "Volumen al hablar"
+msgstr "صدا هنگام گفتار"
+
+#: qml/PreferencesPanel.qml:2816
+msgid "Cuenta Navius"
+msgstr "حساب Navius"
+
+#: qml/PreferencesPanel.qml:2845
+msgid "No identificado"
+msgstr "وارد نشده"
+
+#: qml/PreferencesPanel.qml:2862
+msgid "Iniciar sesión / Registro"
+msgstr "ورود / ثبت‌نام"
+
+#: qml/PreferencesPanel.qml:2891
+msgid "Privacidad"
+msgstr ""
+
+#: qml/PreferencesPanel.qml:2921
+#, fuzzy
+msgid "Política de privacidad aceptada"
+msgstr "مشاهده سیاست حریم خصوصی کامل"
+
+#: qml/PreferencesPanel.qml:2922
+#, fuzzy
+msgid "Política de privacidad no aceptada"
+msgstr "مشاهده سیاست حریم خصوصی کامل"
+
+#: qml/PreferencesPanel.qml:2940
+msgid "Retirar consentimiento"
+msgstr ""
+
+#: qml/PreferencesPanel.qml:2941
+#, fuzzy
+msgid "Aceptar política de privacidad"
+msgstr "مشاهده سیاست حریم خصوصی کامل"
+
+#: qml/PreferencesPanel.qml:2989
+msgid "Ayuda"
+msgstr "راهنما"
+
+#: qml/PreferencesPanel.qml:3042
+msgid "Abrir asistente"
+msgstr "باز کردن دستیار"
+
+#: qml/PreferencesPanel.qml:3064
+msgid "Mostrar asistente al inicio"
+msgstr "نمایش دستیار در شروع"
+
+#: qml/PreferencesPanel.qml:3097
+msgid "Acerca de…"
+msgstr "درباره…"
+
+#: qml/PreferencesPanel.qml:3148
+msgid "Modo Debug"
+msgstr "حالت Debug"
+
+#: qml/PreferencesPanel.qml:3151
+msgid "Sim GPS, POI"
+msgstr "Sim GPS, POI"
+
+#: qml/PreferencesPanel.qml:3184
+msgid "Activar trazas y TUI"
+msgstr "فعال‌سازی ردیابی و TUI"
+
+#: qml/PreferencesPanel.qml:3187
+msgid "net_debug.log · tts_debug.log · piper_limit.log · control remoto"
+msgstr "net_debug.log · tts_debug.log · piper_limit.log · control remoto"
+
+#: qml/PreferencesPanel.qml:3210
+msgid "Simulación GPS"
+msgstr "شبیه‌سازی GPS"
+
+#: qml/PreferencesPanel.qml:3213
+msgid "Muntaner → Gran Via (Barcelona)"
+msgstr "Muntaner → Gran Via (Barcelona)"
+
+#: qml/PreferencesPanel.qml:3213
+msgid "Sustituye al GPS real para pruebas en interior"
+msgstr "جایگزین GPS واقعی برای تست در داخل ساختمان"
+
+#: qml/PreferencesPanel.qml:3241
+msgid "Ruta de simulación"
+msgstr "مسیر شبیه‌سازی"
+
+#: qml/PreferencesPanel.qml:3260
+msgid "Aplicar ruta"
+msgstr "اعمال مسیر"
+
+#: qml/PreferencesPanel.qml:3267
+msgid "Grabaciones en sim"
+msgstr "ضبط‌ها در شبیه‌سازی"
+
+#: qml/PreferencesPanel.qml:3319
+msgid "Señal perdida (simulado)"
+msgstr "سیگنال قطع شد (شبیه‌سازی)"
+
+#: qml/PreferencesPanel.qml:3319
+msgid "Perder señal GPS"
+msgstr "قطع سیگنال GPS"
+
+#: qml/PreferencesPanel.qml:3322
+msgid "El vehículo sigue avanzando internamente"
+msgstr "خودرو به پیشروی داخلی ادامه می‌دهد"
+
+#: qml/PreferencesPanel.qml:3323
+msgid "Simula túnel o zona sin cobertura"
+msgstr "تونل یا منطقه بدون پوشش را شبیه‌سازی می‌کند"
+
+#: qml/PreferencesPanel.qml:3346
+msgid "Deslizable posición en ruta sim"
+msgstr "موقعیت قابل لغزش در مسیر شبیه‌سازی"
+
+#: qml/PreferencesPanel.qml:3349
+msgid "Desplegable lateral para mover la posición GPS simulada"
+msgstr "منوی کشویی جانبی برای جابجایی موقعیت GPS شبیه‌سازی‌شده"
+
+#: qml/PreferencesPanel.qml:3372
+msgid "Velocidad mínima sim (km/h)"
+msgstr "حداقل سرعت شبیه‌سازی (km/h)"
+
+#: qml/PreferencesPanel.qml:3376
+msgid "Off"
+msgstr "خاموش"
+
+#: qml/PreferencesPanel.qml:3400
+msgid "Posición manual"
+msgstr "موقعیت دستی"
+
+#: qml/PreferencesPanel.qml:3426
+msgid "Fijar"
+msgstr "ثابت کردن"
+
+#: qml/PreferencesPanel.qml:3442
+msgid "Liberar GPS"
+msgstr "آزاد کردن GPS"
+
+#: qml/PreferencesPanel.qml:3459
+msgid "Panel debug velocidades (v_sim)"
+msgstr "پنل debug سرعت‌ها (v_sim)"
+
+#: qml/PreferencesPanel.qml:3462
+msgid "Muestra vValhalla, límite y velocidad genérica"
+msgstr "نمایش vValhalla، محدودیت و سرعت عمومی"
+
+#: qml/PreferencesPanel.qml:3485
+msgid "Overlay límites de velocidad"
+msgstr "پوشش محدودیت‌های سرعت"
+
+#: qml/PreferencesPanel.qml:3488
+msgid "Muestra límite, velocidad Valhalla y fuente por tramo"
+msgstr "نمایش محدودیت، سرعت Valhalla و منبع به ازای هر قطعه"
+
+#: qml/PreferencesPanel.qml:3511
+msgid "Mostrar ticks GPS (isReal)"
+msgstr "نمایش تیک‌های GPS (isReal)"
+
+#: qml/PreferencesPanel.qml:3514
+msgid "Puntos cian en el mapa por cada fix real"
+msgstr "نقاط فیروزه‌ای روی نقشه برای هر fix واقعی"
+
+#: qml/PreferencesPanel.qml:3547
+msgid "Simulación fallos GPS"
+msgstr "شبیه‌سازی خرابی GPS"
+
+#: qml/PreferencesPanel.qml:3553
+msgid "Probabilidad de fallo (%)"
+msgstr "احتمال خرابی (%)"
+
+#: qml/PreferencesPanel.qml:3568
+msgid "Distancia de desvío (m)"
+msgstr "فاصله انحراف (m)"
+
+#: qml/PreferencesPanel.qml:3583
+msgid "Ticks sin señal (isReal=true)"
+msgstr "تیک‌های بدون سیگنال (isReal=true)"
+
+#: qml/PreferencesPanel.qml:3628
+msgid "Texto para reproducir…"
+msgstr "متن برای پخش…"
+
+#: qml/PreferencesPanel.qml:3637
+msgid "Decir"
+msgstr "گفتن"
+
+#: qml/PreferencesPanel.qml:3655
+msgid "Ficheros debug"
+msgstr "Ficheros debug"
+
+#: qml/PreferencesPanel.qml:3669
+msgid "Borrar todos los ficheros debug al salir"
+msgstr "حذف همه فایل‌های debug هنگام خروج"
+
+#: qml/PreferencesPanel.qml:3694
+msgid "Todos los ficheros debug"
+msgstr "همه فایل‌های debug"
+
+#: qml/PreferencesPanel.qml:3704
+msgid "Borrados"
+msgstr "حذف شدند"
+
+#: qml/PreferencesPanel.qml:3704
+msgid "Borrar todo"
+msgstr "حذف همه"
+
+#: qml/PreferencesPanel.qml:3751
+msgid "Borrado"
+msgstr "حذف شد"
+
+#: qml/TourOverlay.qml:28
+msgid ""
+"Navius es un navegador GPS para Ubuntu Touch. Combina mapas vectoriales "
+"offline, navegación turn-by-turn con voz, planificación avanzada de rutas y "
+"soporte completo para moverse por todo el mundo.\n"
+"\n"
+"Este asistente te guiará por todas las funciones de la aplicación. Puedes "
+"consultar este tour en cualquier momento desde Ajustes → Ayuda."
+msgstr ""
+"Navius یک ناوبر GPS برای Ubuntu Touch است. نقشه‌های برداری آفلاین، ناوبری گام "
+"به گام با صدا، برنامه‌ریزی پیشرفته مسیر و پشتیبانی کامل برای حرکت در سراسر "
+"جهان را ترکیب می‌کند.\n"
+"\n"
+"این دستیار شما را در تمام قابلیت‌های برنامه راهنمایی خواهد کرد. می‌توانید این "
+"تور را در هر زمانی از تنظیمات → راهنما مشاهده کنید."
+
+#: qml/TourOverlay.qml:33
+msgid ""
+"El mapa es vectorial (MapLibre GL) — se ve nítido a cualquier zoom y "
+"funciona sin conexión una vez descargados los tiles.\n"
+"\n"
+"• Pellizca para zoom o usa la barra lateral\n"
+"• Toca el botón de brújula para recentrar y activar seguimiento\n"
+"• Desliza un dedo para explorar libremente\n"
+"• El botón 3D/2D alterna entre vista plana y perspectiva de conducción\n"
+"• En modo noche el mapa cambia automáticamente a paleta oscura"
+msgstr ""
+"نقشه برداری (MapLibre GL) است — در هر بزرگ‌نمایی واضح به نظر می‌رسد و پس از "
+"دانلود کاشی‌ها بدون اتصال کار می‌کند.\n"
+"\n"
+"• برای بزرگ‌نمایی نیشگون بگیرید یا از نوار کناری استفاده کنید\n"
+"• دکمه قطب‌نما را لمس کنید تا مجدداً مرکز شود و ردیابی فعال شود\n"
+"• یک انگشت را بکشید تا آزادانه کاوش کنید\n"
+"• دکمه 3D/2D بین نمای مسطح و دیدگاه رانندگی جابجا می‌شود\n"
+"• در حالت شب نقشه به‌طور خودکار به پالت تاریک تغییر می‌کند"
+
+#: qml/TourOverlay.qml:38
+msgid ""
+"Toca el botón «Iniciar navegación» en la parte superior para abrir el panel "
+"de planificación.\n"
+"\n"
+"Escribe el nombre de un lugar, dirección o punto de interés. La búsqueda usa "
+"Photon/Komoot con datos de OpenStreetMap y funciona para cualquier lugar del "
+"mundo.\n"
+"\n"
+"• Toca un resultado para añadirlo como destino\n"
+"• Puedes añadir varios destinos en secuencia (ruta multistop)\n"
+"• El historial y los favoritos aparecen automáticamente"
+msgstr ""
+"دکمه «شروع ناوبری» را در بالا لمس کنید تا پانل برنامه‌ریزی باز شود.\n"
+"\n"
+"نام یک مکان، آدرس یا نقطه مورد توجه را وارد کنید. جستجو از Photon/Komoot با "
+"داده‌های OpenStreetMap استفاده می‌کند و برای هر مکانی در جهان کار می‌کند.\n"
+"\n"
+"• یک نتیجه را لمس کنید تا به عنوان مقصد اضافه شود\n"
+"• می‌توانید چندین مقصد به صورت متوالی اضافه کنید (مسیر چند توقفه)\n"
+"• تاریخچه و موارد دلخواه به‌طور خودکار ظاهر می‌شوند"
+
+#: qml/TourOverlay.qml:42
+msgid "Planificación de ruta"
+msgstr "برنامه‌ریزی مسیر"
+
+#: qml/TourOverlay.qml:43
+msgid ""
+"Con el panel abierto puedes configurar todos los detalles de tu viaje:\n"
+"\n"
+"• Añade múltiples destinos — la ruta pasa por todos en orden\n"
+"• Reordena o elimina destinos con los botones junto a cada uno\n"
+"• Opciones de ruta: sin peajes, sin autopistas, sin ferries, sin tierra\n"
+"• Busca POI cercanos: gasolineras (con precio del combustible), parking, "
+"restaurantes, hoteles…\n"
+"• Pulsa CALCULAR RUTA para ver las alternativas disponibles"
+msgstr ""
+"با پانل باز می‌توانید تمام جزئیات سفرتان را پیکربندی کنید:\n"
+"\n"
+"• چندین مقصد اضافه کنید — مسیر به ترتیب از همه عبور می‌کند\n"
+"• مقاصد را با دکمه‌های کنار هر کدام مرتب کنید یا حذف کنید\n"
+"• گزینه‌های مسیر: بدون عوارض، بدون آزادراه، بدون فری، بدون خاکی\n"
+"• POIهای نزدیک را جستجو کنید: پمپ‌های بنزین (با قیمت سوخت)، پارکینگ، "
+"رستوران‌ها، هتل‌ها...\n"
+"• محاسبه مسیر را فشار دهید تا گزینه‌های موجود را ببینید"
+
+#: qml/TourOverlay.qml:48
+msgid ""
+"Puedes añadir una lista de tareas pendientes a cada destino del viaje.\n"
+"\n"
+"• Toca '+ Tarea' junto a un destino para añadir un TODO\n"
+"• Las tareas se guardan asociadas a la ubicación (por coordenadas)\n"
+"• Al llegar al destino aparece un aviso para abrir la lista\n"
+"• Marca las tareas como hechas directamente en el panel\n"
+"\n"
+"Los TODOs se conservan entre sesiones y se muestran la próxima vez que "
+"visites el mismo lugar."
+msgstr ""
+"می‌توانید یک لیست وظایف به هر مقصد سفر اضافه کنید.\n"
+"\n"
+"• '+ وظیفه' را کنار یک مقصد لمس کنید تا یک TODO اضافه کنید\n"
+"• وظایف مرتبط با مکان ذخیره می‌شوند (بر اساس مختصات)\n"
+"• هنگام رسیدن به مقصد یک هشدار برای باز کردن لیست ظاهر می‌شود\n"
+"• وظایف را مستقیماً در پانل به عنوان انجام شده علامت‌گذاری کنید\n"
+"\n"
+"TODOها بین نشست‌ها حفظ می‌شوند و دفعه بعدی که همان مکان را بازدید کنید نمایش "
+"داده می‌شوند."
+
+#: qml/TourOverlay.qml:53
+msgid ""
+"Activa «Hora de salida» para planificar un viaje futuro. Selecciona el día y "
+"la hora de partida — la ruta se calculará usando el tráfico previsto para "
+"ese momento.\n"
+"\n"
+"• Pulsa ⊕ junto a CALCULAR RUTA para guardar el plan completo\n"
+"• Los planes incluyen destinos, TODOs, hora de salida y opciones de ruta\n"
+"• Aparecen en la sección «Planes guardados» en la parte superior del panel\n"
+"• Toca un plan para cargarlo, o el icono de papelera para borrarlo"
+msgstr ""
+"«زمان حرکت» را برای برنامه‌ریزی یک سفر آینده فعال کنید. روز و ساعت حرکت را "
+"انتخاب کنید — مسیر با استفاده از ترافیک پیش‌بینی‌شده برای آن لحظه محاسبه خواهد "
+"شد.\n"
+"\n"
+"• ⊕ کنار محاسبه مسیر را فشار دهید تا برنامه کامل ذخیره شود\n"
+"• برنامه‌ها شامل مقاصد، TODOها، زمان حرکت و گزینه‌های مسیر هستند\n"
+"• در بخش «برنامه‌های ذخیره‌شده» در قسمت بالای پانل نمایش داده می‌شوند\n"
+"• یک برنامه را لمس کنید تا بارگذاری شود، یا آیکون سطل زباله برای حذف آن"
+
+#: qml/TourOverlay.qml:57
+msgid "Selección de ruta y alternativas"
+msgstr "انتخاب مسیر و مسیرهای جایگزین"
+
+#: qml/TourOverlay.qml:58
+msgid ""
+"Navius solicita hasta 3 alternativas de ruta a Valhalla. Tras calcular, "
+"aparece el panel de selección:\n"
+"\n"
+"• Cada alternativa muestra distancia, tiempo y ruta en el mapa\n"
+"• Elige el tipo de vehículo: coche, moto, bicicleta, a pie y más\n"
+"• Toca una alternativa para verla; confirma para iniciar la navegación\n"
+"• También puedes ver la lista completa de instrucciones antes de salir"
+msgstr ""
+"Navius تا ۳ گزینه مسیر از Valhalla درخواست می‌کند. پس از محاسبه، پانل انتخاب "
+"ظاهر می‌شود:\n"
+"\n"
+"• هر گزینه فاصله، زمان و مسیر را روی نقشه نشان می‌دهد\n"
+"• نوع وسیله نقلیه را انتخاب کنید: ماشین، موتور، دوچرخه، پیاده و بیشتر\n"
+"• یک گزینه را لمس کنید تا آن را ببینید؛ تأیید کنید تا ناوبری شروع شود\n"
+"• همچنین می‌توانید لیست کامل دستورالعمل‌ها را قبل از حرکت ببینید"
+
+#: qml/TourOverlay.qml:62
+msgid "Navegación turn-by-turn"
+msgstr "ناوبری گام به گام"
+
+#: qml/TourOverlay.qml:63
+msgid ""
+"Durante la navegación, la barra superior muestra:\n"
+"\n"
+"• La instrucción actual con icono de maniobra\n"
+"• Distancia al siguiente giro\n"
+"• Nombre de la calle actual y la siguiente\n"
+"• Hora de llegada estimada (ETA)\n"
+"• Tu velocidad actual y el límite de velocidad del tramo\n"
+"\n"
+"Las instrucciones se anuncian por voz con antelación suficiente para "
+"reaccionar a tiempo."
+msgstr ""
+"در طول ناوبری، نوار بالایی نشان می‌دهد:\n"
+"\n"
+"• دستورالعمل فعلی با آیکون مانور\n"
+"• فاصله تا پیچ بعدی\n"
+"• نام خیابان فعلی و بعدی\n"
+"• زمان تخمینی رسیدن (ETA)\n"
+"• سرعت فعلی شما و محدودیت سرعت بخش\n"
+"\n"
+"دستورالعمل‌ها با پیش‌هشدار کافی برای واکنش به موقع از طریق صدا اعلام می‌شوند."
+
+#: qml/TourOverlay.qml:67
+msgid "Alertas comunitarias"
+msgstr "هشدارهای اجتماعی"
+
+#: qml/TourOverlay.qml:68
+msgid ""
+"Otros conductores de Navius reportan incidencias en tiempo real que aparecen "
+"en tu mapa.\n"
+"\n"
+"• Accidentes, radar móvil, policía, tráfico, peligros, obras…\n"
+"• Toca el botón triangular de advertencia en el mapa para reportar\n"
+"• Las alertas activas en tu ruta se muestran con aviso sonoro\n"
+"• Confirma o desmiente las alertas de otros usuarios con los botones de "
+"voto\n"
+"\n"
+"Requiere cuenta Navius activa."
+msgstr ""
+"سایر رانندگان Navius حوادث را در زمان واقعی گزارش می‌کنند که روی نقشه شما "
+"ظاهر می‌شوند.\n"
+"\n"
+"• تصادفات، رادار موبایل، پلیس، ترافیک، خطرات، کارهای ساختمانی...\n"
+"• دکمه مثلثی هشدار روی نقشه را لمس کنید تا گزارش دهید\n"
+"• هشدارهای فعال در مسیر شما با اعلان صوتی نشان داده می‌شوند\n"
+"• هشدارهای سایر کاربران را با دکمه‌های رأی تأیید یا رد کنید\n"
+"\n"
+"به حساب فعال Navius نیاز دارد."
+
+#: qml/TourOverlay.qml:73
+msgid ""
+"Comparte tu posición y ruta en tiempo real con cualquier persona, sin que "
+"necesite tener Navius instalado.\n"
+"\n"
+"• Menú ≡ → Compartir viaje → Crear enlace\n"
+"• Copia el enlace y compártelo por el medio que prefieras\n"
+"• El seguidor ve tu posición actualizada cada 5 segundos en su navegador\n"
+"• El enlace es válido durante 24 horas\n"
+"• Detén el share desde el mismo menú en cualquier momento\n"
+"\n"
+"Requiere cuenta Navius activa."
+msgstr ""
+"موقعیت و مسیر خود را در زمان واقعی با هر کسی به اشتراک بگذارید، بدون اینکه "
+"نیازی به داشتن Navius نصب شده باشد.\n"
+"\n"
+"• منوی ≡ → اشتراک‌گذاری سفر → ایجاد پیوند\n"
+"• پیوند را کپی کنید و از هر روشی که ترجیح می‌دهید به اشتراک بگذارید\n"
+"• دنبال‌کننده موقعیت شما را هر ۵ ثانیه در مرورگرش می‌بیند\n"
+"• پیوند ۲۴ ساعت معتبر است\n"
+"• اشتراک‌گذاری را از همان منو در هر زمانی متوقف کنید\n"
+"\n"
+"به حساب فعال Navius نیاز دارد."
+
+#: qml/TourOverlay.qml:77
+msgid "Instrucciones de voz (TTS)"
+msgstr "راهنمایی صوتی (TTS)"
+
+#: qml/TourOverlay.qml:78
+msgid ""
+"La voz usa el motor seleccionado en Ajustes → Voz:\n"
+"\n"
+"• Piper (neural): la más natural, ~300 ms de latencia, descarga voces .onnx\n"
+"• Mimic HTS: español integrado, ~100 ms, buena calidad\n"
+"• PicoTTS: motor de reserva, ~50 ms, calidad básica\n"
+"\n"
+"Piper pre-genera los WAVs de las próximas instrucciones en segundo plano "
+"para que la voz suene sin retraso perceptible."
+msgstr ""
+"صدا از موتور انتخاب شده در تنظیمات → صدا استفاده می‌کند:\n"
+"\n"
+"• Piper (عصبی): طبیعی‌ترین، ~۳۰۰ میلی‌ثانیه تأخیر، دانلود صداهای .onnx\n"
+"• Mimic HTS: اسپانیایی یکپارچه، ~۱۰۰ میلی‌ثانیه، کیفیت خوب\n"
+"• PicoTTS: موتور ذخیره، ~۵۰ میلی‌ثانیه، کیفیت پایه\n"
+"\n"
+"Piper WAVهای دستورالعمل‌های بعدی را در پس‌زمینه پیش‌تولید می‌کند تا صدا بدون "
+"تأخیر قابل توجه پخش شود."
+
+#: qml/TourOverlay.qml:82
+msgid "Reproductor de música"
+msgstr "پخش‌کننده موسیقی"
+
+#: qml/TourOverlay.qml:83
+msgid ""
+"Navius incluye un reproductor de música integrado. Importa pistas vía "
+"Content Hub — Menú ≡ → Música → Añadir música.\n"
+"\n"
+"• Toca una pista para reproducir\n"
+"• Soporta mp3, ogg, flac, m4a, opus, wav y más\n"
+"• El widget compacto queda visible sobre la barra de estado\n"
+"• La música baja automáticamente cuando el navegador habla (ducking)\n"
+"  y se restaura 600 ms después"
+msgstr ""
+"Navius شامل یک پخش‌کننده موسیقی یکپارچه است. آهنگ‌ها را از طریق Content Hub "
+"وارد کنید — منوی ≡ → موسیقی → افزودن موسیقی.\n"
+"\n"
+"• یک آهنگ را لمس کنید تا پخش شود\n"
+"• از mp3، ogg، flac، m4a، opus، wav و بیشتر پشتیبانی می‌کند\n"
+"• ویجت فشرده روی نوار وضعیت قابل مشاهده باقی می‌ماند\n"
+"• موسیقی به‌طور خودکار هنگامی که ناوبر صحبت می‌کند کاهش می‌یابد (ducking)\n"
+"  و ۶۰۰ میلی‌ثانیه بعد بازیابی می‌شود"
+
+#: qml/TourOverlay.qml:87
+msgid "Velocímetro y límites de velocidad"
+msgstr "سرعت‌سنج و محدودیت‌های سرعت"
+
+#: qml/TourOverlay.qml:88
+msgid ""
+"El velocímetro circular muestra tu velocidad en tiempo real.\n"
+"\n"
+"• El límite de velocidad del tramo actual aparece en la barra de navegación\n"
+"• Si superas el límite, el indicador cambia de color (configurable en "
+"Ajustes)\n"
+"• Los límites provienen de los datos OSM con el estándar Legal Default Speeds"
+msgstr ""
+"سرعت‌سنج دایره‌ای سرعت شما را در زمان واقعی نشان می‌دهد.\n"
+"\n"
+"• محدودیت سرعت بخش فعلی در نوار ناوبری ظاهر می‌شود\n"
+"• اگر از محدودیت تجاوز کنید، نشانگر رنگ عوض می‌کند (قابل تنظیم در تنظیمات)\n"
+"• محدودیت‌ها از داده‌های OSM با استاندارد Legal Default Speeds می‌آیند"
+
+#: qml/TourOverlay.qml:93
+msgid ""
+"La vista de satélites muestra en tiempo real:\n"
+"\n"
+"• Posición de cada satélite en el cielo (vista polar acimutal)\n"
+"• Intensidad de señal (SNR) de cada satélite en uso\n"
+"• Número de satélites visibles y en uso\n"
+"• Estado del fix GPS (sin fix / fix 2D / fix 3D)\n"
+"\n"
+"Útil para diagnosticar problemas de recepción GPS o comparar señal en "
+"distintas ubicaciones."
+msgstr ""
+"نمای ماهواره‌ها در زمان واقعی نشان می‌دهد:\n"
+"\n"
+"• موقعیت هر ماهواره در آسمان (نمای قطبی آزیموتال)\n"
+"• شدت سیگنال (SNR) هر ماهواره در استفاده\n"
+"• تعداد ماهواره‌های قابل مشاهده و در استفاده\n"
+"• وضعیت fix GPS (بدون fix / fix 2D / fix 3D)\n"
+"\n"
+"مفید برای تشخیص مشکلات دریافت GPS یا مقایسه سیگنال در مکان‌های مختلف."
+
+#: qml/TourOverlay.qml:97
+msgid "Mensajes del servidor"
+msgstr "پیام‌های سرور"
+
+#: qml/TourOverlay.qml:98
+msgid ""
+"El servidor de Navius puede enviarte mensajes: avisos, novedades o "
+"notificaciones.\n"
+"\n"
+"• Menú ≡ → Mensajes para ver tu bandeja\n"
+"• El contador junto al icono indica mensajes sin leer\n"
+"• Los mensajes nuevos muestran un banner de notificación\n"
+"• Algunos mensajes incluyen un botón Navegar con un destino directo\n"
+"\n"
+"Requiere cuenta Navius activa."
+msgstr ""
+"سرور Navius می‌تواند برای شما پیام ارسال کند: هشدارها، اخبار یا اعلان‌ها.\n"
+"\n"
+"• منوی ≡ → پیام‌ها برای مشاهده صندوق ورودی\n"
+"• شمارنده کنار آیکون پیام‌های خوانده نشده را نشان می‌دهد\n"
+"• پیام‌های جدید یک بنر اعلان نمایش می‌دهند\n"
+"• برخی پیام‌ها شامل یک دکمه ناوبری با مقصد مستقیم هستند\n"
+"\n"
+"به حساب فعال Navius نیاز دارد."
+
+#: qml/TourOverlay.qml:103
+msgid ""
+"Navius puede grabar tu trayecto GPS en tiempo real.\n"
+"\n"
+"• Activa «Grabar track» en Ajustes → Navegación\n"
+"• Los tracks grabados aparecen en Ajustes → Navegación → Tracks grabados\n"
+"• Opciones: ver en mapa, exportar a GPX, simular o eliminar\n"
+"• La simulación reproduce el track como si fuera un viaje real:\n"
+"  todas las funciones de navegación funcionan sobre el track grabado"
+msgstr ""
+"Navius می‌تواند مسیر GPS شما را در زمان واقعی ضبط کند.\n"
+"\n"
+"• «ضبط مسیر» را در تنظیمات → ناوبری فعال کنید\n"
+"• مسیرهای ضبط شده در تنظیمات → ناوبری → مسیرهای ضبط شده ظاهر می‌شوند\n"
+"• گزینه‌ها: مشاهده روی نقشه، صادر کردن به GPX، شبیه‌سازی یا حذف\n"
+"• شبیه‌سازی مسیر را مانند یک سفر واقعی بازتولید می‌کند:\n"
+"  تمام قابلیت‌های ناوبری روی مسیر ضبط شده کار می‌کنند"
+
+#: qml/TourOverlay.qml:107
+msgid "Servidor oficial Valhalla"
+msgstr "سرور رسمی Valhalla"
+
+#: qml/TourOverlay.qml:108
+msgid ""
+"Navius incluye el servidor valhalla.egpsistemas.com configurado por "
+"defecto.\n"
+"\n"
+"• Cobertura mundial: planeta completo (OpenStreetMap)\n"
+"• Tráfico predicho por hora del día y día de semana en toda la red viaria\n"
+"• Todos los tipos de vehículo: coche, moto, camión, bicicleta, a pie…\n"
+"• Alternativas de ruta, sin peajes, sin autopistas, sin ferries\n"
+"• Alta disponibilidad, sin límite de uso para usuarios de Navius\n"
+"\n"
+"También puedes configurar tu propio servidor en Ajustes → Servidor "
+"Valhalla.\n"
+"\n"
+"🗺 Mapas offline: instala OSM Scout Server en Ubuntu Touch para calcular "
+"rutas y buscar lugares sin conexión a internet, directamente en el "
+"dispositivo."
+msgstr ""
+"Navius سرور valhalla.egpsistemas.com را به طور پیش‌فرض پیکربندی کرده است.\n"
+"\n"
+"• پوشش جهانی: کره زمین کامل (OpenStreetMap)\n"
+"• ترافیک پیش‌بینی‌شده بر اساس ساعت روز و روز هفته در تمام شبکه جاده‌ای\n"
+"• همه انواع وسایل نقلیه: ماشین، موتور، کامیون، دوچرخه، پیاده...\n"
+"• گزینه‌های مسیر، بدون عوارض، بدون آزادراه، بدون فری\n"
+"• در دسترس بودن بالا، بدون محدودیت استفاده برای کاربران Navius\n"
+"\n"
+"همچنین می‌توانید سرور خود را در تنظیمات → سرور Valhalla پیکربندی کنید.\n"
+"\n"
+"🗺 نقشه‌های آفلاین: OSM Scout Server را در Ubuntu Touch نصب کنید تا مسیرها را "
+"محاسبه کنید و مکان‌ها را بدون اتصال به اینترنت، مستقیماً در دستگاه جستجو کنید."
+
+#: qml/TourOverlay.qml:113
+msgid ""
+"El panel de Ajustes organiza la configuración en secciones:\n"
+"\n"
+"• Ajustes rápidos: modo día/noche, zoom automático, orientación del mapa\n"
+"• General: interpolación GPS, dead-reckoning, alertas de velocidad\n"
+"• Servidor Valhalla: URL del servidor, detección de servidor local\n"
+"• Navegación: tipo de vehículo, aparcamiento, grabación de tracks\n"
+"• Voz: motor TTS, idioma, voces disponibles, test de voz\n"
+"• Ayuda: este tour, manual de usuario, información de la app\n"
+"\n"
+"Tus ajustes se sincronizan automáticamente si tienes cuenta Navius activa."
+msgstr ""
+"پانل تنظیمات پیکربندی را در بخش‌ها سازماندهی می‌کند:\n"
+"\n"
+"• تنظیمات سریع: حالت روز/شب، بزرگ‌نمایی خودکار، جهت‌گیری نقشه\n"
+"• عمومی: درونیابی GPS، dead-reckoning، هشدارهای سرعت\n"
+"• سرور Valhalla: URL سرور، شناسایی سرور محلی\n"
+"• ناوبری: نوع وسیله نقلیه، پارکینگ، ضبط مسیرها\n"
+"• صدا: موتور TTS، زبان، صداهای موجود، آزمایش صدا\n"
+"• راهنما: این تور، راهنمای کاربر، اطلاعات برنامه\n"
+"\n"
+"تنظیمات شما به‌طور خودکار همگام‌سازی می‌شوند اگر حساب فعال Navius داشته باشید."
+
+#: qml/TourOverlay.qml:117
+msgid "¡Listo para navegar!"
+msgstr "آماده ناوبری!"
+
+#: qml/TourOverlay.qml:118
+msgid ""
+"Ya conoces Navius. Aquí un resumen rápido:\n"
+"\n"
+"① Toca «Iniciar navegación» para buscar un destino\n"
+"② Elige ruta y pulsa Iniciar\n"
+"③ Sigue las instrucciones de voz\n"
+"④ Reporta alertas a otros conductores\n"
+"⑤ Al llegar, marca los TODOs completados\n"
+"\n"
+"Más funciones: música 🎵 · compartir viaje 📡 · mensajes ✉️ · tracks 📍\n"
+"\n"
+"Puedes volver a este tour en cualquier momento desde\n"
+"Ajustes → Ayuda → Abrir asistente."
+msgstr ""
+"اکنون Navius را می‌شناسید. اینجا یک خلاصه سریع:\n"
+"\n"
+"① «شروع ناوبری» را لمس کنید تا مقصد جستجو کنید\n"
+"② مسیر را انتخاب کنید و شروع را فشار دهید\n"
+"③ دستورالعمل‌های صوتی را دنبال کنید\n"
+"④ هشدارها را به سایر رانندگان گزارش دهید\n"
+"⑤ هنگام رسیدن، TODOهای تکمیل شده را علامت‌گذاری کنید\n"
+"\n"
+"قابلیت‌های بیشتر: موسیقی 🎵 · اشتراک‌گذاری سفر 📡 · پیام‌ها ✉️ · مسیرها 📍\n"
+"\n"
+"می‌توانید در هر زمانی به این تور بازگردید از\n"
+"تنظیمات → راهنما → باز کردن دستیار."
+
+#: qml/TourOverlay.qml:137
+msgid "Descarga una voz Piper"
+msgstr "یک صدای Piper دانلود کنید"
+
+#: qml/TourOverlay.qml:138
+msgid ""
+"Navius usa el motor Piper para voz de alta calidad.\n"
+"\n"
+"No hay ninguna voz Piper instalada para tu idioma. Sin ella, las "
+"instrucciones de navegación usarán PicoTTS o espeak-ng, que suenan menos "
+"naturales.\n"
+"\n"
+"Pulsa «Gestionar voces» para descargar una voz Piper."
+msgstr ""
+"Navius از موتور Piper برای صدای با کیفیت بالا استفاده می‌کند.\n"
+"\n"
+"هیچ صدای Piper برای زبان شما نصب نشده است. بدون آن، دستورالعمل‌های ناوبری از "
+"PicoTTS یا espeak-ng استفاده خواهند کرد که کمتر طبیعی به نظر می‌رسند.\n"
+"\n"
+"«مدیریت صداها» را فشار دهید تا یک صدای Piper دانلود کنید."
+
+#: qml/TourOverlay.qml:267
+msgid "No mostrar al inicio"
+msgstr "نمایش نده در شروع"
+
+#: qml/TourOverlay.qml:315
+msgid "Saltar tour"
+msgstr "رد کردن تور"
+
+#: qml/TourOverlay.qml:316
+msgid "Atrás"
+msgstr "قبلی"
+
+#: qml/TourOverlay.qml:339
+msgid "Gestionar voces"
+msgstr "مدیریت صداها"
+
+#: qml/TourOverlay.qml:340
+msgid "¡Comenzar!"
+msgstr "شروع کنید!"
+
+#: qml/GoogleMapsPanel.qml:263
+msgid "Busca un lugar en el mapa"
+msgstr "مکانی روی نقشه جستجو کنید"
+
+#: qml/GoogleMapsPanel.qml:277
+msgid "Detectando coordenadas…"
+msgstr "در حال تشخیص مختصات…"
+
+#: qml/GoogleMapsPanel.qml:293
+msgid "Usar este destino"
+msgstr "استفاده از این مقصد"
+
+#~ msgid "Tráfico"
+#~ msgstr "ترافیک"
+
+#~ msgid "Denso"
+#~ msgstr "سنگین"
+
+#~ msgid "Detenido"
+#~ msgstr "متوقف"
+
+#~ msgid "Policía"
+#~ msgstr "پلیس"
+
+#~ msgid "Cámara móvil"
+#~ msgstr "دوربین سیار"
+
+#~ msgid "Oculto"
+#~ msgstr "مخفی"
+
+#~ msgid "Accidente"
+#~ msgstr "تصادف"
+
+#~ msgid "Col. múltiple"
+#~ msgstr "تصادف زنجیره‌ای"
+
+#~ msgid "Peligro"
+#~ msgstr "خطر"
+
+#~ msgid "Obras"
+#~ msgstr "عملیات راه‌سازی"
+
+#~ msgid "Coche en arcén"
+#~ msgstr "خودرو در شانهٔ راه"
+
+#~ msgid "Semáforo roto"
+#~ msgstr "چراغ راهنمایی خراب"
+
+#~ msgid "Bache"
+#~ msgstr "چاله"
+
+#~ msgid "Cortada"
+#~ msgstr "مسدود"
+
+#~ msgid "Carril"
+#~ msgstr "خط عبور"
+
+#~ msgid "Carril bloq."
+#~ msgstr "خط مسدود"
+
+#~ msgid "Izquierdo"
+#~ msgstr "چپ"
+
+#~ msgid "Derecho"
+#~ msgstr "راست"
+
+#~ msgid "Central"
+#~ msgstr "وسط"
+
+#~ msgid "Error mapa"
+#~ msgstr "خطای نقشه"
+
+#~ msgid "Mal tiempo"
+#~ msgstr "هوای بد"
+
+#~ msgid "Resbaladiza"
+#~ msgstr "جادهٔ لغزنده"
+
+#~ msgid "Inundación"
+#~ msgstr "آب‌گرفتگی"
+
+#~ msgid "Nieve"
+#~ msgstr "برف"
+
+#~ msgid "Niebla"
+#~ msgstr "مه"
+
+#~ msgid "Hielo"
+#~ msgstr "یخ‌زدگی"
+
+#~ msgid "Asistencia"
+#~ msgstr "امداد خودرو"
+
+#~ msgid "Compañeros"
+#~ msgstr "همراهان"
+
+#~ msgid "Emergencia"
+#~ msgstr "اضطراری"
+
+#~ msgid "Lugar"
+#~ msgstr "مکان"
+
+#~ msgid "GPS en uso"
+#~ msgstr "GPS در حال استفاده"
+
+#~ msgid "GLONASS en uso"
+#~ msgstr "GLONASS در حال استفاده"
+
+#~ msgid "No en uso"
+#~ msgstr "در حال استفاده نیست"
+
+#~ msgid "No uso"
+#~ msgstr "بدون استفاده"
+
+#~ msgid "Mi vehículo"
+#~ msgstr "وسیلهٔ نقلیهٔ من"
+
+#~ msgid "Latitud  (ej. 40.322130)"
+#~ msgstr "عرض جغرافیایی  (مثلاً 40.322130)"
+
+#~ msgid "Longitud  (ej. -3.515801)"
+#~ msgstr "طول جغرافیایی  (مثلاً -3.515801)"
+
+#~ msgid "Giro"
+#~ msgstr "پیچ"
+
+#~ msgid "Rev ON"
+#~ msgstr "معکوس روشن"

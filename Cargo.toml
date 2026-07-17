@@ -1,0 +1,18 @@
+[package]
+name = "navius"
+version = "1.0.8"
+authors = ["Eduardo García-Mádico Portabella <woodyst@gmail.com>"]
+edition = "2021"
+build = "src/build.rs"
+
+[dependencies]
+qmetaobject = "0.2.9"
+gettext-rs = "0.7"
+cstr = "0.2.11"
+cpp = "0.5"
+rusqlite = { version = "0.29", features = ["bundled"] }
+flate2    = { version = "1",   features = ["rust_backend"] }
+
+[build-dependencies]
+cpp_build = "0.5"
+cc = "1"
