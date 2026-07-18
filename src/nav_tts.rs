@@ -355,8 +355,13 @@ fn espeak_voice(lang: &str) -> &'static str {
 // ── Engine selection ─────────────────────────────────────────────────────────
 
 fn try_piper(orig: &str, norm: &str, base: &str) -> Option<(Engine, String)> {
-    // piper es un paquete del sistema en postmarketOS; ruta absoluta predecible.
-    let bin = "/usr/bin/piper".to_string();
+    // El paquete "piper" de postmarketOS/Alpine es libratbag/Piper (GUI de
+    // ratones), NO rhasspy/piper (motor TTS) — no existe como paquete del
+    // sistema. Se usa el binario glibc oficial de rhasspy/piper vendorizado
+    // (vendor/piper_aarch64, con su propio libonnxruntime.so) vía gcompat
+    // (paquete `gcompat` = intérprete/libs de compatibilidad glibc en musl),
+    // instalado junto al resto de binarios propios bajo APP_ROOT/lib.
+    let bin = format!("{APP_ROOT}/lib/piper");
     if !std::path::Path::new(&bin).exists() {
         log(&format!("try_piper: binary absent: {bin}"));
         return None;
@@ -722,8 +727,8 @@ fn daemon_synthesize(voice: &str, text: &str, out_path: &str) -> bool {
             let _ = old.child.kill();
             let _ = old.child.wait();
         }
-        // piper es un paquete del sistema en postmarketOS; ruta absoluta predecible.
-        let bin     = "/usr/bin/piper".to_string();
+        // Binario glibc oficial de rhasspy/piper vía gcompat (ver try_piper).
+        let bin     = format!("{APP_ROOT}/lib/piper");
         let lib_dir = format!("{APP_ROOT}/lib");
         let shim    = format!("{APP_ROOT}/lib/libpiper_limit.so");
         let mut cmd = std::process::Command::new(&bin);

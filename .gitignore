@@ -4,5 +4,6 @@
 *.so
 *.so.*
 /extras/mimic/_build/
+/vendor/piper_aarch64/
 *.po~
 /src/moc_location_props.cpp
