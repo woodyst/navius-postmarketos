@@ -33,13 +33,16 @@ makedepends="
 	qt5-qtdeclarative-dev
 	qt5-qtlocation-dev
 	qt5-qtquickcontrols2-dev
-	gettext-tiny
+	gettext
 	autoconf
 	automake
 	libtool
 	pcre2-dev
 	popt-dev
 	"
+# gettext (no gettext-tiny) para xgettext/msgmerge/msgfmt en build.rs — ambos
+# paquetes proveen los mismos comandos y se pisan entre sí, apk no deja tener
+# los dos a la vez.
 options="!check net"
 builddir="$startdir"
 
