@@ -211,6 +211,12 @@ fn main() {
     println!("cargo:rustc-link-lib{macos_lib_search}=Qt{lib_framework}Network");
     println!("cargo:rustc-link-lib{macos_lib_search}=Qt{lib_framework}DBus");
 
-    // flite is loaded at runtime via dlopen (no build-time dependency).
-    println!("cargo:rustc-link-lib=dl");
+    // dlopen/dlsym viven directamente en libc en musl (a diferencia de
+    // glibc, que los separa en libdl.so) — enlazar -ldl explícitamente
+    // en postmarketOS genera una entrada NEEDED "libdl.so.2" que no
+    // corresponde a ningún paquete real y rompe el empaquetado con
+    // abuild ("libdl.so.2: path not found" al trazar dependencias).
+    if !cfg!(target_env = "musl") {
+        println!("cargo:rustc-link-lib=dl");
+    }
 }

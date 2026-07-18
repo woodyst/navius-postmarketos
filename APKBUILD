@@ -137,7 +137,9 @@ build() {
 	# ── Shims propios (no paquetes del sistema) ─────────────────────────
 	cd "$builddir"
 	gcc -shared -fPIC -o libpcaudio.so.0 src/libpcaudio_stub.c
-	gcc -shared -fPIC -o libpiper_limit.so src/libpiper_limit.c -ldl
+	# Sin -ldl: en musl dlopen/dlsym viven en libc, -ldl genera una entrada
+	# NEEDED "libdl.so.2" sin paquete real que la satisfaga (rompe abuild).
+	gcc -shared -fPIC -o libpiper_limit.so src/libpiper_limit.c
 
 	# ── navius (Rust + Qt5 vía qmetaobject) ─────────────────────────────
 	# INSTALL_DIR: build.rs escribe ahí los .mo compilados (xgettext/
