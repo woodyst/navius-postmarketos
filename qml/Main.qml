@@ -675,7 +675,7 @@ ApplicationWindow {
     property bool _anyPanelOpen:    _menuOpen || searchPanel.visible || satPanel.visible
                                     || prefsPanel.visible || pinPanel.visible
                                     || routeViewPanel.visible || routeSelectPanel.visible
-                                    || sharedLocationDialog.visible || googleMapsPanel.visible
+                                    || sharedLocationDialog.visible
                                     || osmScoutDialog.visible || vehicleSetupDialog.visible
                                     || parkingDialog.visible || stopTodoPanel.visible
                                     || mediaPanel.visible
@@ -7115,8 +7115,10 @@ ApplicationWindow {
             root.drawRoutesPreview(routes, selIdx)
         }
         onGoogleMapsRequested: {
+            // GoogleMapsPanel (QtWebEngine) no está disponible en postmarketOS:
+            // solo existe QtWebEngine para Qt6 en los repos, y esta app es Qt5.
+            // Sin sustituto por ahora — no-op.
             Qt.inputMethod.hide()
-            googleMapsPanel.visible = true
         }
         onServerFallbackNeeded: function(service, message, retryFn) {
             Qt.inputMethod.hide()
@@ -7951,7 +7953,7 @@ ApplicationWindow {
             startupMsgTimer.restart()
         }
         onGoogleMapsCacheClearRequested: {
-            googleMapsPanel.clearCache()
+            // GoogleMapsPanel no existe en este port (ver onGoogleMapsRequested) — no-op.
         }
         onAllTracksClearRequested: {
             if (navTracker) navTracker.delete_all_tracks()
@@ -9655,15 +9657,9 @@ ApplicationWindow {
         onRouteRejected: root._clearTrafficComparison()
     }
 
-    GoogleMapsPanel {
-        id: googleMapsPanel
-        textScale: appSettings.textScale
-        onDismissed: googleMapsPanel.visible = false
-        onLocationSelected: function(lat, lon, name) {
-            googleMapsPanel.visible = false
-            root._showSharedLocation(lat, lon, name)
-        }
-    }
+    // GoogleMapsPanel (búsqueda vía Google Maps embebido) no se porta: usa
+    // QtWebEngine, que en postmarketOS solo existe para Qt6 (esta app es Qt5).
+    // Ver onGoogleMapsRequested/onGoogleMapsCacheClearRequested más arriba.
 
     WhatsNewDialog {
         id: whatsNewDialog

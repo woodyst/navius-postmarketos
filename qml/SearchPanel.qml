@@ -874,7 +874,9 @@ Rectangle {
             }
 
             Rectangle {
-                visible: panel._st === "idle"
+                // GoogleMapsPanel no existe en este port (QtWebEngine5 no
+                // disponible en postmarketOS) — botón oculto, sin sustituto.
+                visible: false && panel._st === "idle"
                 width: parent.width - parent.leftPadding - parent.rightPadding
                 height: units.gu(5.5); radius: units.gu(0.8)
                 color: gmapsArea.pressed ? "#1A2A1A" : "#1C2C1C"

@@ -1275,6 +1275,9 @@ Rectangle {
 
                         Rectangle {
                             id: gmapsCacheBtn
+                            // GoogleMapsPanel no existe en este port (QtWebEngine5
+                            // no disponible en postmarketOS) — no hay caché que limpiar.
+                            visible: false
                             width: parent.width; height: units.gu(4.5); radius: units.gu(0.8)
                             color: _confirm ? "#4A1010" : pal.bgInput
                             property bool _confirm: false
