@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Navius GPS
+Comment=Navegador GPS offline
+Exec=navius %u
+Icon=navius
+Terminal=false
+Categories=Navigation;Maps;
+MimeType=x-scheme-handler/geo;

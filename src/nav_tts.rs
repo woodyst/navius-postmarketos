@@ -1164,12 +1164,19 @@ cpp! {{
         std::string lib_path  = "libespeak-ng.so.1";
         // TODO verificar en epolan: apk info -L espeak-ng
         std::string data_path = "/usr/share/espeak-ng-data";
-        // libsonic.so.0 y libpcaudio.so.0 no existen como paquete Alpine; se
-        // compilan desde vendor/ y se instalan junto al resto de APP_ROOT.
-        std::string sonic_path = std::string(app_root) + "/lib/libsonic.so.0";
-        std::string pca_path   = std::string(app_root) + "/lib/libpcaudio.so.0";
-        dlopen(sonic_path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
-        dlopen(pca_path.c_str(),  RTLD_LAZY | RTLD_GLOBAL);
+        // libpcaudio.so.0: no existe como paquete Alpine, pero SÍ tenemos su fuente
+        // vendorizada (src/libpcaudio_stub.c, un stub — nunca fue la lib real ni en
+        // el click package de Ubuntu Touch), se compila e instala junto a APP_ROOT.
+        // libsonic.so.0: en Ubuntu Touch era una copia directa del paquete del
+        // sistema libsonic0 (no hay fuente vendorizada aquí); espeak-ng la carga
+        // en caliente como mejora opcional de calidad (speed-change preservando
+        // tono). El dlopen() de abajo nunca comprobaba el resultado — es un
+        // best-effort silencioso — así que se omite sin más en este port en vez de
+        // añadir una dependencia externa nueva (habría que compilar sonic desde
+        // cero, no está vendorizada). Sin ella, espeak-ng sigue funcionando, solo
+        // con el cambio de velocidad por defecto (sin preservar tono).
+        std::string pca_path = std::string(app_root) + "/lib/libpcaudio.so.0";
+        dlopen(pca_path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
 
         void* es_lib = dlopen(lib_path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
         if (!es_lib) return dlerror();
