@@ -44,11 +44,15 @@ makedepends="
 # paquetes proveen los mismos comandos y se pisan entre sí, apk no deja tener
 # los dos a la vez.
 options="!check net"
-# srcdir por defecto de abuild sería "$startdir/src" — colisiona con nuestro
-# propio directorio src/ (fuentes Rust) y abuild lo limpia/gestiona como si
-# fuera suyo, BORRÁNDOLO antes de build() (ocurrió una vez, recuperado de
-# git). Fijar srcdir=builddir=startdir evita la colisión por completo.
-srcdir="$startdir"
+# abuild SIEMPRE limpia $srcdir antes de build() (parte normal de su ciclo de
+# vida, no un bug) — su default es "$startdir/src", que colisiona con nuestro
+# propio directorio src/ (fuentes Rust) y lo borra por completo (ocurrió una
+# vez, recuperado de git). Apuntar srcdir a un directorio dedicado que no se
+# usa para nada (no hay "source=" que extraer aquí) evita la colisión.
+# ¡OJO! NO poner srcdir="$startdir" ni nada que coincida con builddir: la
+# limpieza automática de srcdir borraría el repo entero (pasó una segunda
+# vez con esa configuración, también recuperado de git).
+srcdir="$startdir/.abuild-srcdir"
 builddir="$startdir"
 
 # Dos directorios vendor NO van en git por tamaño — deben sincronizarse antes
