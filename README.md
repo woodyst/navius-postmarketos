@@ -19,8 +19,8 @@ rsync -a /home/edi/prog_ia/navius/navius/vendor/piper_aarch64/ \
 
 (o directamente a epolan si se compila ahí).
 
-- `extras/mimic` (~50 MB sin `_build`/`voices`): fuente de Mimic1, se recompila
-  nativamente para musl/aarch64.
+- `extras/mimic` (~320 MB sin `_build`/`voices` — la mayoría es `lang/`, que sí
+  hace falta): fuente de Mimic1, se recompila nativamente para musl/aarch64.
 - `vendor/piper_aarch64` (~50 MB): binario oficial glibc de **rhasspy/piper**
   (motor TTS neural) para aarch64, con sus `.so` propios (`libonnxruntime`,
   `libpiper_phonemize`, etc.). Se ejecuta vía `gcompat` (capa de compatibilidad

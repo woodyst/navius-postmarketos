@@ -57,7 +57,7 @@ builddir="$startdir"
 
 # Dos directorios vendor NO van en git por tamaño — deben sincronizarse antes
 # de compilar (ver README.md del repo):
-#   extras/mimic/        (~50MB, fuente de Mimic1 sin _build/voices)
+#   extras/mimic/        (~320MB, fuente de Mimic1 sin _build/voices)
 #   vendor/piper_aarch64/ (~90MB, binario oficial de rhasspy/piper para
 #                          aarch64/glibc + sus .so — se ejecuta vía gcompat
 #                          porque no existe paquete Alpine para rhasspy/piper)
