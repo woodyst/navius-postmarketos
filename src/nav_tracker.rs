@@ -1,11 +1,24 @@
+// Nombres en mayúsculas para los `let` locales que hacen shadowing de las
+// antiguas constantes TRACKS_DB/TRACKS_GPX_DIR (ahora funciones runtime).
+#![allow(non_snake_case)]
+
 use qmetaobject::*;
 use rusqlite::{Connection, params};
 use std::collections::VecDeque;
-use std::sync::Mutex;
+use std::sync::{Mutex, OnceLock};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-const TRACKS_DB:      &str = "/home/phablet/.local/share/navius.woodyst/gps_tracks.db";
-const TRACKS_GPX_DIR: &str = "/home/phablet/.local/share/navius.woodyst/gps_tracks";
+fn home_dir() -> String {
+    std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string())
+}
+fn tracks_db() -> &'static str {
+    static C: OnceLock<String> = OnceLock::new();
+    C.get_or_init(|| format!("{}/.local/share/navius/gps_tracks.db", home_dir())).as_str()
+}
+fn tracks_gpx_dir() -> &'static str {
+    static C: OnceLock<String> = OnceLock::new();
+    C.get_or_init(|| format!("{}/.local/share/navius/gps_tracks", home_dir())).as_str()
+}
 
 // Cola de resultados de operaciones BD en background.
 // Los hilos de fondo empujan aquí; poll() drena en el hilo Qt.
@@ -18,7 +31,9 @@ enum TrackOp {
     Deleted(String),           // id
 }
 
+#[allow(non_snake_case)]
 fn open_db() -> rusqlite::Result<Connection> {
+    let TRACKS_DB = tracks_db();
     let conn = Connection::open(TRACKS_DB)?;
     conn.execute_batch(
         "CREATE TABLE IF NOT EXISTS tracks (
@@ -268,6 +283,7 @@ pub struct NavTracker {
     pub delete_track_async: qt_method!(fn delete_track_async(&self, id: QString) {
         let id_str = id.to_string();
         std::thread::spawn(move || {
+            let TRACKS_GPX_DIR = tracks_gpx_dir();
             if let Ok(conn) = open_db() {
                 let _ = conn.execute("DELETE FROM track_points WHERE track_id=?1", params![id_str]);
                 let _ = conn.execute("DELETE FROM tracks WHERE id=?1", params![id_str]);
@@ -279,6 +295,7 @@ pub struct NavTracker {
 
     pub delete_all_tracks: qt_method!(fn delete_all_tracks(&self) {
         std::thread::spawn(|| {
+            let TRACKS_GPX_DIR = tracks_gpx_dir();
             if let Ok(conn) = open_db() {
                 let _ = conn.execute("DELETE FROM track_points", []);
                 let _ = conn.execute("DELETE FROM tracks", []);
@@ -384,7 +401,9 @@ fn _load_sim_route_json(id: &str) -> String {
     out
 }
 
+#[allow(non_snake_case)]
 fn _export_gpx(id: &str) -> String {
+    let TRACKS_GPX_DIR = tracks_gpx_dir();
     let Ok(conn) = open_db() else { return String::new(); };
     let Ok((name, _)) = conn.query_row(
         "SELECT name,date_ts FROM tracks WHERE id=?1", params![id],

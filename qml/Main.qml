@@ -9061,8 +9061,8 @@ ApplicationWindow {
     }
 
     // ── File-based debug command system ──────────────────────────────────────
-    // AppArmor allows the app to access its own data dir; /tmp is blocked.
-    // D=/home/phablet/.local/share/navius.woodyst/debug
+    // D=~/.local/share/navius/debug (dataDirUri/dataDirPath vienen de main.rs,
+    // calculados a partir de $HOME real en vez de estar hardcodeados)
     //
     // Modes:
     //   echo "2d"            > $D/navius_cmd   → switch to 2D
@@ -9088,14 +9088,14 @@ ApplicationWindow {
     //
     // Response: each processed command is written to $D/navius_ack
     //   tail -f $D/navius_ack   ← to monitor from SSH
-    readonly property string _cmdBase: "file:///home/phablet/.local/share/navius.woodyst/debug"
-    readonly property string _shotPath: "/home/phablet/.local/share/navius.woodyst/navius_shot.png"
-    readonly property string _ackPath:  "file:///home/phablet/.local/share/navius.woodyst/debug/navius_ack"
+    readonly property string _cmdBase:  dataDirUri + "/debug"
+    readonly property string _shotPath: dataDirPath + "/navius_shot.png"
+    readonly property string _ackPath:  _cmdBase + "/navius_ack"
 
-    readonly property string _routePath:      "file:///home/phablet/.local/share/navius.woodyst/debug/navius_route"
-    readonly property string _tracePath:      "file:///home/phablet/.local/share/navius.woodyst/debug/navius_trace"
-    readonly property string _traceBasePath:  "file:///home/phablet/.local/share/navius.woodyst/debug/navius_trace"
-    readonly property string _autostartPath:  "file:///home/phablet/.local/share/navius.woodyst/debug/navius_autostart"
+    readonly property string _routePath:      _cmdBase + "/navius_route"
+    readonly property string _tracePath:      _cmdBase + "/navius_trace"
+    readonly property string _traceBasePath:  _cmdBase + "/navius_trace"
+    readonly property string _autostartPath:  _cmdBase + "/navius_autostart"
     property string _traceLines:       ""  // log acumulado desde inicio de nav (escrito cada 2s)
     property string _pendingTickLines: ""  // ticks interp pendientes hasta el próximo tick real
 

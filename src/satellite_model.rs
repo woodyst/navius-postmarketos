@@ -92,7 +92,13 @@ extern "C" {
     fn navius_get_position(src: *mut std::ffi::c_void, out: *mut PosDataC);
 }
 
-const DEBUG_DIR: &str = "/home/phablet/.local/share/navius.woodyst/debug";
+fn debug_dir() -> &'static str {
+    static C: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    C.get_or_init(|| {
+        let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
+        format!("{home}/.local/share/navius/debug")
+    }).as_str()
+}
 
 // ---------------------------------------------------------------------------
 // Plain structs mirroring the C++ side (repr(C) for FFI).
@@ -158,18 +164,20 @@ pub struct SatelliteModel {
     pub stop_updates:  qt_method!(fn stop_updates(&mut self)  { self.do_stop();  }),
 
     pub set_traces_enabled: qt_method!(fn set_traces_enabled(&mut self, enabled: bool) {
-        let _ = std::fs::create_dir_all(DEBUG_DIR);
-        let flag = format!("{}/.traces_enabled", DEBUG_DIR);
+        let debug_dir = debug_dir();
+        let _ = std::fs::create_dir_all(debug_dir);
+        let flag = format!("{}/.traces_enabled", debug_dir);
         if enabled { let _ = std::fs::File::create(&flag); }
         else       { let _ = std::fs::remove_file(&flag); }
     }),
 
     pub log_to_file: qt_method!(fn log_to_file(&mut self, msg: QString) {
+        let debug_dir = debug_dir();
         let s: String = msg.into();
-        let flag = format!("{}/.traces_enabled", DEBUG_DIR);
+        let flag = format!("{}/.traces_enabled", debug_dir);
         if !std::path::Path::new(&flag).exists() { return; }
-        let path = format!("{}/net_debug.log", DEBUG_DIR);
-        let _ = std::fs::create_dir_all(DEBUG_DIR);
+        let path = format!("{}/net_debug.log", debug_dir);
+        let _ = std::fs::create_dir_all(debug_dir);
         if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(&path) {
             use std::io::Write;
             let _ = writeln!(f, "{}", s);
@@ -177,10 +185,11 @@ pub struct SatelliteModel {
     }),
 
     pub write_text_file: qt_method!(fn write_text_file(&mut self, filename: QString, content: QString) {
+        let debug_dir = debug_dir();
         let fname: String = filename.into();
         let text:  String = content.into();
-        let path = format!("{}/{}", DEBUG_DIR, fname);
-        let _ = std::fs::create_dir_all(DEBUG_DIR);
+        let path = format!("{}/{}", debug_dir, fname);
+        let _ = std::fs::create_dir_all(debug_dir);
         if let Ok(mut f) = std::fs::OpenOptions::new().create(true).write(true).truncate(true).open(&path) {
             use std::io::Write;
             let _ = f.write_all(text.as_bytes());
@@ -188,13 +197,14 @@ pub struct SatelliteModel {
     }),
 
     pub ensure_debug_dir: qt_method!(fn ensure_debug_dir(&self) {
-        let _ = std::fs::create_dir_all(DEBUG_DIR);
+        let _ = std::fs::create_dir_all(debug_dir());
     }),
 
     pub delete_debug_file: qt_method!(fn delete_debug_file(&self, pattern: QString) {
+        let debug_dir = debug_dir();
         let pat: String = pattern.into();
         if pat == "all" {
-            if let Ok(entries) = std::fs::read_dir(DEBUG_DIR) {
+            if let Ok(entries) = std::fs::read_dir(debug_dir) {
                 for entry in entries.flatten() {
                     let _ = std::fs::remove_file(entry.path());
                 }
@@ -202,7 +212,7 @@ pub struct SatelliteModel {
             return;
         }
         if pat == "navius_trace" {
-            if let Ok(entries) = std::fs::read_dir(DEBUG_DIR) {
+            if let Ok(entries) = std::fs::read_dir(debug_dir) {
                 for entry in entries.flatten() {
                     if entry.file_name().to_string_lossy().starts_with("navius_trace") {
                         let _ = std::fs::remove_file(entry.path());
@@ -211,12 +221,14 @@ pub struct SatelliteModel {
             }
             return;
         }
-        let _ = std::fs::remove_file(format!("{}/{}", DEBUG_DIR, pat));
+        let _ = std::fs::remove_file(format!("{}/{}", debug_dir, pat));
     }),
 
     pub delete_mapbox_cache: qt_method!(fn delete_mapbox_cache(&self) {
         if let Ok(home) = std::env::var("HOME") {
-            let path = format!("{}/.cache/navius.woodyst/navius.woodyst/mapboxgl-qml-cache.db", home);
+            // Ruta por defecto de Qt: ~/.cache/{OrganizationName}/{ApplicationName}/...
+            // (ver QCoreApplication::setOrganizationName/setApplicationName en main.rs)
+            let path = format!("{}/.cache/navius/navius/mapboxgl-qml-cache.db", home);
             match std::fs::remove_file(&path) {
                 Ok(_) => eprintln!("delete_mapbox_cache: borrado {}", path),
                 Err(e) if e.kind() == std::io::ErrorKind::NotFound => {},

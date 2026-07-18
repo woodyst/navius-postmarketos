@@ -18,10 +18,9 @@ Item {
     readonly property bool   hasTrack:    _selIdx >= 0 && musicModel.count > 0
     readonly property string currentName: _nameAt(_selIdx)
 
-    // Referencia al objeto NavHttp (Rust): expone la biblioteca de música del sandbox.
-    // La música se incorpora vía Content Hub, que copia los ficheros seleccionados a
-    // ~/.local/share/navius.woodyst/Music/. media-hub acepta file:// desde el directorio
-    // propio de la app (su allowlist solo deja ~/Music a la app oficial music.ubports).
+    // Referencia al objeto NavHttp (Rust): expone la biblioteca de música local.
+    // La música se incorpora vía el selector de ficheros nativo (ver FileDialog más
+    // abajo), que copia/symlinka los ficheros elegidos a ~/.local/share/navius/Music/.
     property var navHttpObj: null
 
     // Referencia al objeto NavTts para poder llamar set_music_volume().
@@ -538,7 +537,7 @@ Item {
     // Ruta real de la biblioteca en el sandbox (para el comando de ayuda).
     function _musicDir() {
         return root.navHttpObj ? root.navHttpObj.music_dir()
-                               : "~/.local/share/navius.woodyst/Music"
+                               : "~/.local/share/navius/Music"
     }
 
     function _fmt(ms) {

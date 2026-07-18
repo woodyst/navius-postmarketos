@@ -100,7 +100,7 @@ Item {
             // UA declarado en el perfil (para las peticiones HTTP)
             httpUserAgent: gmp._mobileUA
             storageName: "NaviusMaps"
-            persistentStoragePath: "/home/phablet/.cache/navius.woodyst/WebEngine"
+            persistentStoragePath: cacheDirPath + "/WebEngine"
             offTheRecord: false
         }
 

@@ -78,7 +78,10 @@ fn update_language_files() {
         let exit_status = child.wait().unwrap();
         assert!(exit_status.code() == Some(0));
 
-        let install_dir = env::var("INSTALL_DIR").expect("No env var INSTALL_DIR provided");
+        // El APKBUILD (Fase 6) exporta INSTALL_DIR=$pkgdir/usr para el build de
+        // empaquetado; en un `cargo build`/`cargo check` normal (desarrollo local)
+        // no está definida, así que usamos OUT_DIR (siempre presente) como default.
+        let install_dir = env::var("INSTALL_DIR").unwrap_or_else(|_| env::var("OUT_DIR").unwrap());
         let lang = po_file.file_stem().unwrap().to_str().unwrap();
         let mo_dir = format!("{install_dir}/share/locale/{lang}/LC_MESSAGES");
         let mo_file = format!("{}/navius.woodyst.mo", mo_dir);

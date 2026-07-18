@@ -5,3 +5,4 @@
 *.so.*
 /extras/mimic/_build/
 *.po~
+/src/moc_location_props.cpp

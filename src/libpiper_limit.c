@@ -4,22 +4,32 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-#define LOG  "/home/phablet/.local/share/navius.woodyst/debug/piper_limit.log"
-#define FLAG "/home/phablet/.local/share/navius.woodyst/debug/.traces_enabled"
+static char g_log[512]  = "/tmp/piper_limit.log";
+static char g_flag[512] = "/tmp/.traces_enabled";
 
-static int traces_on(void) { return access(FLAG, F_OK) == 0; }
+static void paths_init(void) {
+    const char *home = getenv("HOME");
+    if (!home) return;
+    snprintf(g_log,  sizeof(g_log),  "%s/.local/share/navius/debug/piper_limit.log", home);
+    snprintf(g_flag, sizeof(g_flag), "%s/.local/share/navius/debug/.traces_enabled", home);
+}
+
+static int traces_on(void) { return access(g_flag, F_OK) == 0; }
 
 static void wlog(const char *msg) {
     if (!traces_on()) return;
-    int fd = open(LOG, O_CREAT|O_WRONLY|O_APPEND, 0644);
+    int fd = open(g_log, O_CREAT|O_WRONLY|O_APPEND, 0644);
     if (fd >= 0) { write(fd, msg, __builtin_strlen(msg)); close(fd); }
 }
 
 static void __attribute__((constructor)) piper_limit_init(void) {
+    paths_init();
     nice(10);
     if (!traces_on()) return;
-    int fd = open(LOG, O_CREAT|O_WRONLY|O_TRUNC, 0644);
+    int fd = open(g_log, O_CREAT|O_WRONLY|O_TRUNC, 0644);
     if (fd >= 0) { write(fd, "loaded\n", 7); close(fd); }
 }
 

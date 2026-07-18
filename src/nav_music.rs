@@ -1,23 +1,17 @@
 // Biblioteca de música local de Navius.
 //
-// CONTEXTO: media-hub 4.7 solo permite a la app `music.ubports` (o apps unconfined)
-// abrir ficheros bajo ~/Music vía file://. Su ExistingAuthenticator tiene un allowlist
-// hardcodeado por nombre de paquete; navius.woodyst siempre es rechazada. PERO el mismo
-// allowlist SÍ permite a cualquier app abrir ficheros bajo SU PROPIO directorio
-// ~/.local/share/<pkg>/ y ~/.cache/<pkg>/.
+// NOTA (postmarketOS): en Ubuntu Touch, media-hub + AppArmor obligaban a copiar o
+// symlinkar los ficheros importados dentro del directorio propio de la app
+// (~/.local/share/navius/Music/), porque el reproductor del sistema tenía un
+// allowlist que rechazaba leer directamente desde ~/Music. postmarketOS reproduce
+// audio vía QtMultimedia/PulseAudio sin esa restricción, así que la copia/symlink ya
+// no es estrictamente necesaria — se conserva de todas formas por simplicidad (una
+// única carpeta de biblioteca, independientemente de dónde estén los ficheros
+// originales) y para minimizar el cambio de comportamiento en este port.
 //
-// SOLUCIÓN (reglas de la plataforma): la música se incorpora vía Content Hub, que copia
-// los ficheros seleccionados al sandbox de la app (~/.cache/<pkg>/HubIncoming/...). Aquí
-// los movemos a ~/.local/share/<pkg>/Music/ y los reproducimos con file:// desde ahí:
-// media-hub los acepta por estar en el directorio propio de la app.
-//
-// SIN DUPLICAR (usuario avanzado): en lugar de copiar, el usuario puede crear symlinks
-// dentro de ~/.local/share/<pkg>/Music/ que apunten a sus ficheros reales en ~/Music.
-// media-hub no canoniza la ruta (pasa el allowlist por la cadena del sandbox) y su propio
-// perfil AppArmor (owner @{HOME}/[^.]*/** rk) sí puede leer el destino real al seguir el
-// symlink. Por eso list_tracks() usa read_dir SIN seguir symlinks (file_type del DirEntry
-// vía lstat): así Navius lista la entrada sin tocar ~/Music (que su perfil no puede leer),
-// y delega la apertura del fichero real a media-hub.
+// list_tracks() sigue usando read_dir SIN seguir symlinks (lstat vía el file_type
+// del DirEntry) — detalle heredado, sigue siendo válido: lista la entrada sin
+// resolver el symlink.
 
 use std::fs;
 use std::os::unix::fs as unix_fs;
@@ -27,15 +21,13 @@ const AUDIO_EXTS: &[&str] = &[
     "mp3", "ogg", "oga", "flac", "m4a", "opus", "wav", "aac", "wma",
 ];
 
-/// Directorio de biblioteca dentro del sandbox de la app. Lo crea si no existe.
-/// En Ubuntu Touch XDG_DATA_HOME=/home/phablet/.local/share (sin el pkg name),
-/// así que hay que añadir "navius.woodyst" explícitamente.
+/// Directorio de biblioteca de música. Lo crea si no existe.
 pub fn music_dir() -> PathBuf {
     let data_home = std::env::var("XDG_DATA_HOME").unwrap_or_else(|_| {
-        let home = std::env::var("HOME").unwrap_or_else(|_| "/home/phablet".to_string());
+        let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
         format!("{}/.local/share", home)
     });
-    let dir = PathBuf::from(data_home).join("navius.woodyst").join("Music");
+    let dir = PathBuf::from(data_home).join("navius").join("Music");
     let _ = fs::create_dir_all(&dir);
     dir
 }
@@ -113,10 +105,10 @@ pub fn list_tracks() -> String {
 /// Directorio HubIncoming de nuestra app (ficheros temporales de Content Hub).
 fn hub_incoming_dir() -> PathBuf {
     let cache_home = std::env::var("XDG_CACHE_HOME").unwrap_or_else(|_| {
-        let home = std::env::var("HOME").unwrap_or_else(|_| "/home/phablet".to_string());
+        let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
         format!("{}/.cache", home)
     });
-    PathBuf::from(cache_home).join("navius.woodyst").join("HubIncoming")
+    PathBuf::from(cache_home).join("navius").join("HubIncoming")
 }
 
 /// Importa ficheros recibidos por Content Hub.

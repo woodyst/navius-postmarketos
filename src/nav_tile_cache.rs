@@ -1,7 +1,9 @@
 // Lector de caché de tiles Mapbox GL (SQLite) con parseo MVT.
 //
 // El renderer QMapLibre almacena tiles en:
-//   ~/.cache/navius.woodyst/navius.woodyst/mapboxgl-qml-cache.db
+//   ~/.cache/navius/navius/mapboxgl-qml-cache.db
+// (ruta por defecto de Qt: ~/.cache/{OrganizationName}/{ApplicationName}/...,
+// ver QCoreApplication::setOrganizationName/setApplicationName en main.rs)
 // Esquema: tiles(z, x, y, data BLOB, compressed INTEGER)
 //   compressed=1 → data es gzip; compressed=0 → MVT en crudo
 //
@@ -37,8 +39,8 @@ pub struct NavTileCache {
 fn cache_db_path() -> Option<std::path::PathBuf> {
     let home = std::env::var("HOME").ok()?;
     [
-        format!("{home}/.cache/navius.woodyst/navius.woodyst/mapboxgl-qml-cache.db"),
-        format!("{home}/.cache/navius.woodyst/mapboxgl-qml-cache.db"),
+        format!("{home}/.cache/navius/navius/mapboxgl-qml-cache.db"),
+        format!("{home}/.cache/navius/mapboxgl-qml-cache.db"),
     ]
     .into_iter()
     .map(std::path::PathBuf::from)
