@@ -80,7 +80,10 @@ build() {
 
 	# Placeholder: el Makefile generado exige este fichero como prerequisito
 	# de "all-am" (voicesinstall_DATA) aunque no existe en el árbol fuente
-	# upstream — no usamos la voz de demo de mimic1, solo sus libs.
+	# upstream — no usamos la voz de demo de mimic1, solo sus libs. mkdir -p
+	# porque el rsync de extras/mimic excluye el voices/ real (--exclude=voices,
+	# ~359MB de voces en inglés no usadas) y el directorio puede no existir.
+	mkdir -p ../voices
 	touch ../voices/cmu_us_slt_hts.htsvoice
 
 	# GCC 15 trata -Wstringop-overflow como error por defecto sobre un
