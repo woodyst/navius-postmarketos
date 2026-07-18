@@ -2,14 +2,20 @@ import QtQuick 2.7
 import QtQuick.Controls 2.15
 
 // Sustituye Lomiri.Components ListItem + ListItemLayout + SlotsLayout,
-// fusionados en un solo componente. Mantiene la misma sintaxis de
-// "grouped properties" (divider.colorFrom/colorTo, title.text/color/
-// font.pixelSize, subtitle.text/color/font.pixelSize/wrapMode) que los
-// sitios de uso en PreferencesPanel.qml ya tenían, para minimizar el
-// tamaño del diff al portarlos. El contenido por defecto (normalmente un
-// único Switch) se ancla a la derecha, verticalmente centrado — sustituye
-// a `SlotsLayout.position: SlotsLayout.Trailing` (esa línea se elimina en
-// el sitio de uso, ya no hace falta).
+// fusionados en un solo componente. title/subtitle mantienen la sintaxis de
+// grouped properties (title.text/color/font.pixelSize, etc.) porque son
+// alias a Label reales. El contenido por defecto (normalmente un único
+// Switch) se ancla a la derecha, verticalmente centrado — sustituye a
+// `SlotsLayout.position: SlotsLayout.Trailing` (esa línea se elimina en el
+// sitio de uso, ya no hace falta).
+//
+// dividerColor es una propiedad plana (no grouped-property vía QtObject
+// alias): el motor QML de Qt5.15 no resuelve en runtime la asignación
+// dot-notation "divider.colorFrom"/"divider.colorTo" sobre un alias a un
+// QtObject anónimo cuando el componente se carga desde un recurso qrc
+// compilado ("Cannot assign to non-existent property"), aunque qmllint no
+// lo detecta. En los 21 sitios de uso colorFrom y colorTo eran siempre el
+// mismo valor, así que una sola propiedad basta.
 
 Rectangle {
     id: root
@@ -17,14 +23,8 @@ Rectangle {
 
     property color bgIdle: "transparent"
     property color highlightColor: "transparent"
+    property color dividerColor: "transparent"
     property bool  _pressed: false
-
-    QtObject {
-        id: dividerObj
-        property color colorFrom: "transparent"
-        property color colorTo: "transparent"
-    }
-    property alias divider: dividerObj
 
     property alias title:    titleLabel
     property alias subtitle: subtitleLabel
@@ -52,7 +52,7 @@ Rectangle {
     Rectangle {
         anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
         height: 1
-        color: dividerObj.colorFrom
+        color: root.dividerColor
     }
 
     MouseArea {

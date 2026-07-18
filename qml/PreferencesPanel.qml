@@ -687,7 +687,7 @@ Rectangle {
             // ── Mostrar novedades al inicio ──────────────────────────────
             PrefListItem {
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Mostrar novedades al inicio")
@@ -1399,7 +1399,7 @@ Rectangle {
             // ── Radares fijos ────────────────────────────────────────────
             PrefListItem {
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Radares fijos")
@@ -1419,7 +1419,7 @@ Rectangle {
             // ── Radares de tramo ─────────────────────────────────────────
             PrefListItem {
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Radares de tramo")
@@ -1440,7 +1440,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.prefLevel >= 2
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Aviso de exceso de velocidad")
@@ -1488,7 +1488,7 @@ Rectangle {
             // ── Zoom automático ──────────────────────────────────────────
             PrefListItem {
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Zoom automático")
@@ -1544,7 +1544,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.prefLevel >= 1
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Ajustar movimiento a ruta")
@@ -1635,7 +1635,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.prefLevel >= 1
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Ajuste de posición a la ruta")
@@ -1726,7 +1726,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.prefLevel >= 1
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Suavizado GPS")
@@ -1775,7 +1775,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.prefLevel >= 1
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Slider de zoom")
@@ -1796,7 +1796,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.prefLevel >= 2
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Inhibir suspensión de pantalla")
@@ -1817,7 +1817,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.prefLevel >= 2
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Mostrar velocidad máxima de la vía")
@@ -1838,7 +1838,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.prefLevel >= 1
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Velocidad GPS Doppler")
@@ -3068,7 +3068,7 @@ Rectangle {
             // ── Modo debug ───────────────────────────────────────────────
             PrefListItem {
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Modo Debug")
@@ -3099,7 +3099,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.debugMode
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Activar trazas y TUI")
@@ -3120,7 +3120,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.debugMode
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Simulación GPS")
@@ -3224,7 +3224,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.debugMode && panel.cfg.simMode
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: panel.simSignalLost ? i18n.tr("Señal perdida (simulado)") : i18n.tr("Perder señal GPS")
@@ -3246,7 +3246,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.debugMode && panel.cfg.simMode
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Deslizable posición en ruta sim")
@@ -3354,7 +3354,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.debugMode && panel.cfg.simMode
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Panel debug velocidades (v_sim)")
@@ -3375,7 +3375,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.debugMode
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Overlay límites de velocidad")
@@ -3396,7 +3396,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.debugMode
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Mostrar ticks GPS (isReal)")
@@ -3550,7 +3550,7 @@ Rectangle {
             PrefListItem {
                 visible: panel.cfg && panel.cfg.debugMode
                 width: parent.width
-                divider.colorFrom: pal.divider; divider.colorTo: pal.divider
+                dividerColor: pal.divider
                 bgIdle: pal.bgCard
                 highlightColor: pal.highlight
                 title.text: i18n.tr("Borrar todos los ficheros debug al salir")
