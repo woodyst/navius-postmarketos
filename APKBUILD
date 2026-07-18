@@ -155,6 +155,12 @@ build() {
 	# convención de abuild de que solo package() escribe en $pkgdir.
 	export INSTALL_DIR="$builddir"/_locale_stage
 	mkdir -p "$INSTALL_DIR"
+	# GETTEXT_SYSTEM=1: el crate gettext-sys (dependencia de gettext-rs) por
+	# defecto compila su PROPIA copia vendorizada de GNU gettext completo
+	# desde fuente (con -fanalyzer, muy lento, ~15-20 min) en vez de usar el
+	# gettext del sistema ya instalado (makedepends ya lo declara). El
+	# clickable.yaml original de Ubuntu Touch ya usaba esta misma variable.
+	export GETTEXT_SYSTEM=1
 	cargo build --release --locked
 }
 
