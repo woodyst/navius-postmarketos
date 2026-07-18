@@ -43,7 +43,14 @@ makedepends="
 # gettext (no gettext-tiny) para xgettext/msgmerge/msgfmt en build.rs — ambos
 # paquetes proveen los mismos comandos y se pisan entre sí, apk no deja tener
 # los dos a la vez.
-options="!check net"
+# !tracedeps: el paquete incluye vendor/piper_aarch64 (rhasspy/piper, binario
+# glibc + sus .so propios como libonnxruntime.so/libpiper_phonemize.so, pensado
+# para ejecutarse vía gcompat). El rastreador automático de dependencias de
+# abuild solo entiende ABI musl y falla al no encontrar paquetes musl que
+# provean las entradas NEEDED glibc de esos binarios (ej. "libdl.so.2: path
+# not found") — es exactamente el escenario para el que existe !tracedeps.
+# depends= ya declara gcompat explícitamente a mano.
+options="!check !tracedeps net"
 # abuild SIEMPRE limpia $srcdir antes de build() (parte normal de su ciclo de
 # vida, no un bug) — su default es "$startdir/src", que colisiona con nuestro
 # propio directorio src/ (fuentes Rust) y lo borra por completo (ocurrió una
