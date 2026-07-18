@@ -147,6 +147,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/main.rs");
     println!("cargo:rerun-if-changed=src/nav_tts.rs");
     println!("cargo:rerun-if-changed=src/satellite_source.h");
+    println!("cargo:rerun-if-changed=src/nmea_sat_source.h");
     println!("cargo:rerun-if-changed=src/location_props.h");
     println!("cargo:rerun-if-changed=src/location_props.cpp");
 

@@ -20,6 +20,7 @@
 #include <QtPositioning/QGeoPositionInfo>
 #include <QtPositioning/QGeoCoordinate>
 #include "location_props.h"
+#include "nmea_sat_source.h"
 
 // Plain C struct for crossing the Rust FFI boundary.
 struct SatDataC {
@@ -111,6 +112,10 @@ class SatelliteSource {
 
     // --- satellite via PropertiesChanged signal ---
     LocationPropsWatcher *m_watcher = nullptr;
+
+    // --- satélites vía NMEA de ModemManager (postmarketOS: geoclue no
+    // reporta datos por-satélite en este sistema, ver create_best_satellite) ---
+    NmeaSatSource *m_nmea = nullptr;
 
     // --- lomiri-location-service session (keeps satellite updates flowing) ---
     QDBusInterface *m_lls_session = nullptr;
@@ -334,6 +339,7 @@ public:
 
     SatelliteSource() {
         m_watcher = new LocationPropsWatcher(nullptr);
+        m_nmea    = new NmeaSatSource();
         // Defer potentially-blocking source creation so the UI renders first.
         QTimer::singleShot(0, [this]() { init_sources(); });
     }
@@ -342,6 +348,7 @@ public:
         m_alive->store(false);   // cancel pending background callback
         delete m_lls_session;
         delete m_watcher;
+        delete m_nmea;
         delete m_sat_src;
         delete m_pos_src;
     }
@@ -355,11 +362,16 @@ public:
     }
 
     bool take_sat_updated() {
-        // Priority: bridge file → modified-LLS watcher → QGeoSatelliteInfoSource.
-        // The watcher path is only used when svs_available() is true (modified LLS).
+        // Priority: bridge file → modified-LLS watcher → NMEA/ModemManager →
+        // QGeoSatelliteInfoSource. El watcher solo se usa si svs_available()
+        // (LLS modificado, Ubuntu Touch). NMEA/ModemManager es la vía real en
+        // postmarketOS: geoclue2 no reporta datos por-satélite en este
+        // sistema y el geoclue legacy (v1) siempre falla (ver
+        // create_best_satellite).
         try_read_bridge();
         if (m_bridge_updated) { m_bridge_updated = false; return true; }
         if (m_watcher && m_watcher->svs_available() && m_watcher->take_updated()) return true;
+        if (m_nmea && m_nmea->available() && m_nmea->take_updated()) return true;
         bool v = m_sat_updated;
         m_sat_updated = false;
         return v;
@@ -390,6 +402,7 @@ public:
         if (m_lls_session && m_lls_session->isValid())
             m_lls_session->call(QDBus::NoBlock, QStringLiteral("StartPositionUpdates"));
         m_watcher->start_polling();
+        if (m_nmea) m_nmea->start_polling();
     }
     void stop() {
         NAVIUS_TRACE("[navius] stop\n");
@@ -399,6 +412,7 @@ public:
         if (m_sat_src) m_sat_src->stopUpdates();
         if (m_pos_src) m_pos_src->stopUpdates();
         m_watcher->stop_polling();
+        if (m_nmea) m_nmea->stop_polling();
     }
 
     int count_in_view() const {
@@ -407,6 +421,8 @@ public:
             int n = m_watcher->vehicles().size();
             if (n > 0) return n;
         }
+        if (m_nmea && m_nmea->available() && !m_nmea->vehicles().isEmpty())
+            return m_nmea->vehicles().size();
         return m_in_view.size();
     }
 
@@ -417,6 +433,20 @@ public:
         }
         if (m_watcher && m_watcher->svs_available()) {
             QVector<SpVehicle> svs = m_watcher->vehicles();
+            if (i >= 0 && i < svs.size()) {
+                const SpVehicle &sv = svs.at(i);
+                SatDataC d{};
+                d.id        = sv.prn;
+                d.signal    = sv.snr;
+                d.azimuth   = sv.azimuth;
+                d.elevation = sv.elevation;
+                d.in_use    = sv.used;
+                d.system    = sv.system;
+                return d;
+            }
+        }
+        if (m_nmea && m_nmea->available() && !m_nmea->vehicles().isEmpty()) {
+            const QVector<SpVehicle> &svs = m_nmea->vehicles();
             if (i >= 0 && i < svs.size()) {
                 const SpVehicle &sv = svs.at(i);
                 SatDataC d{};
