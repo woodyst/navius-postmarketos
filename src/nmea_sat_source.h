@@ -110,10 +110,13 @@ class NmeaSatSource {
     // actualiza m_vehicles. Sustituye la lista completa por lo encontrado en
     // este bloque (igual que hace LocationPropsWatcher con VisibleSpaceVehicles).
     void parse_nmea(const QString &text) {
+        NAVIUS_TRACE("[navius] nmea: raw text len=%d head=[%s]\n",
+                text.size(), text.left(160).toUtf8().constData());
         if (text.isEmpty()) return;
 
         QMap<QPair<int,int>, SpVehicle> bySystemPrn;  // (system,prn) -> vehicle
         QVector<QPair<int,int>> usedPrns;             // (system,prn) marcados en GSA
+        int gsvLines = 0, gsaLines = 0, otherLines = 0;
 
         const QStringList lines = text.split(QRegExp("[\r\n]"), Qt::SkipEmptyParts);
         for (const QString &rawLine : lines) {
@@ -128,6 +131,10 @@ class NmeaSatSource {
             QString sentence = f[0].mid(1);          // sin '$'
             QString talker   = sentence.left(2);      // GP/GL/GA/GB/GQ/GN
             QString type     = sentence.mid(2);       // GSV/GSA/...
+
+            if (type == QLatin1String("GSV")) ++gsvLines;
+            else if (type == QLatin1String("GSA")) ++gsaLines;
+            else ++otherLines;
 
             if (type == QLatin1String("GSV") && f.size() >= 4) {
                 int system = talker_to_system(talker);
@@ -158,6 +165,8 @@ class NmeaSatSource {
             }
         }
 
+        NAVIUS_TRACE("[navius] nmea: lines=%d gsv=%d gsa=%d other=%d parsed_sats=%d\n",
+                lines.size(), gsvLines, gsaLines, otherLines, bySystemPrn.size());
         if (bySystemPrn.isEmpty()) return;  // bloque sin GSV útil: no pisar datos previos
 
         for (const auto &key : usedPrns) {
@@ -195,8 +204,12 @@ class NmeaSatSource {
                     return;
                 }
                 QMap<uint, QDBusVariant> locations = reply.value();
+                NAVIUS_TRACE("[navius] nmea: GetLocation keys=%d\n", locations.size());
                 auto it = locations.constFind(MM_LOC_SOURCE_GPS_NMEA);
-                if (it == locations.constEnd()) return;
+                if (it == locations.constEnd()) {
+                    NAVIUS_TRACE("[navius] nmea: no GPS_NMEA key in reply\n");
+                    return;
+                }
                 parse_nmea(it.value().variant().toString());
             });
     }
