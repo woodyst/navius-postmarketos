@@ -1325,7 +1325,7 @@ function _parseRadarResponse(text, nearShape, callback) {
                 var dirVal = parseInt(dirStr)
                 var hasDir = (dirStr !== undefined && dirStr !== "" && !isNaN(dirVal))
                 if (hasDir) {
-                    fijos.push({ lat: el.lat, lon: el.lon,
+                    fijos.push({ id: "n" + el.id, lat: el.lat, lon: el.lon,
                                  maxspeed: parseInt(t["maxspeed"]) || 0, direction: dirVal })
                 } else {
                     tramoCands.push({ lat: el.lat, lon: el.lon,
@@ -1351,6 +1351,7 @@ function _parseRadarResponse(text, nearShape, callback) {
                     lenM += Math.sqrt(dlat*dlat+dlon*dlon)
                 }
                 tramos.push({
+                    id: "w" + el.id,
                     shape: wShape,
                     maxspeed: parseInt(t["maxspeed:enforcement"]) || parseInt(t["maxspeed"]) || parseInt(t["maxspeed:practical"]) || 0,
                     lengthM: Math.round(lenM)
@@ -1359,7 +1360,9 @@ function _parseRadarResponse(text, nearShape, callback) {
         }
 
         // Emparejar candidatos sin direction: dos cámaras del mismo maxspeed separadas
-        // entre 100 m y 8 000 m forman un tramo sintético (patrón habitual en España/OSM).
+        // entre 100 m y 40 000 m forman un tramo sintético (patrón habitual en España/OSM).
+        // Los tramos de velocidad media en autopista pueden superar los 15-20 km
+        // (ej. AP-7), 8 km se quedaba corto y dejaba cámaras de tramo reales sin emparejar.
         var paired = {}
         for (var a = 0; a < tramoCands.length; a++) {
             if (paired[tramoCands[a].id]) continue
@@ -1372,7 +1375,7 @@ function _parseRadarResponse(text, nearShape, callback) {
                 var dlat2 = (ca.lat - cb.lat) * 111319
                 var dlon2 = (ca.lon - cb.lon) * 111319 * Math.cos(ca.lat * Math.PI / 180)
                 var d2 = Math.sqrt(dlat2*dlat2 + dlon2*dlon2)
-                if (d2 >= 100 && d2 <= 8000 && d2 < bestD) { bestD = d2; bestB = b }
+                if (d2 >= 100 && d2 <= 40000 && d2 < bestD) { bestD = d2; bestB = b }
             }
             if (bestB >= 0) {
                 var cb = tramoCands[bestB]
@@ -1381,11 +1384,11 @@ function _parseRadarResponse(text, nearShape, callback) {
                 // Ordenar por longitud para que el shape vaya de oeste a este (heurístico)
                 var ptA = { lon: ca.lon, lat: ca.lat }, ptB = { lon: cb.lon, lat: cb.lat }
                 if (ptA.lon > ptB.lon) { var tmp = ptA; ptA = ptB; ptB = tmp }
-                tramos.push({ shape: [[ptA.lon, ptA.lat], [ptB.lon, ptB.lat]],
+                tramos.push({ id: "t" + ca.id + "_" + cb.id, shape: [[ptA.lon, ptA.lat], [ptB.lon, ptB.lat]],
                                maxspeed: spd, lengthM: Math.round(bestD) })
             } else {
                 // Sin pareja → fijo sin dirección
-                fijos.push({ lat: ca.lat, lon: ca.lon, maxspeed: ca.maxspeed, direction: -1 })
+                fijos.push({ id: "n" + ca.id, lat: ca.lat, lon: ca.lon, maxspeed: ca.maxspeed, direction: -1 })
             }
         }
 
@@ -1572,7 +1575,168 @@ function _overpassPost(bbox, callback, _tried) {
     xhr.send("data=" + encodeURIComponent(q))
 }
 
+// ── Caché local de radares (SQLite vía LocalStorage) ────────────────────────
+// Persiste entre rutas y reinicios: la BD nunca se borra al terminar de
+// navegar. Cada consulta con éxito a Overpass revalida (upsert + poda) la
+// zona consultada, y un barrido diario revalida en segundo plano el resto.
+var _radarDbRef = null
+
+function setRadarDb(db) {
+    _radarDbRef = db
+    if (!_radarDbRef) return
+    try {
+        _radarDbRef.transaction(function(tx) {
+            tx.executeSql('CREATE TABLE IF NOT EXISTS radares (' +
+                'id TEXT PRIMARY KEY, kind TEXT, lat REAL, lon REAL, lat2 REAL, lon2 REAL, ' +
+                'maxspeed INTEGER, direction INTEGER, updated_at INTEGER)')
+            tx.executeSql('CREATE TABLE IF NOT EXISTS radares_meta (key TEXT PRIMARY KEY, value TEXT)')
+        })
+    } catch(e) { _logMsg("✗ Radar DB init: " + e); _radarDbRef = null }
+}
+
+function _radarDb() { return _radarDbRef }
+
+function _saveRadarsToDb(fijos, tramos) {
+    var db = _radarDb(); if (!db) return
+    var now = Math.floor(Date.now() / 1000)
+    try {
+        db.transaction(function(tx) {
+            for (var i = 0; i < fijos.length; i++) {
+                var f = fijos[i]
+                if (!f.id) continue
+                tx.executeSql('INSERT OR REPLACE INTO radares (id,kind,lat,lon,lat2,lon2,maxspeed,direction,updated_at) VALUES (?,?,?,?,?,?,?,?,?)',
+                    [f.id, 'fijo', f.lat, f.lon, null, null, f.maxspeed || 0, f.direction, now])
+            }
+            for (var j = 0; j < tramos.length; j++) {
+                var t = tramos[j]
+                if (!t.id) continue
+                var s0 = t.origShape ? t.origShape[0] : t.shape[0]
+                var sN = t.origShape ? t.origShape[1] : t.shape[t.shape.length - 1]
+                tx.executeSql('INSERT OR REPLACE INTO radares (id,kind,lat,lon,lat2,lon2,maxspeed,direction,updated_at) VALUES (?,?,?,?,?,?,?,?,?)',
+                    [t.id, 'tramo', s0[1], s0[0], sN[1], sN[0], t.maxspeed || 0, -1, now])
+            }
+        })
+    } catch(e) { _logMsg("✗ Radar DB save: " + e) }
+}
+
+// Borra de la zona consultada los radares que YA NO aparecen en la respuesta
+// fresca de Overpass (decomisionados/movidos en OSM).
+function _pruneRadarsDb(minLat, minLon, maxLat, maxLon, keepIds) {
+    var db = _radarDb(); if (!db) return
+    try {
+        db.transaction(function(tx) {
+            var rs = tx.executeSql(
+                'SELECT id FROM radares WHERE lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?',
+                [minLat, maxLat, minLon, maxLon])
+            for (var i = 0; i < rs.rows.length; i++) {
+                var id = rs.rows.item(i).id
+                if (keepIds.indexOf(id) < 0) tx.executeSql('DELETE FROM radares WHERE id = ?', [id])
+            }
+        })
+    } catch(e) { _logMsg("✗ Radar DB prune: " + e) }
+}
+
+// Consulta local, instantánea y offline-capable (sin filtro de proximidad a ruta:
+// aproximación rápida, el merge con Overpass la corrige cuando responde).
+function _queryRadarsDb(minLat, minLon, maxLat, maxLon) {
+    var db = _radarDb()
+    var out = { fijos: [], tramos: [] }
+    if (!db) return out
+    try {
+        db.readTransaction(function(tx) {
+            var rs = tx.executeSql(
+                'SELECT * FROM radares WHERE lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?',
+                [minLat, maxLat, minLon, maxLon])
+            for (var i = 0; i < rs.rows.length; i++) {
+                var r = rs.rows.item(i)
+                if (r.kind === 'fijo') {
+                    out.fijos.push({ id: r.id, lat: r.lat, lon: r.lon, maxspeed: r.maxspeed, direction: r.direction })
+                } else {
+                    var shp = [[r.lon, r.lat], [r.lon2, r.lat2]]
+                    out.tramos.push({ id: r.id, shape: shp, origShape: shp, maxspeed: r.maxspeed, lengthM: 0 })
+                }
+            }
+        })
+    } catch(e) { _logMsg("✗ Radar DB query: " + e) }
+    return out
+}
+
+function _radarKeepIds(result) {
+    return result.fijos.map(function(f) { return f.id }).concat(result.tramos.map(function(t) { return t.id }))
+}
+
+// Remoto (b) tiene prioridad sobre local (a) cuando coinciden ids (datos más frescos).
+function _mergeRadarSets(remote, local) {
+    var seen = {}, fijos = [], tramos = []
+    function addF(f) { if (seen['f'+f.id]) return; seen['f'+f.id] = true; fijos.push(f) }
+    function addT(t) { if (seen['t'+t.id]) return; seen['t'+t.id] = true; tramos.push(t) }
+    remote.fijos.forEach(addF);  local.fijos.forEach(addF)
+    remote.tramos.forEach(addT); local.tramos.forEach(addT)
+    return { fijos: fijos, tramos: tramos }
+}
+
+function _radarMetaGet(key) {
+    var db = _radarDb(); if (!db) return null
+    var val = null
+    try {
+        db.readTransaction(function(tx) {
+            var rs = tx.executeSql('SELECT value FROM radares_meta WHERE key=?', [key])
+            if (rs.rows.length > 0) val = rs.rows.item(0).value
+        })
+    } catch(e) {}
+    return val
+}
+
+function _radarMetaSet(key, value) {
+    var db = _radarDb(); if (!db) return
+    try {
+        db.transaction(function(tx) {
+            tx.executeSql('INSERT OR REPLACE INTO radares_meta (key,value) VALUES (?,?)', [key, value])
+        })
+    } catch(e) {}
+}
+
+// Barrido diario: revalida contra Overpass, celda a celda (~0.3°), toda la zona
+// cubierta por la caché local, podando lo que ya no exista. Una celda cada 3 s
+// para no saturar el servidor. Se relanza solo una vez al día.
+function maybeRunDailyRadarSweep() {
+    var db = _radarDb(); if (!db) return
+    var today = new Date().toISOString().slice(0, 10)
+    if (_radarMetaGet('radar_sweep_date') === today) return
+    _radarMetaSet('radar_sweep_date', today)
+    _logMsg("Barrido diario de radares: iniciado")
+    _sweepRadarCells(0)
+}
+
+function _sweepRadarCells(cellIdx) {
+    var db = _radarDb(); if (!db) return
+    var CELL = 0.3
+    db.readTransaction(function(tx) {
+        var rs = tx.executeSql(
+            'SELECT cy, cx FROM (SELECT DISTINCT CAST(lat/? AS INT) AS cy, CAST(lon/? AS INT) AS cx FROM radares) LIMIT 1 OFFSET ?',
+            [CELL, CELL, cellIdx])
+        if (rs.rows.length === 0) { _logMsg("Barrido diario de radares: completado (" + cellIdx + " celdas)"); return }
+        var cell = rs.rows.item(0)
+        var minLat = cell.cy * CELL, maxLat = minLat + CELL
+        var minLon = cell.cx * CELL, maxLon = minLon + CELL
+        var bbox = minLat.toFixed(5) + "," + minLon.toFixed(5) + "," + maxLat.toFixed(5) + "," + maxLon.toFixed(5)
+        _overpassPost(bbox, function(text) {
+            if (text) {
+                _parseRadarResponse(text, null, function(remote) {
+                    _saveRadarsToDb(remote.fijos, remote.tramos)
+                    _pruneRadarsDb(minLat, minLon, maxLat, maxLon, _radarKeepIds(remote))
+                    if (_defer) _defer(function() { _sweepRadarCells(cellIdx + 1) }, 3000)
+                })
+            } else if (_defer) {
+                _defer(function() { _sweepRadarCells(cellIdx + 1) }, 3000)
+            }
+        })
+    })
+}
+
 // Carga radares a lo largo de una ruta (filtra por proximidad al shape).
+// Responde primero con la caché local si hay algo (instantáneo/offline), y
+// otra vez con el resultado fusionado con Overpass en cuanto responde.
 function fetchRadars(shape, callback) {
     if (!shape || shape.length < 2) { callback({fijos:[], tramos:[]}); return }
     var minLat = shape[0][1], maxLat = shape[0][1], minLon = shape[0][0], maxLon = shape[0][0]
@@ -1583,20 +1747,40 @@ function fetchRadars(shape, callback) {
         if (shape[i][0] > maxLon) maxLon = shape[i][0]
     }
     var buf = 0.025
-    var bbox = (minLat-buf).toFixed(5)+","+(minLon-buf).toFixed(5)+","+
-               (maxLat+buf).toFixed(5)+","+(maxLon+buf).toFixed(5)
+    minLat -= buf; maxLat += buf; minLon -= buf; maxLon += buf
+    var bbox = minLat.toFixed(5)+","+minLon.toFixed(5)+","+
+               maxLat.toFixed(5)+","+maxLon.toFixed(5)
+    var local = _queryRadarsDb(minLat, minLon, maxLat, maxLon)
+    if (local.fijos.length || local.tramos.length) callback(local)
     _overpassPost(bbox, function(text, failed) {
-        if (!text) { callback({fijos:[], tramos:[], error: !!failed}); return }
-        _parseRadarResponse(text, shape, callback)
+        if (!text) {
+            if (!local.fijos.length && !local.tramos.length) callback({fijos:[], tramos:[], error: !!failed})
+            return
+        }
+        _parseRadarResponse(text, shape, function(remote) {
+            _saveRadarsToDb(remote.fijos, remote.tramos)
+            _pruneRadarsDb(minLat, minLon, maxLat, maxLon, _radarKeepIds(remote))
+            callback(_mergeRadarSets(remote, local))
+        })
     })
 }
 
 // Carga radares en un bounding box (sin filtrar por ruta; para vista de mapa).
+// Mismo patrón local-primero + merge con Overpass que fetchRadars.
 function fetchRadarsBbox(minLat, minLon, maxLat, maxLon, callback) {
     var bbox = minLat.toFixed(5)+","+minLon.toFixed(5)+","+
                maxLat.toFixed(5)+","+maxLon.toFixed(5)
+    var local = _queryRadarsDb(minLat, minLon, maxLat, maxLon)
+    if (local.fijos.length || local.tramos.length) callback(local)
     _overpassPost(bbox, function(text, failed) {
-        if (!text) { callback({fijos:[], tramos:[], error: !!failed}); return }
-        _parseRadarResponse(text, null, callback)
+        if (!text) {
+            if (!local.fijos.length && !local.tramos.length) callback({fijos:[], tramos:[], error: !!failed})
+            return
+        }
+        _parseRadarResponse(text, null, function(remote) {
+            _saveRadarsToDb(remote.fijos, remote.tramos)
+            _pruneRadarsDb(minLat, minLon, maxLat, maxLon, _radarKeepIds(remote))
+            callback(_mergeRadarSets(remote, local))
+        })
     })
 }

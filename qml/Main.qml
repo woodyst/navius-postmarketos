@@ -10,6 +10,7 @@ import QtQuick 2.7
 import QtQuick.Controls 2.15
 import QtQuick.Window 2.2
 import QtPositioning 5.4
+import QtQuick.LocalStorage 2.0
 import Qt.labs.settings 1.0
 import MapboxMap 1.0
 
@@ -2487,6 +2488,9 @@ ApplicationWindow {
         // ServerFallbackDialog.onUseOsmScout, onMapOnlineSourceChanged) necesita
         // el suyo — si no, ensure_osmscout_running() nunca se invoca (_navHttp null).
         NavSearch.setNavHttp(navHttp)
+        var _radarDb = LocalStorage.openDatabaseSync("NaviusRadares", "1.0", "Radares fijos y de tramo", 4 * 1024 * 1024)
+        NavSearch.setRadarDb(_radarDb)
+        Qt.callLater(function() { NavSearch.maybeRunDailyRadarSweep() })
         NavSearch.setStatusPushCallback(function(text, color) { root._pushStatus(text, color) })
         NavSearch.setDeferFn(function(fn, ms) {
             if (ms && ms > 0) {
