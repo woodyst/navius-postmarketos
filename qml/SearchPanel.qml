@@ -72,7 +72,7 @@ Rectangle {
     property var dests:     _dests
     property var routeOpts: ({"no_tolls": _noTolls, "no_ferry": _noFerry, "no_dirt": _noDirt, "no_highway": _noHighway})
     property bool _logVisible:    false  // bool explícito para evitar problemas con var.length en bindings
-    property bool _logCollapsed: true
+    property bool _logCollapsed: false
 
     property var _history:   []
     property var _favorites: []
@@ -302,7 +302,7 @@ Rectangle {
     function _resetLog() {
         _logLines      = []
         _logVisible    = false
-        _logCollapsed  = true
+        _logCollapsed  = false
     }
 
     function _saveWaypoints() {

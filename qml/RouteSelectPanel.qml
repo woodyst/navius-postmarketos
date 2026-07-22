@@ -15,6 +15,7 @@ Item {
     property var  routes:        []
     property int  selIdx:        0
     property bool imperial:      false
+    property var  radarCounts:   []   // nº radares por ruta, paralelo a routes (-1 = cargando/error)
 
     property var    vehicleMgr:    null
     property var    _vehList:      []
@@ -175,6 +176,8 @@ Item {
                             Label {
                                 text: NavSearch.formatDist(modelData.length) + "  ·  "
                                       + NavSearch.formatTime(modelData.time)
+                                      + (index < rsp.radarCounts.length && rsp.radarCounts[index] >= 0
+                                         ? "  ·  📷 " + rsp.radarCounts[index] : "")
                                 color: rsp.selIdx === index ? "#90CAF9" : "#78909C"
                                 font.pixelSize: ts(1.8)
                             }

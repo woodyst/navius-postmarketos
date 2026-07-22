@@ -488,7 +488,8 @@ function photonSubtitle(f) {
 // ── POI (Puntos de Interés) via Overpass API ─────────────────────────────────
 var OVERPASS          = "https://z.overpass-api.de/api/interpreter"  // legacy
 var OVERPASS_FALLBACK = "https://z.overpass-api.de/api/interpreter"
-var OVERPASS_NAVIUS   = "https://navius-maps.egpsistemas.com/overpass/api/interpreter"
+var OVERPASS_NAVIUS       = "https://navius-maps.egpsistemas.com/overpass/api/interpreter"
+var OVERPASS_NAVIUS_WORLD = "https://navius-maps.egpsistemas.com/overpass-world/api/interpreter"
 var _overpassNaviusEnabled = true
 
 // Lista de servidores públicos Overpass — excluir overpass-api.de (rate limit estricto
@@ -543,15 +544,18 @@ function probeOverpassServers() {
     }
 }
 
-// Elige servidor según posición: navius para España, aleatorio del pool para el resto
+// Elige servidor: navius mundial primero (réplica minutal, siempre al día).
+// El servidor España tiene la replicación rota (ver project_erebos3_infra) y
+// puede llevar semanas de desfase, así que solo se usa como fallback.
 function _overpassForPos(lat, lon) {
-    if (_overpassNaviusEnabled && _inSpain(lat, lon)) return OVERPASS_NAVIUS
-    var idx = Math.floor(Math.random() * _overpassActivePool.length)
-    return _overpassActivePool[idx]
+    if (!_overpassNaviusEnabled) return _overpassActivePool[Math.floor(Math.random() * _overpassActivePool.length)]
+    return OVERPASS_NAVIUS_WORLD
 }
 
-// Siguiente servidor no intentado: primero del pool activo, luego del listado completo
-function _overpassNext(tried) {
+// Siguiente servidor no intentado: navius España (si aplica) → pool público
+function _overpassNext(tried, lat, lon) {
+    if (_overpassNaviusEnabled && lat !== undefined && _inSpain(lat, lon) && tried.indexOf(OVERPASS_NAVIUS) < 0)
+        return OVERPASS_NAVIUS
     var fromPool = _overpassActivePool.filter(function(u) { return tried.indexOf(u) < 0 })
     if (fromPool.length > 0) return fromPool[0]
     var fromAll = OVERPASS_CANDIDATES.filter(function(u) { return tried.indexOf(u) < 0 })
@@ -590,7 +594,7 @@ function _poiPost(q, meta, callback, _tried, _zeroRetries) {
     if (!_zeroRetries) _zeroRetries = 0
     var sLat = meta.qLat !== undefined ? meta.qLat : meta.lat
     var sLon = meta.qLon !== undefined ? meta.qLon : meta.lon
-    var _srv = _tried.length === 0 ? _overpassForPos(sLat, sLon) : _overpassNext(_tried)
+    var _srv = _tried.length === 0 ? _overpassForPos(sLat, sLon) : _overpassNext(_tried, sLat, sLon)
     if (!_srv) {
         if (_statusPush) _statusPush("Sin red · búsqueda POI", "#EF9A9A")
         callback("Sin servidores Overpass disponibles", null, meta)
@@ -1542,8 +1546,8 @@ function _overpassPost(bbox, callback, _tried) {
     var _bparts = bbox.split(",")
     var _cLat = (_bparts.length === 4) ? (parseFloat(_bparts[0]) + parseFloat(_bparts[2])) / 2 : 40
     var _cLon = (_bparts.length === 4) ? (parseFloat(_bparts[1]) + parseFloat(_bparts[3])) / 2 : -3
-    var _srv = _tried.length === 0 ? _overpassForPos(_cLat, _cLon) : _overpassNext(_tried)
-    if (!_srv) { callback(null); return }
+    var _srv = _tried.length === 0 ? _overpassForPos(_cLat, _cLon) : _overpassNext(_tried, _cLat, _cLon)
+    if (!_srv) { _logMsg("Overpass radares: todos los servidores agotados"); callback(null, true); return }
     _tried = _tried.concat([_srv])
     _logMsg("→ Overpass radares " + _srv + (_tried.length > 1 ? " (intento " + _tried.length + ")" : ""))
     var xhr = new XMLHttpRequest()
@@ -1581,8 +1585,8 @@ function fetchRadars(shape, callback) {
     var buf = 0.025
     var bbox = (minLat-buf).toFixed(5)+","+(minLon-buf).toFixed(5)+","+
                (maxLat+buf).toFixed(5)+","+(maxLon+buf).toFixed(5)
-    _overpassPost(bbox, function(text) {
-        if (!text) { callback({fijos:[], tramos:[]}); return }
+    _overpassPost(bbox, function(text, failed) {
+        if (!text) { callback({fijos:[], tramos:[], error: !!failed}); return }
         _parseRadarResponse(text, shape, callback)
     })
 }
@@ -1591,8 +1595,8 @@ function fetchRadars(shape, callback) {
 function fetchRadarsBbox(minLat, minLon, maxLat, maxLon, callback) {
     var bbox = minLat.toFixed(5)+","+minLon.toFixed(5)+","+
                maxLat.toFixed(5)+","+maxLon.toFixed(5)
-    _overpassPost(bbox, function(text) {
-        if (!text) { callback({fijos:[], tramos:[]}); return }
+    _overpassPost(bbox, function(text, failed) {
+        if (!text) { callback({fijos:[], tramos:[], error: !!failed}); return }
         _parseRadarResponse(text, null, callback)
     })
 }
