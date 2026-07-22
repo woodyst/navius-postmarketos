@@ -876,27 +876,24 @@ ApplicationWindow {
 
     property real _radarLastCheckLat:  999
     property real _radarLastCheckLon:  999
-    property real _radarLastCheckZoom: -1
+    readonly property real _radarSearchRadiusM: 2000  // radio de búsqueda por posición
 
-    // Carga radares para la vista actual del mapa (sin navegar).
-    // Solo lanza petición si la vista se ha desplazado significativamente.
+    // Carga radares alrededor de la posición actual del mapa (sin navegar).
+    // Radio fijo de _radarSearchRadiusM, independiente del zoom/tamaño de viewport.
     function _fetchRadarsViewport() {
-        if (_radarFetching || mapView.metersPerPixel <= 0 || mapView.zoomLevel < 11) return
+        if (_radarFetching || mapView.metersPerPixel <= 0) return
         var cl = mapView._centerLat, co = mapView._centerLon
         // Timer periódico: si el mapa sigue exactamente donde estaba en el último
         // tick, no repetir el cálculo (el margen de coverLat de abajo nunca da
         // "cubierto" cuando el bbox recién calculado coincide con el guardado,
-        // así que sin este guard reintentaría cada 4s indefinidamente parado).
-        if (cl === _radarLastCheckLat && co === _radarLastCheckLon && mapView.zoomLevel === _radarLastCheckZoom)
-            return
-        _radarLastCheckLat = cl; _radarLastCheckLon = co; _radarLastCheckZoom = mapView.zoomLevel
-        var mpp = mapView.metersPerPixel
-        // Semiancho/semialto del viewport en grados + buffer 2×
-        var hW = mapView.width  / 2 * mpp / (111319 * Math.cos(cl * Math.PI / 180)) * 2.5
-        var hH = mapView.height / 2 * mpp / 111319 * 2.5
-        var minLat = cl - hH, maxLat = cl + hH
-        var minLon = co - hW, maxLon = co + hW
-        // Comprobar si la vista sigue cubierta por el último fetch (75%)
+        // así que sin este guard reintentaría indefinidamente parado).
+        if (cl === _radarLastCheckLat && co === _radarLastCheckLon) return
+        _radarLastCheckLat = cl; _radarLastCheckLon = co
+        var hLat = _radarSearchRadiusM / 111319
+        var hLon = _radarSearchRadiusM / (111319 * Math.cos(cl * Math.PI / 180))
+        var minLat = cl - hLat, maxLat = cl + hLat
+        var minLon = co - hLon, maxLon = co + hLon
+        // Comprobar si la posición sigue cubierta por el último fetch (75%)
         var coverLat = (_radarBboxMinLat > 0) &&
                        (minLat >= _radarBboxMinLat + (maxLat - minLat) * 0.25) &&
                        (maxLat <= _radarBboxMaxLat - (maxLat - minLat) * 0.25) &&
@@ -7836,13 +7833,13 @@ ApplicationWindow {
         }
     }
 
-    // ── Timer periódico para cargar radares por viewport ───────────────────
-    // Repite cada 4s sin depender de que el mapa deje de moverse: en movimiento
+    // ── Timer periódico para cargar radares por posición ────────────────────
+    // Repite cada 60s sin depender de que el mapa deje de moverse: en movimiento
     // continuo (conduciendo) un debounce por restart() nunca llegaría a disparar.
-    // _fetchRadarsViewport() ya no hace nada si el viewport actual sigue cubierto.
+    // _fetchRadarsViewport() ya no hace nada si la posición actual sigue cubierta.
     Timer {
         id: radarViewportTimer
-        interval: 4000; repeat: true; running: true
+        interval: 60000; repeat: true; running: true
         onTriggered: root._fetchRadarsViewport()
     }
 
