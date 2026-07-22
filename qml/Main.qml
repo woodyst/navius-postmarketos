@@ -907,10 +907,14 @@ ApplicationWindow {
         _radarBboxMinLat = minLat; _radarBboxMaxLat = maxLat
         _radarBboxMinLon = minLon; _radarBboxMaxLon = maxLon
         NavSearch.fetchRadarsBbox(minLat, minLon, maxLat, maxLon, function(result) {
-            _radarFetching  = false
             root._radarFijos  = result.fijos
             root._radarTramos = result.tramos
             root._updateRadarLayers()
+            // La respuesta "fromCache" es solo un adelanto instantáneo de la caché local;
+            // _radarFetching sigue true hasta que la petición real a Overpass concluye,
+            // para no lanzar peticiones solapadas mientras se conduce.
+            if (result.fromCache) return
+            _radarFetching  = false
             root._handleRadarFetchResult(result)
         })
     }
