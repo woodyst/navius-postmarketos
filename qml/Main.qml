@@ -873,11 +873,22 @@ ApplicationWindow {
         return dist
     }
 
+    property real _radarLastCheckLat:  999
+    property real _radarLastCheckLon:  999
+    property real _radarLastCheckZoom: -1
+
     // Carga radares para la vista actual del mapa (sin navegar).
     // Solo lanza petición si la vista se ha desplazado significativamente.
     function _fetchRadarsViewport() {
         if (_radarFetching || mapView.metersPerPixel <= 0 || mapView.zoomLevel < 11) return
         var cl = mapView._centerLat, co = mapView._centerLon
+        // Timer periódico: si el mapa sigue exactamente donde estaba en el último
+        // tick, no repetir el cálculo (el margen de coverLat de abajo nunca da
+        // "cubierto" cuando el bbox recién calculado coincide con el guardado,
+        // así que sin este guard reintentaría cada 4s indefinidamente parado).
+        if (cl === _radarLastCheckLat && co === _radarLastCheckLon && mapView.zoomLevel === _radarLastCheckZoom)
+            return
+        _radarLastCheckLat = cl; _radarLastCheckLon = co; _radarLastCheckZoom = mapView.zoomLevel
         var mpp = mapView.metersPerPixel
         // Semiancho/semialto del viewport en grados + buffer 2×
         var hW = mapView.width  / 2 * mpp / (111319 * Math.cos(cl * Math.PI / 180)) * 2.5
@@ -2469,7 +2480,7 @@ ApplicationWindow {
         searchPanel.setNaviusOverpassServer(appSettings.overpassServer === "navius")
         NavSearch.probeOverpassServers()
         NavSearch.setFileLogCallback(function(msg) { satModel.log_to_file(msg) })
-        NavSearch.setLogCallback(function(msg)     { satModel.log_to_file(msg) })
+        NavSearch.setLogCallback(function(msg)     { satModel.log_to_file(msg); searchPanel._addLog(msg) })
         // NavSearch.js no usa .pragma library: cada import tiene su propio estado
         // aislado. SearchPanel.qml ya fija su navHttp para sus propias llamadas,
         // pero este import de Main.qml (usado por onOsmScoutDetectRequested,
@@ -3451,7 +3462,6 @@ ApplicationWindow {
             // Recenter map so GPS stays at targetY after zoom changes mpp.
             // Use a 0-ms timer to let metersPerPixel settle first.
             zoomRecenter.restart()
-            radarViewportTimer.restart()
             // Zoom manual (pinch): desactivar autoZoom para que aparezca el botón
             // Ignorar si la animación automática está activa (_zoomAnimating) o si el timer
             // de gracia aún no ha expirado (_zoomAuto). Ambas guards son necesarias porque
@@ -3745,7 +3755,6 @@ ApplicationWindow {
             _centerLat = center.latitude
             _centerLon = center.longitude
             if (!_gpsUpdating) followMode = false
-            radarViewportTimer.restart()
         }
 
         // Recompute centre when pitch changes outside of animation
@@ -7179,6 +7188,7 @@ ApplicationWindow {
                 root.clearRoute()
             } else {
                 root.applyRoutes(routes, selIdx)
+                root._fetchRouteRadarCounts(routes)
                 // Guarda waypoints para recuperar tras reinicio
                 // (SearchPanel los gestiona en su Settings interno)
             }
@@ -7818,11 +7828,13 @@ ApplicationWindow {
         }
     }
 
-    // ── Timer debounce para cargar radares por viewport ───────────────────
-    // Se reinicia en cada movimiento/zoom; dispara 4s después de que el mapa para.
+    // ── Timer periódico para cargar radares por viewport ───────────────────
+    // Repite cada 4s sin depender de que el mapa deje de moverse: en movimiento
+    // continuo (conduciendo) un debounce por restart() nunca llegaría a disparar.
+    // _fetchRadarsViewport() ya no hace nada si el viewport actual sigue cubierto.
     Timer {
         id: radarViewportTimer
-        interval: 4000; repeat: false; running: false
+        interval: 4000; repeat: true; running: true
         onTriggered: root._fetchRadarsViewport()
     }
 
