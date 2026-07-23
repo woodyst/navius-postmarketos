@@ -279,6 +279,18 @@ Item {
         onTriggered: gps._driveAdvance()
     }
 
+    // ── DR con GPS real: timer independiente ──────────────────────────────────
+    // _drSimulateTick() normalmente se dispara reactivamente desde _onRealGpsTick.
+    // Pero en un túnel real sin cobertura, el proveedor de localización puede dejar
+    // de emitir ticks por completo (ni siquiera "sin fix") — sin este timer, DR se
+    // queda sin llamadas y la posición se congela en vez de seguir avanzando.
+    Timer {
+        id: drRealTimer
+        interval: 1000; repeat: true
+        running: gps.drActive && !gps.simMode && !gps.manualActive && !gps.manualDriveMode
+        onTriggered: gps._drSimulateTick(Date.now())
+    }
+
     // ── Interpolación ─────────────────────────────────────────────────────────
     Timer {
         id: interpTimer

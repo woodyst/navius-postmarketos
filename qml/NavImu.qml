@@ -18,6 +18,7 @@
 
 import QtQuick 2.7
 import QtSensors 5.9
+import Qt.labs.settings 1.0
 
 Item {
     id: root
@@ -81,6 +82,16 @@ Item {
     //   yawSign:   +1 si girar a la derecha incrementa headingRad; −1 en caso contrario.
     property real gyroScale:  1.0
     property real yawSign:    1.0
+
+    // Persiste la calibración GPS (gyroScale/yawSign) entre reinicios: sin esto,
+    // cada arranque parte de valores por defecto y hay que recalibrar girando con
+    // GPS bueno antes de que el DR por IMU sea fiable en el próximo túnel.
+    Settings {
+        category: "imu"
+        property alias gyroScale:          root.gyroScale
+        property alias yawSign:             root.yawSign
+        property alias gpsScaleCalibrated: root.gpsScaleCalibrated
+    }
 
     // ── Debug / diagnóstico ───────────────────────────────────────────────────
     // rawGz: último valor crudo del eje Z del giroscopio (unidades del sensor).
