@@ -291,6 +291,23 @@ Item {
         onTriggered: gps._drSimulateTick(Date.now())
     }
 
+    // ── Vigía de silencio GPS: activa DR aunque no llegue NINGÚN tick ──────────
+    // _onRealGpsTick() (y por tanto la detección de fix inválido) solo se ejecuta
+    // cuando el proveedor de localización emite algo. En un túnel real puede dejar
+    // de emitir CUALQUIER actualización (ni siquiera "sin fix") — en ese caso
+    // _onRealGpsTick nunca se vuelve a llamar y DR nunca llega a activarse, aunque
+    // drRealTimer (arriba) ya esté preparado para mantenerlo vivo una vez activo.
+    // Este timer comprueba directamente cuánto hace del último tick real bueno.
+    Timer {
+        id: gpsStaleWatchdog
+        interval: 1000; repeat: true
+        running: !gps.simMode && !gps.manualActive && !gps.manualDriveMode && !gps.drActive
+        onTriggered: {
+            if (gps._realTickMs > 0 && (Date.now() - gps._realTickMs) > 3000)
+                gps._activateDr()
+        }
+    }
+
     // ── Interpolación ─────────────────────────────────────────────────────────
     Timer {
         id: interpTimer
@@ -302,6 +319,27 @@ Item {
     }
 
     // ── GPS real: tick primario ───────────────────────────────────────────────
+    // Activa drActive si no lo está ya (misma lógica que usaba _onRealGpsTick
+    // inline). Extraída para poder llamarla también desde gpsStaleWatchdog,
+    // que activa DR aunque no llegue NINGÚN tick del proveedor de localización
+    // (ni siquiera "sin fix") — ver comentario en gpsStaleWatchdog.
+    function _activateDr() {
+        if (drActive || _lastRealTickPos === null || _speedMs <= 1.0) return
+        if (routeShape && routeShape.length > 1) {
+            drActive = true; _drSpeedMs = _speedMs
+        } else {
+            var _nrs = _buildDrNrShape(_lastRealTickPos.lat, _lastRealTickPos.lon)
+            if (_nrs) {
+                _drNrShape = _nrs.coords; _drNrIdx = _nrs.idx; _drNrFrac = _nrs.frac
+                drActive   = true; _drSpeedMs = _speedMs
+            } else {
+                drActive = true; _drSpeedMs = _speedMs  // fallback: IMU libre
+            }
+        }
+        if (drActive && imu)
+            imu.start(_headRad, _lastRealTickPos.lat, _lastRealTickPos.lon)
+    }
+
     function _onRealGpsTick(pLat, pLon, pHasFix, hwSpeedKmh, ms) {
         // ── Detección de fix inválido ─────────────────────────────────────────
         // _p2 aún apunta al último fix BUENO (no se actualiza hasta el final).
@@ -318,21 +356,7 @@ Item {
         // ── Gestión de modo DR ────────────────────────────────────────────────
         if (_isBad) {
             _drBadCount++; _drGoodCount = 0; _drRecovFix = null
-            if (!drActive && _drBadCount >= 1 && _lastRealTickPos !== null && _speedMs > 1.0) {
-                if (routeShape && routeShape.length > 1) {
-                    drActive = true; _drSpeedMs = _speedMs
-                } else {
-                    var _nrs = _buildDrNrShape(_lastRealTickPos.lat, _lastRealTickPos.lon)
-                    if (_nrs) {
-                        _drNrShape = _nrs.coords; _drNrIdx = _nrs.idx; _drNrFrac = _nrs.frac
-                        drActive   = true; _drSpeedMs = _speedMs
-                    } else {
-                        drActive = true; _drSpeedMs = _speedMs  // fallback: IMU libre
-                    }
-                }
-                if (drActive && imu)
-                    imu.start(_headRad, _lastRealTickPos.lat, _lastRealTickPos.lon)
-            }
+            if (!drActive && _drBadCount >= 1) _activateDr()
             if (drActive) { _drSimulateTick(ms); return }
         } else if (drActive) {
             // Recuperación: esperar 3 fixes buenos consecutivos sin salto entre ellos
