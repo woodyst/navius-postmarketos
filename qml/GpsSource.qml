@@ -202,6 +202,7 @@ Item {
     property real _drNrFrac:    0.0
     property bool _drLeftRoute: false  // true tras desvío detectado: seguir tile caché, no la ruta
     property real _drDeviateMs: 0      // tiempo sostenido (s) con heading IMU divergente del shape
+    property real _drLastDeviateAnchorMs: 0  // wall-clock del último intento de reanclaje por desvío
 
     // ── IMU (giroscopio + acelerómetro) ────────────────────────────────────────
     // La posición DR SIEMPRE sigue un shape (ruta o tile caché, ver _drSimulateTick).
@@ -335,6 +336,7 @@ Item {
         _drSpeedRunMs = _speedMs
         _drLeftRoute  = false
         _drDeviateMs  = 0
+        _drLastDeviateAnchorMs = 0
         if (routeShape && routeShape.length > 1) {
             drActive = true; _drSpeedMs = _speedMs
         } else {
@@ -384,7 +386,7 @@ Item {
                 // 3 fixes buenos → salir de DR
                 drActive = false; _drBadCount = 0; _drGoodCount = 0; _drRecovFix = null
                 _p0 = null; _p1 = null  // fixes anteriores al DR no son válidos para v/a
-                _drNrShape = null; _drLeftRoute = false; _drDeviateMs = 0; _drSpeedRunMs = 0
+                _drNrShape = null; _drLeftRoute = false; _drDeviateMs = 0; _drSpeedRunMs = 0; _drLastDeviateAnchorMs = 0
                 if (imu) imu.stop()
             } else {
                 _drGoodCount = 0; _drRecovFix = null
@@ -595,7 +597,7 @@ Item {
             _drGoodCount++
             if (_drGoodCount < 3) { _drSimulateTick(now); return }
             drActive = false; _drBadCount = 0; _drGoodCount = 0; _drRecovFix = null
-            _drNrShape = null; _drLeftRoute = false; _drDeviateMs = 0; _drSpeedRunMs = 0
+            _drNrShape = null; _drLeftRoute = false; _drDeviateMs = 0; _drSpeedRunMs = 0; _drLastDeviateAnchorMs = 0
             if (imu) imu.stop()
         } else {
             _drBadCount = 0
@@ -1651,17 +1653,27 @@ Item {
                            shape[Math.min(pos.idx + 1, n - 1)][0])
 
         // ── Detección de desvío sostenido: heading IMU vs heading del shape seguido ─
+        // Cooldown obligatorio entre reanclajes: roads_near() abre la BD SQLite del
+        // caché de tiles y decodifica MVT en el hilo principal — caro si se repite a
+        // menudo. Sin este límite, una deriva de heading IMU sostenida (esperable en
+        // túneles largos sin GPS que la corrija) puede seguir cumpliendo el umbral
+        // cada ~1.5-2s indefinidamente. Confirmado en prueba real (2026-07-24, túnel
+        // cerca de Tiana): re-disparo cada ~2s durante ~50s, la app dejó de responder
+        // y el gestor de sesiones la mató y relanzó.
         if (imu && imu.calibrated) {
             var hdgDiff = Math.abs(_angleDiff(imu.headingRad, hdg))
             _drDeviateMs = (hdgDiff > 0.44) ? (_drDeviateMs + dt) : 0   // > ~25°
             if (_drDeviateMs >= 1.5) {   // sostenido ≥1.5 s: desvío real, no ruido
-                var _nrs = _buildDrNrShape(pos.lat, pos.lon, imu.headingRad)
-                if (_nrs) {
-                    _drNrShape = _nrs.coords; _drNrIdx = _nrs.idx; _drNrFrac = _nrs.frac
-                    _drLeftRoute = true
-                    console.log("[DR] Desvío sostenido detectado, re-anclado a vía de tile caché")
-                }
                 _drDeviateMs = 0
+                if (ms - _drLastDeviateAnchorMs > 15000) {   // máx. 1 reanclaje cada 15s
+                    _drLastDeviateAnchorMs = ms
+                    var _nrs = _buildDrNrShape(pos.lat, pos.lon, imu.headingRad)
+                    if (_nrs) {
+                        _drNrShape = _nrs.coords; _drNrIdx = _nrs.idx; _drNrFrac = _nrs.frac
+                        _drLeftRoute = true
+                        console.log("[DR] Desvío sostenido detectado, re-anclado a vía de tile caché")
+                    }
+                }
             }
         }
 
