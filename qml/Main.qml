@@ -5226,10 +5226,38 @@ ApplicationWindow {
             }
         }
 
-        // ── Posición DR estimada (solo cuando DR activo) ──────────────────
+        // ── Calibración eje acelerómetro (wF1/wF2) ─────────────────────────
+        Rectangle {
+            width: parent.width; height: units.gu(4.5)
+            radius: units.gu(0.5); color: "#CC0D1B2B"
+            border.color: navImu.accelAxisCalibrated ? "#00E676" : "#546E7A"
+            border.width: units.gu(0.15)
+            Column {
+                anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter
+                          leftMargin: units.gu(0.6); rightMargin: units.gu(0.6) }
+                spacing: units.gu(0.1)
+                Label {
+                    text: navImu.accelAxisCalibrated
+                          ? "✓ Accel eje  " + navImu._accelCalibN + "/" + navImu.accelCalibTarget
+                          : "· Accel eje  " + navImu._accelCalibN + "/" + navImu.accelCalibTarget
+                    color: navImu.accelAxisCalibrated ? "#00E676" : "#90A4AE"
+                    font.pixelSize: units.gu(1.1 * appSettings.textScale)
+                    width: parent.width; elide: Text.ElideRight
+                }
+                Label {
+                    text: "a=" + navImu.calibratedAccel().toFixed(2) + " m/s²"
+                          + "  w=(" + navImu.wF1.toFixed(2) + "," + navImu.wF2.toFixed(2) + ")"
+                    color: "#78909C"
+                    font.pixelSize: units.gu(1.0 * appSettings.textScale)
+                    width: parent.width; elide: Text.ElideRight
+                }
+            }
+        }
+
+        // ── DR: shape seguido / desvío / posición libre (solo cuando DR activo) ──
         Rectangle {
             visible: gpsSource.drActive
-            width: parent.width; height: visible ? units.gu(5) : 0
+            width: parent.width; height: visible ? units.gu(6.5) : 0
             radius: units.gu(0.5); color: "#CC1A0D0D"
             border.color: "#FF8A65"; border.width: units.gu(0.15)
             Column {
@@ -5237,32 +5265,42 @@ ApplicationWindow {
                           leftMargin: units.gu(0.6) }
                 spacing: units.gu(0.15)
                 Label {
-                    text: "DR lat  " + navImu.imuLat.toFixed(6)
+                    text: "shape  " + (gpsSource._drLeftRoute ? "tiles (desvío)"
+                          : (gpsSource.routeShape && gpsSource.routeShape.length > 1 ? "ruta" : "tiles"))
                     color: "#FF8A65"; font.pixelSize: units.gu(1.1 * appSettings.textScale)
                     width: parent.width; elide: Text.ElideRight
                 }
                 Label {
-                    text: "DR lon  " + navImu.imuLon.toFixed(6)
+                    text: "v DR   " + (gpsSource._drSpeedRunMs * 3.6).toFixed(1) + " km/h"
                     color: "#FF8A65"; font.pixelSize: units.gu(1.1 * appSettings.textScale)
+                    width: parent.width; elide: Text.ElideRight
+                }
+                Label {
+                    text: "desvío " + gpsSource._drDeviateMs.toFixed(1) + " s"
+                    color: gpsSource._drDeviateMs > 0.5 ? "#FFB300" : "#78909C"
+                    font.pixelSize: units.gu(1.1 * appSettings.textScale)
                     width: parent.width; elide: Text.ElideRight
                 }
             }
         }
 
-        // ── Botón reset calibración GPS ───────────────────────────────────
+        // ── Botón reset calibración sensores (GPS heading + accel) ────────
         Rectangle {
             width: parent.width; height: units.gu(3.5)
             radius: units.gu(0.5); color: "#CC1A1A2A"
             border.color: "#546E7A"; border.width: units.gu(0.15)
             Label {
                 anchors.centerIn: parent
-                text: "↺  Reset calib GPS"
+                text: "↺  Reset calib sensores"
                 color: "#90A4AE"
                 font.pixelSize: units.gu(1.1 * appSettings.textScale)
             }
             MouseArea {
                 anchors.fill: parent
-                onClicked: { navImu.resetGpsCalib(); console.log("[debug] IMU GPS calib reset") }
+                onClicked: {
+                    navImu.resetGpsCalib(); navImu.resetAccelCalib()
+                    console.log("[debug] IMU calib reset (gyro + accel)")
+                }
             }
         }
     }

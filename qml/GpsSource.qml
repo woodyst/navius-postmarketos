@@ -191,19 +191,26 @@ Item {
     property bool drActive:     false  // true = simulando trayecto por ruta
     property int  _drBadCount:  0      // fixes malos consecutivos
     property int  _drGoodCount: 0      // fixes buenos consecutivos (recuperación)
-    property real _drSpeedMs:   0      // velocidad al entrar en DR (m/s)
+    property real _drSpeedMs:   0      // velocidad al entrar en DR (m/s), ancla/objetivo
+    property real _drSpeedRunMs: 0     // velocidad DR evolutiva (modulada por accel calibrado)
     property var  _drRecovFix:  null   // {lat,lon,ms} último candidato de recuperación
 
-    // ── DR sin ruta (tile caché como shape temporal) ──────────────────────────
+    // ── DR sin ruta / desvío (tile caché como shape temporal) ─────────────────
     property var  tileCache:    null   // NavTileCache — conectado desde Main.qml
-    property var  _drNrShape:   null   // [[lon,lat]] shape temporal (DR sin ruta)
+    property var  _drNrShape:   null   // [[lon,lat]] shape temporal (DR sin ruta o tras desvío)
     property int  _drNrIdx:     0
     property real _drNrFrac:    0.0
+    property bool _drLeftRoute: false  // true tras desvío detectado: seguir tile caché, no la ruta
+    property real _drDeviateMs: 0      // tiempo sostenido (s) con heading IMU divergente del shape
 
-    // ── DR por IMU (giroscopio + acelerómetro, estimación libre) ──────────────
-    // Nivel prioritario: cuando imu.calibrated es true, la posición DR se obtiene
-    // integrando imu.headingRad × _drSpeedMs en lugar de seguir un shape.
-    // Funciona tanto si hay routeShape como si no.
+    // ── IMU (giroscopio + acelerómetro) ────────────────────────────────────────
+    // La posición DR SIEMPRE sigue un shape (ruta o tile caché, ver _drSimulateTick).
+    // El IMU aporta dos señales sobre ese shape, no la posición:
+    //   - heading calibrado: si diverge sostenidamente del heading del shape seguido,
+    //     se interpreta como desvío real y se re-ancla sobre el tile caché
+    //   - calibratedAccel(): modula la velocidad DR con magnitud similar a la real
+    // Solo como último recurso, si no hay NI ruta NI tiles cerca, se usa la posición
+    // libre integrada por IMU (imu.advance/imuLat/imuLon) para no congelar el icono.
     property var  imu:          null   // NavImu — conectado desde Main.qml
 
     // ── Dirección inversa (solo simMode+debugMode) ────────────────────────────
@@ -325,6 +332,9 @@ Item {
     // (ni siquiera "sin fix") — ver comentario en gpsStaleWatchdog.
     function _activateDr() {
         if (drActive || _lastRealTickPos === null || _speedMs <= 1.0) return
+        _drSpeedRunMs = _speedMs
+        _drLeftRoute  = false
+        _drDeviateMs  = 0
         if (routeShape && routeShape.length > 1) {
             drActive = true; _drSpeedMs = _speedMs
         } else {
@@ -333,7 +343,7 @@ Item {
                 _drNrShape = _nrs.coords; _drNrIdx = _nrs.idx; _drNrFrac = _nrs.frac
                 drActive   = true; _drSpeedMs = _speedMs
             } else {
-                drActive = true; _drSpeedMs = _speedMs  // fallback: IMU libre
+                drActive = true; _drSpeedMs = _speedMs  // sin ruta ni tiles: último recurso, IMU libre
             }
         }
         if (drActive && imu)
@@ -374,7 +384,7 @@ Item {
                 // 3 fixes buenos → salir de DR
                 drActive = false; _drBadCount = 0; _drGoodCount = 0; _drRecovFix = null
                 _p0 = null; _p1 = null  // fixes anteriores al DR no son válidos para v/a
-                _drNrShape = null
+                _drNrShape = null; _drLeftRoute = false; _drDeviateMs = 0; _drSpeedRunMs = 0
                 if (imu) imu.stop()
             } else {
                 _drGoodCount = 0; _drRecovFix = null
@@ -411,6 +421,9 @@ Item {
                 var v0 = d0 / dt0
                 var dtTotal = (_p2.ms - _p0.ms) / 1000.0
                 _accelMss = Math.max(-5, Math.min(5, (_speedMs - v0) / dtTotal))
+                // Alimentar el IMU con la aceleración GPS recién calculada para
+                // auto-calibrar el eje/escala del acelerómetro (wF1/wF2)
+                if (imu && _speedMs > 2.0) imu.feedGpsAccel(_accelMss)
                 // Tasa de giro: cambio de rumbo entre los dos intervalos
                 var hdg01  = _bearing(_p0.lat, _p0.lon, _p1.lat, _p1.lon)
                 var dHdg   = _headRad - hdg01
@@ -576,27 +589,13 @@ Item {
         }
         if (_isBadSim) {
             _drBadCount++; _drGoodCount = 0
-            if (!drActive && _drBadCount >= 1 && _lastRealTickPos !== null && _speedMs > 1.0) {
-                if (routeShape && routeShape.length > 1) {
-                    drActive = true; _drSpeedMs = _speedMs
-                } else {
-                    var _nrsS = _buildDrNrShape(_lastRealTickPos.lat, _lastRealTickPos.lon)
-                    if (_nrsS) {
-                        _drNrShape = _nrsS.coords; _drNrIdx = _nrsS.idx; _drNrFrac = _nrsS.frac
-                        drActive   = true; _drSpeedMs = _speedMs
-                    } else {
-                        drActive = true; _drSpeedMs = _speedMs
-                    }
-                }
-                if (drActive && imu)
-                    imu.start(_headRad, _lastRealTickPos.lat, _lastRealTickPos.lon)
-            }
+            if (!drActive && _drBadCount >= 1) _activateDr()
             if (drActive) { _drSimulateTick(now); return }
         } else if (drActive) {
             _drGoodCount++
             if (_drGoodCount < 3) { _drSimulateTick(now); return }
             drActive = false; _drBadCount = 0; _drGoodCount = 0; _drRecovFix = null
-            _drNrShape = null
+            _drNrShape = null; _drLeftRoute = false; _drDeviateMs = 0; _drSpeedRunMs = 0
             if (imu) imu.stop()
         } else {
             _drBadCount = 0
@@ -1506,11 +1505,15 @@ Item {
         return d
     }
 
-    // Construye un shape [[lon,lat]] desde el tile caché para DR sin ruta.
-    // Elige la vía más cercana y mejor alineada con el heading actual.
+    // Construye un shape [[lon,lat]] desde el tile caché para DR sin ruta o tras un
+    // desvío detectado. Elige la vía más cercana y mejor alineada con el heading dado.
+    // headingRad: opcional; por defecto _headRad (último heading GPS real). Al
+    // re-anclar tras un desvío en DR se pasa el heading IMU actual, más fiable que
+    // el de la vía abandonada.
     // Devuelve {coords, idx, frac} o null si no hay tiles cargados o vías válidas.
-    function _buildDrNrShape(lat, lon) {
+    function _buildDrNrShape(lat, lon, headingRad) {
         if (!tileCache) return null
+        var hdgRef = (headingRad !== undefined && headingRad !== null) ? headingRad : _headRad
         var raw = tileCache.roads_near(lat, lon)
         var roads = null
         try { roads = JSON.parse(raw) } catch(e) { return null }
@@ -1535,8 +1538,8 @@ Item {
                                    shape[Math.min(si+1, shape.length-1)][1],
                                    shape[Math.min(si+1, shape.length-1)][0])
 
-            var hdgDiff    = Math.abs(_angleDiff(roadHdg,           _headRad))
-            var hdgDiffRev = Math.abs(_angleDiff(roadHdg + Math.PI, _headRad))
+            var hdgDiff    = Math.abs(_angleDiff(roadHdg,           hdgRef))
+            var hdgDiffRev = Math.abs(_angleDiff(roadHdg + Math.PI, hdgRef))
             var minDiff    = Math.min(hdgDiff, hdgDiffRev)
             if (minDiff > 1.309) continue  // > 75°: vía perpendicular, descartar
 
@@ -1573,53 +1576,95 @@ Item {
                           Math.cos(f1)*Math.sin(f2) - Math.sin(f1)*Math.cos(f2)*Math.cos(dl))
     }
 
-    // Emite un tick sintético source="dr". Tres modos en orden de prioridad:
-    //   1. IMU calibrado (imu.calibrated)  → heading del cuaternión, posición integrada
-    //   2. Shape de ruta Valhalla          → walkOn(routeShape)
-    //   3. Shape de tile caché (_drNrShape)→ walkOn(_drNrShape)
+    // Calcula la siguiente velocidad DR (m/s) hacia spdTarget (límite de vía × ratio,
+    // o _drSpeedMs si no hay dato de vía). Con acelerómetro calibrado, la velocidad
+    // evoluciona integrando la aceleración longitudinal real detectada (magnitud
+    // similar a las aceleraciones reales del vehículo, calibradas contra GPS en
+    // marcha normal — ver NavImu.feedGpsAccel), anclada suavemente a spdTarget para
+    // no derivar sin fin si la calibración o la lectura puntual son ruidosas. Sin
+    // acelerómetro calibrado, sigue spdTarget directamente (comportamiento previo).
+    function _drNextSpeed(dt, spdTarget) {
+        var spd = _drSpeedRunMs > 0.01 ? _drSpeedRunMs : spdTarget
+        if (imu && imu.accelAxisCalibrated) {
+            var a = Math.max(-4.0, Math.min(4.0, imu.calibratedAccel()))
+            spd = Math.max(0, spd + a * dt)
+            spd = spd + (spdTarget - spd) * Math.min(1.0, dt / 8.0)
+        } else {
+            spd = spdTarget
+        }
+        _drSpeedRunMs = spd
+        return spd
+    }
+
+    // Emite un tick sintético source="dr". La posición SIEMPRE sigue un shape (ruta
+    // Valhalla, o tile caché si no hay ruta o el conductor se ha desviado de ella);
+    // el IMU nunca decide la posición salvo que no exista shape alguno (último
+    // recurso, ver más abajo). Sobre el shape seguido, el IMU aporta dos señales:
+    //   - calibratedAccel(): modula la velocidad con magnitud realista (_drNextSpeed)
+    //   - headingRad: si diverge sostenidamente del heading del shape seguido,
+    //     se interpreta como desvío real y se re-ancla sobre el tile caché en la
+    //     nueva dirección (_buildDrNrShape con el heading IMU)
     // Actualiza _lastRealTickPos y _realTickMs para que el interpTimer siga a 20 Hz.
     function _drSimulateTick(ms) {
         var dt = (_realTickMs > 0) ? (ms - _realTickMs) / 1000.0 : 1.0
         dt = Math.max(0.1, Math.min(5.0, dt))
 
-        var spd = _drSpeedMs
+        var useNr = _drLeftRoute || (_drNrShape && _drNrShape.length > 1 && (!routeShape || routeShape.length < 2))
+        var shape = useNr ? _drNrShape : routeShape
+        var idx   = useNr ? _drNrIdx   : (_lastRealTickPos ? _lastRealTickPos.idx  : 0)
+        var frac  = useNr ? _drNrFrac  : (_lastRealTickPos ? _lastRealTickPos.frac : 0.0)
 
-        // ── Modo 1: IMU (heading libre por cuaternión + posición integrada) ────
-        if (imu && imu.calibrated) {
-            imu.advance(spd, dt)
-            var hdgI = imu.headingRad
-            _speedMs     = spd
-            realSpeedKmh = spd * 3.6
-            _headRad     = hdgI
-            _realTickMs  = ms
-            _emit(imu.imuLat, imu.imuLon, spd * 3.6, hdgI, _hasFix, true, ms, "dr")
+        // ── Sin shape disponible (ni ruta ni tile caché): último recurso, IMU libre ─
+        if (!shape || shape.length < 2) {
+            if (imu && imu.calibrated) {
+                var spdFree = _drNextSpeed(dt, _drSpeedMs)
+                imu.advance(spdFree, dt)
+                _speedMs     = spdFree
+                realSpeedKmh = spdFree * 3.6
+                _headRad     = imu.headingRad
+                _realTickMs  = ms
+                _emit(imu.imuLat, imu.imuLon, spdFree * 3.6, imu.headingRad, _hasFix, true, ms, "dr")
+                return
+            }
+            drActive = false; _drNrShape = null; _drLeftRoute = false
             return
         }
 
-        // ── Modo 2 y 3: shape de ruta o tile caché ───────────────────────────
-        var useNr  = _drNrShape && _drNrShape.length > 1 && (!routeShape || routeShape.length < 2)
-        var shape  = useNr ? _drNrShape : routeShape
-        var idx    = useNr ? _drNrIdx   : (_lastRealTickPos ? _lastRealTickPos.idx  : 0)
-        var frac   = useNr ? _drNrFrac  : (_lastRealTickPos ? _lastRealTickPos.frac : 0.0)
-
-        if (!shape || shape.length < 2) { drActive = false; _drNrShape = null; return }
-
+        // ── Velocidad objetivo: límite de vía × ratio observado al entrar en DR ────
+        var spdTarget = _drSpeedMs
         if (!useNr && interpUseVhRatio && routeShapeSpeedKmh
                 && _lastRealTickPos && _lastRealTickPos.idx < routeShapeSpeedKmh.length) {
             var vVh = routeShapeSpeedKmh[_lastRealTickPos.idx] / 3.6
             if (vVh > 0.1 && _drSpeedMs > 0.1) {
                 var ratio = Math.max(0.1, Math.min(3.0, _drSpeedMs / vVh))
-                spd = vVh * ratio
+                spdTarget = vVh * ratio
             }
         }
+        var spd = _drNextSpeed(dt, spdTarget)
 
         var pos = _walkOn(shape, idx, frac, spd * dt)
-        if (!pos) { drActive = false; _drNrShape = null; return }
+        if (!pos) { drActive = false; _drNrShape = null; _drLeftRoute = false; return }
 
         var n   = shape.length
         var hdg = _bearing(shape[pos.idx][1], shape[pos.idx][0],
                            shape[Math.min(pos.idx + 1, n - 1)][1],
                            shape[Math.min(pos.idx + 1, n - 1)][0])
+
+        // ── Detección de desvío sostenido: heading IMU vs heading del shape seguido ─
+        if (imu && imu.calibrated) {
+            var hdgDiff = Math.abs(_angleDiff(imu.headingRad, hdg))
+            _drDeviateMs = (hdgDiff > 0.44) ? (_drDeviateMs + dt) : 0   // > ~25°
+            if (_drDeviateMs >= 1.5) {   // sostenido ≥1.5 s: desvío real, no ruido
+                var _nrs = _buildDrNrShape(pos.lat, pos.lon, imu.headingRad)
+                if (_nrs) {
+                    _drNrShape = _nrs.coords; _drNrIdx = _nrs.idx; _drNrFrac = _nrs.frac
+                    _drLeftRoute = true
+                    console.log("[DR] Desvío sostenido detectado, re-anclado a vía de tile caché")
+                }
+                _drDeviateMs = 0
+            }
+        }
+
         _speedMs     = spd
         realSpeedKmh = spd * 3.6
         _headRad     = hdg

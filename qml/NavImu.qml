@@ -1,20 +1,28 @@
-// NavImu.qml — Estimador de actitud y posición por IMU (giroscopio + acelerómetro)
+// NavImu.qml — Estimador de actitud, heading y aceleración por IMU (giroscopio + acelerómetro)
 //
 // Implementa el filtro complementario de Mahony sobre el grupo SO(3):
 //   - Cuaternión de actitud integrado con lecturas del giroscopio
-//   - Corrección de inclinación (roll/pitch) vía acelerómetro (gravedad)
+//   - Corrección de inclinación (roll/pitch) vía acelerómetro (gravedad), con
+//     ganancia adaptativa: se reduce la confianza en el acelerómetro cuando el
+//     vehículo acelera/frena fuerte (deja de parecerse a 1g), para no inyectar
+//     error de yaw durante esos eventos
 //   - Extracción de yaw como cambio de heading en el frame mundo
-//   - Integración de posición: heading_IMU × velocidad_GPS → lat/lon
 //
-// Uso:
-//   imu.start(headingRad, lat, lon)   // al activar DR (heading GPS inicial)
-//   imu.stop()                         // al salir de DR
-//   imu.advance(speedMs, dt)           // en cada tick DR para avanzar posición
-//   imu.headingRad / imuLat / imuLon  // resultados
+// Uso principal (GpsSource sigue el shape de ruta/tile caché; el IMU aporta señales,
+// no la posición):
+//   imu.start(headingRad, lat, lon)     // al activar DR (heading GPS inicial)
+//   imu.stop()                          // al salir de DR
+//   imu.headingRad                      // heading real detectado, para comparar con
+//                                        // el heading del shape seguido y detectar desvíos
+//   imu.calibratedAccel()               // aceleración longitudinal calibrada (m/s²),
+//                                        // para modular la velocidad DR con magnitud real
+//   imu.advance(speedMs, dt) / imuLat / imuLon  // posición libre — solo como último
+//                                        // recurso cuando no hay ruta NI tile caché
 //
 // El heading estimado es relativo al frame del dispositivo al inicio de la calibración.
-// La escala y signo del giroscopio (GYRO_SCALE, YAW_SIGN) pueden necesitar ajuste
-// según la plataforma y orientación física del dispositivo en el vehículo.
+// La escala y signo del giroscopio (gyroScale, yawSign) y la proyección del acelerómetro
+// sobre el eje longitudinal del vehículo (wF1, wF2) se auto-calibran contra GPS durante
+// la marcha normal y se persisten entre reinicios — no dependen de cuándo se activa DR.
 
 import QtQuick 2.7
 import QtSensors 5.9
@@ -40,6 +48,13 @@ Item {
 
     // start(): inicializa el estado y activa los sensores.
     // initHeadRad: heading GPS en el momento de activar DR (rad).
+    //
+    // NO reinicia la calibración de gravedad (calibrated/_calibN/_calibAx..Az) ni la
+    // base horizontal (_u1/_u2): activar DR suele coincidir con el vehículo EN
+    // MOVIMIENTO (p.ej. al entrar en un túnel), así que recalibrar "en reposo" en ese
+    // momento produciría una referencia de gravedad contaminada por la dinámica del
+    // coche. La calibración de gravedad se hace una sola vez, con gpsActive=true
+    // desde el arranque (vehículo normalmente parado), y se reutiliza en cada DR.
     function start(initHeadRad, lat, lon) {
         _yaw0      = initHeadRad
         headingRad = initHeadRad
@@ -48,11 +63,7 @@ Item {
         _q         = [1.0, 0.0, 0.0, 0.0]
         _eInt      = [0.0, 0.0, 0.0]
         _lastTs    = -1.0
-        _lastAx = 0.0; _lastAy = 0.0; _lastAz = 9.8
-        calibrated    = false
-        calibProgress = 0.0
-        _calibN   = 0
-        _calibAx  = 0.0; _calibAy  = 0.0; _calibAz  = 0.0
+        if (!calibrated) { _lastAx = 0.0; _lastAy = 0.0; _lastAz = 9.8 }
         active    = true
     }
 
@@ -83,14 +94,101 @@ Item {
     property real gyroScale:  1.0
     property real yawSign:    1.0
 
-    // Persiste la calibración GPS (gyroScale/yawSign) entre reinicios: sin esto,
-    // cada arranque parte de valores por defecto y hay que recalibrar girando con
-    // GPS bueno antes de que el DR por IMU sea fiable en el próximo túnel.
+    // Persiste la calibración GPS (gyroScale/yawSign/wF1/wF2) entre reinicios: sin
+    // esto, cada arranque parte de valores por defecto y hay que recalibrar
+    // conduciendo con GPS bueno antes de que el DR por IMU sea fiable en el próximo
+    // túnel.
     Settings {
         category: "imu"
-        property alias gyroScale:          root.gyroScale
-        property alias yawSign:             root.yawSign
-        property alias gpsScaleCalibrated: root.gpsScaleCalibrated
+        property alias gyroScale:           root.gyroScale
+        property alias yawSign:              root.yawSign
+        property alias gpsScaleCalibrated:  root.gpsScaleCalibrated
+        property alias wF1:                  root.wF1
+        property alias wF2:                  root.wF2
+        property alias accelAxisCalibrated: root.accelAxisCalibrated
+    }
+
+    // ── Auto-calibración del eje longitudinal del acelerómetro ───────────────
+    // El montaje del teléfono en el vehículo es arbitrario: no sabemos a priori qué
+    // combinación de ejes del acelerómetro corresponde al eje de marcha del coche.
+    // Se calibra por regresión lineal 2D: se proyecta la lectura del acelerómetro
+    // sobre el plano horizontal (ortogonal a la gravedad, calculado una vez en
+    // _computeHorizontalBasis) dando (hx, hy); durante marcha normal con GPS bueno
+    // se ajustan los coeficientes (wF1, wF2) tales que wF1·hx + wF2·hy ≈ aceleración
+    // real (_accelMss, de GpsSource). Una vez calibrado, calibratedAccel() da la
+    // aceleración longitudinal real estimada a partir de una sola lectura de
+    // acelerómetro — válido también sin GPS (en el túnel).
+    readonly property int  accelCalibTarget: 40     // muestras con dinámica perceptible
+    readonly property real accelCalibMinA:   0.4    // m/s² mínimo para contar la muestra
+    property bool  accelAxisCalibrated: false
+    property real  wF1: 0.0
+    property real  wF2: 0.0
+    property real  _sHxHx: 0.0
+    property real  _sHyHy: 0.0
+    property real  _sHxHy: 0.0
+    property real  _sHxA:  0.0
+    property real  _sHyA:  0.0
+    property int   _accelCalibN: 0
+    property real  _lastHx: 0.0   // última proyección horizontal del accel (eje 1)
+    property real  _lastHy: 0.0   // última proyección horizontal del accel (eje 2)
+    property var   _u1: [1, 0, 0] // base del plano horizontal (frame dispositivo)
+    property var   _u2: [0, 1, 0]
+
+    // Llamar desde GpsSource en cada tick GPS real bueno (fuera de DR), igual que
+    // feedGpsHeading. aReal: _accelMss del tick actual (m/s², signo real de GPS).
+    function feedGpsAccel(aReal) {
+        if (accelAxisCalibrated || !calibrated) return
+        if (Math.abs(aReal) < accelCalibMinA) return   // ignorar ruido en llano/parado
+
+        _sHxHx += _lastHx*_lastHx; _sHyHy += _lastHy*_lastHy; _sHxHy += _lastHx*_lastHy
+        _sHxA  += _lastHx*aReal;   _sHyA  += _lastHy*aReal
+        _accelCalibN++
+        if (_accelCalibN < accelCalibTarget) return
+
+        // Resolver el sistema 2×2 de mínimos cuadrados [ΣhxΣhx ΣhxΣhy; ΣhxΣhy ΣhyΣhy]·w = [ΣhxA; ΣhyA]
+        var det = _sHxHx*_sHyHy - _sHxHy*_sHxHy
+        if (Math.abs(det) < 1e-6) {
+            // Muestras degeneradas (p.ej. solo línea recta, sin variación entre ejes): reintentar más tarde
+            _sHxHx = 0; _sHyHy = 0; _sHxHy = 0; _sHxA = 0; _sHyA = 0; _accelCalibN = 0
+            return
+        }
+        wF1 = (_sHxA*_sHyHy - _sHyA*_sHxHy) / det
+        wF2 = (_sHxHx*_sHyA - _sHxHy*_sHxA) / det
+        accelAxisCalibrated = true
+        console.log("[NavImu] Accel calib: wF1=", wF1.toFixed(3), " wF2=", wF2.toFixed(3),
+                    " tras", _accelCalibN, "muestras")
+    }
+
+    // Aceleración longitudinal real estimada a partir de la última lectura del
+    // acelerómetro, usando la calibración wF1/wF2. Sin calibrar devuelve 0.
+    function calibratedAccel() {
+        return accelAxisCalibrated ? (wF1 * _lastHx + wF2 * _lastHy) : 0.0
+    }
+
+    // Resetea la calibración del eje de acelerómetro (útil al cambiar de vehículo/montaje)
+    function resetAccelCalib() {
+        accelAxisCalibrated = false
+        wF1 = 0.0; wF2 = 0.0
+        _sHxHx = 0; _sHyHy = 0; _sHxHy = 0; _sHxA = 0; _sHyA = 0; _accelCalibN = 0
+    }
+
+    // Calcula una base ortonormal (_u1, _u2) del plano horizontal (ortogonal a la
+    // gravedad) en el frame del dispositivo, a partir del vector de gravedad
+    // calibrado en reposo (_calibAx/_calibAy/_calibAz). Fija mientras no se
+    // recalibre la gravedad — ver comentario en start().
+    function _computeHorizontalBasis() {
+        var gx = _calibAx, gy = _calibAy, gz = _calibAz
+        var gl = Math.sqrt(gx*gx + gy*gy + gz*gz)
+        if (gl < 0.1) { gx = 0; gy = 0; gz = 9.8; gl = 9.8 }
+        gx /= gl; gy /= gl; gz /= gl
+        var rx = 1, ry = 0, rz = 0
+        if (Math.abs(gx) > 0.9) { rx = 0; ry = 1; rz = 0 }   // evitar vector casi paralelo a g
+        var u1x = gy*rz - gz*ry, u1y = gz*rx - gx*rz, u1z = gx*ry - gy*rx
+        var u1l = Math.sqrt(u1x*u1x + u1y*u1y + u1z*u1z)
+        u1x /= u1l; u1y /= u1l; u1z /= u1l
+        var u2x = gy*u1z - gz*u1y, u2y = gz*u1x - gx*u1z, u2z = gx*u1y - gy*u1x
+        _u1 = [u1x, u1y, u1z]
+        _u2 = [u2x, u2y, u2z]
     }
 
     // ── Debug / diagnóstico ───────────────────────────────────────────────────
@@ -198,7 +296,13 @@ Item {
     function _onAccelReading(ax, ay, az, ts) {
         _lastAx = ax; _lastAy = ay; _lastAz = az
         accelMag = Math.sqrt(ax*ax + ay*ay + az*az)
-        if (calibrated) return
+        if (calibrated) {
+            // Proyección sobre el plano horizontal (ortogonal a la gravedad calibrada),
+            // usada por feedGpsAccel()/calibratedAccel() para estimar aceleración real.
+            _lastHx = ax*_u1[0] + ay*_u1[1] + az*_u1[2]
+            _lastHy = ax*_u2[0] + ay*_u2[1] + az*_u2[2]
+            return
+        }
 
         // Fase de calibración: promediar lecturas en reposo para fijar vector gravedad inicial.
         // El filtro Mahony usará el acelerómetro dinámicamente para corregir la inclinación,
@@ -206,7 +310,7 @@ Item {
         _calibAx += ax; _calibAy += ay; _calibAz += az
         _calibN++
         calibProgress = Math.min(1.0, _calibN / calibN)
-        if (_calibN >= calibN) calibrated = true
+        if (_calibN >= calibN) { calibrated = true; _computeHorizontalBasis() }
     }
 
     function _onGyroReading(gxRaw, gyRaw, gzRaw, ts) {
@@ -227,6 +331,14 @@ Item {
         var ax = _lastAx, ay = _lastAy, az = _lastAz
         var alen = Math.sqrt(ax*ax + ay*ay + az*az)
         if (alen > 0.1) {
+            // Confianza en el acelerómetro como referencia de gravedad: cae a 0 cuando
+            // el vehículo acelera/frena fuerte (|accel| se aleja de 1g≈9.8) — en esos
+            // momentos el acelerómetro mide gravedad + aceleración del coche, no solo
+            // gravedad, y aplicar la corrección igualmente inyecta error de yaw falso
+            // (la causa más probable de la "reacción exagerada" observada en túnel).
+            var gDev  = Math.abs(alen - 9.8) / 9.8
+            var trust = Math.max(0.0, 1.0 - gDev * 3.0)
+
             ax /= alen; ay /= alen; az /= alen
 
             // Gravedad estimada en frame dispositivo a partir del cuaternión actual.
@@ -243,13 +355,14 @@ Item {
             var ey = az*vx - ax*vz
             var ez = ax*vy - ay*vx
 
-            // Acumular integral del error (reduce deriva lenta del giroscopio)
-            _eInt = [_eInt[0] + ex*dt, _eInt[1] + ey*dt, _eInt[2] + ez*dt]
+            // Acumular integral del error (reduce deriva lenta del giroscopio), también
+            // ponderada por trust para no envenenar la memoria integral durante frenadas/aceleraciones
+            _eInt = [_eInt[0] + ex*dt*trust, _eInt[1] + ey*dt*trust, _eInt[2] + ez*dt*trust]
 
             // Aplicar feedback proporcional + integral al giroscopio corregido
-            gx += mahonyKp*ex + mahonyKi*_eInt[0]
-            gy += mahonyKp*ey + mahonyKi*_eInt[1]
-            gz += mahonyKp*ez + mahonyKi*_eInt[2]
+            gx += mahonyKp*ex*trust + mahonyKi*_eInt[0]
+            gy += mahonyKp*ey*trust + mahonyKi*_eInt[1]
+            gz += mahonyKp*ez*trust + mahonyKi*_eInt[2]
         }
 
         // ── Integración del cuaternión ────────────────────────────────────────
