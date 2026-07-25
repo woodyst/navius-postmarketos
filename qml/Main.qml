@@ -716,7 +716,7 @@ ApplicationWindow {
     readonly property bool _searchingGps: !appSettings.simMode && !appSettings.manualPosActive && !satModel.pos_has_fix
     // Altura que NavBar ocupa en la parte superior del MAPA (0 en landscape)
     readonly property real _navBarScreenHeight: _isLandscape ? 0 : (navBar.height + adPanel.height)
-    // Altura adicional de banners de alerta (radar/tramo/comunitario) — solo para menuBtn/soundBtn
+    // Altura adicional de banners de alerta (radar/tramo/comunitario) — solo para menuBtn/mapLockBtn
     readonly property real _alertBannerHeight: _isLandscape ? 0
         : (radarAlertBanner.height + fijoAlertBanner.height
            + tramoBar.height + commAlertBanner.height)
@@ -5892,7 +5892,7 @@ ApplicationWindow {
         readonly property real minZoom: 1
         readonly property real maxZoom: 20
         anchors { horizontalCenter: autoZoomBtn.horizontalCenter
-                  top: soundBtn.bottom; topMargin: units.gu(1)
+                  top: mapLockBtn.bottom; topMargin: units.gu(1)
                   bottom: alertasBtnPortrait.top; bottomMargin: units.gu(1) }
         width: units.gu(3)
 
@@ -6590,7 +6590,31 @@ ApplicationWindow {
         }
     }
 
-    // ── Velocidad overlay en mapa (landscape, ocupa sitio del soundBtn) ──────
+    // ── Botón bloqueo de mapa (derecha, debajo del botón menú) ────────────
+    Rectangle {
+        id: mapLockBtn
+        visible: !root._menuOpen && !prefsPanel.visible && !searchPanel.visible && !satPanel.visible && !routeSelectPanel.visible
+        anchors { right: parent.right; rightMargin: units.gu(2.5) + root._scrubOff
+                  top: menuBtn.bottom; topMargin: units.gu(0.5) }
+        width: units.gu(9); height: units.gu(9); radius: width / 2
+        color: "transparent"
+        border.color: root._mapLocked ? "#FF9800" : root._uiBorder
+        border.width: units.gu(0.15)
+        z: 20
+
+        BtnLabel {
+            anchors.centerIn: parent
+            text: root._mapLocked ? "🔒" : "🔓"
+            fontSize: units.gu(3.2)
+            mainColor: root._mapLocked ? "#FF9800" : root._uiFg
+        }
+        MouseArea {
+            anchors.fill: parent
+            onClicked: root._mapLocked = !root._mapLocked
+        }
+    }
+
+    // ── Velocidad overlay en mapa (landscape, ocupa sitio del mapLockBtn) ────
     Rectangle {
         id: mapSpeedOverlay
         visible: root._isLandscape && !root._menuOpen && !prefsPanel.visible
@@ -6652,56 +6676,6 @@ ApplicationWindow {
                 font.pixelSize: units.gu(1.6 * appSettings.textScale); font.bold: true
             }
         }
-    }
-
-    // ── Botón sonido (solo portrait, debajo del menú) ────────────────────
-    // ── Tooltip modo sonido (aparece 2s junto al botón al cambiar modo) ───────
-    Rectangle {
-        id: soundModeTooltip
-        z: 16
-        visible: opacity > 0
-        opacity: 0.0
-        anchors {
-            left:           root._isLandscape ? soundBtnInGroup.right : undefined
-            leftMargin:     root._isLandscape ? units.gu(1)           : 0
-            right:          root._isLandscape ? undefined             : soundBtn.left
-            rightMargin:    root._isLandscape ? 0                     : units.gu(1)
-            verticalCenter: root._isLandscape ? soundBtnInGroup.verticalCenter : soundBtn.verticalCenter
-        }
-        height: units.gu(4.5)
-        width: _sttLabel.implicitWidth + units.gu(3)
-        radius: units.gu(0.6)
-        color: "#E5071118"
-        border.color: "#29B6F6"; border.width: units.gu(0.1)
-
-        Label {
-            id: _sttLabel
-            anchors.centerIn: parent
-            text: {
-                var i = root._effInstrSound; var a = root._effAlertSound
-                if (i === "off" && a === "off")   return "🔇  " + i18n.tr("Silenciado")
-                if (i === "tts" && a === "tts")   return "🔊  " + i18n.tr("Indicaciones y alertas por voz")
-                if (i === "tts" && a === "beep")  return "🔊  " + i18n.tr("Indicaciones voz, alertas pitido")
-                if (i === "tts" && a === "off")   return "🔊  " + i18n.tr("Solo indicaciones por voz")
-                if (i === "beep" && a === "tts")  return "🔔  " + i18n.tr("Indicaciones pitido, alertas voz")
-                if (i === "beep" && a === "beep") return "🔈  " + i18n.tr("Solo pitidos")
-                if (i === "beep" && a === "off")  return "🔈  " + i18n.tr("Solo indicaciones (pitido)")
-                if (i === "off" && a === "tts")   return "🔔  " + i18n.tr("Solo alertas por voz")
-                return "🔔  " + i18n.tr("Solo alertas (pitido)")
-            }
-            color: "white"
-            font.pixelSize: units.gu(1.8 * appSettings.textScale)
-        }
-
-        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
-
-        Timer {
-            id: _soundTtTimer
-            interval: 2000; repeat: false
-            onTriggered: soundModeTooltip.opacity = 0.0
-        }
-
-        function show() { opacity = 1.0; _soundTtTimer.restart() }
     }
 
     // Overlay transparente para cerrar el menú al tocar fuera
