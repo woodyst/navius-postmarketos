@@ -626,9 +626,9 @@ Rectangle {
             }
         }
 
-        // ── ya: a 15 s de maniobra, mínimo 15 m, siempre ──────────────────
+        // ── ya: a 5 s de maniobra, mínimo 15 m, siempre ───────────────────
         // text2 se reproduce justo tras la maniobra (paso de la indicación)
-        if (!_yaDone && timeToMnv <= 15 && distM >= 15) {
+        if (!_yaDone && timeToMnv <= 5 && distM >= 15) {
             bar.announce(0, _fuseText(_annText1, false), _annText2, dispIdx, "ya")
             _yaDone   = true
             _lastYaMs = now
