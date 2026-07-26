@@ -92,7 +92,30 @@ Item {
         onTriggered: _enviarCola()
     }
 
+    // Solo para extracción con xgettext (ver comentario de `categorias`).
+    readonly property var _i18nNoop: [
+        i18n.tr("Accidente"), i18n.tr("Asistencia"), i18n.tr("Bache"),
+        i18n.tr("Carril"), i18n.tr("Carril bloq."), i18n.tr("Central"),
+        i18n.tr("Coche en arcén"), i18n.tr("Col. múltiple"), i18n.tr("Compañeros"),
+        i18n.tr("Cortada"), i18n.tr("Cámara móvil"), i18n.tr("Denso"),
+        i18n.tr("Derecho"), i18n.tr("Detenido"), i18n.tr("Emergencia"),
+        i18n.tr("Error mapa"), i18n.tr("Hielo"), i18n.tr("Inundación"),
+        i18n.tr("Izquierdo"), i18n.tr("Lugar"), i18n.tr("Mal tiempo"),
+        i18n.tr("Niebla"), i18n.tr("Nieve"), i18n.tr("Obras"),
+        i18n.tr("Oculto"), i18n.tr("Peligro"), i18n.tr("Policía"),
+        i18n.tr("Resbaladiza"), i18n.tr("Semáforo roto"), i18n.tr("Tráfico")
+    ]
+
     // ── DATOS ────────────────────────────────────────────────────────
+    // Las etiquetas se guardan en español y se traducen AL PINTARLAS, con
+    // i18n.tr(modelData.label) más abajo. No se envuelven aquí a propósito:
+    // este overlay se instancia al arrancar (Main.qml, sin Loader), y un
+    // `readonly property var` se evalúa en ese momento — posiblemente antes
+    // de que i18n tenga el locale cargado. Es el mismo fallo que tuvo
+    // TourOverlay (sesión 98) y que se arregló difiriendo la evaluación.
+    //
+    // Como xgettext no puede extraer cadenas de un array, la lista _i18nNoop
+    // de abajo existe solo para que entren en el .pot. No se usa en runtime.
     readonly property var categorias: [
         { id: "trafico",           icon: "🚗", label: "Tráfico",     otroLado: false,
           subs: [
@@ -247,7 +270,7 @@ Item {
                     id: titleLbl
                     anchors.centerIn: parent
                     text: fase === 0 ? i18n.tr("Añadir alerta")
-                                     : (catIdx >= 0 ? categorias[catIdx].label : "")
+                                     : (catIdx >= 0 ? i18n.tr(categorias[catIdx].label) : "")
                     color: "white"
                     font.pixelSize: ts(3.3)
                     font.bold: true
@@ -282,7 +305,7 @@ Item {
                             Label {
                                 width: parent.parent.width - units.gu(0.6)
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: modelData.label
+                                text: i18n.tr(modelData.label)
                                 color: "#CFD8DC"
                                 font.pixelSize: ts(2.1)
                                 wrapMode: Text.WordWrap
@@ -329,7 +352,7 @@ Item {
                             Label {
                                 width: parent.parent.width - units.gu(0.6)
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: modelData.label
+                                text: i18n.tr(modelData.label)
                                 color: "#CFD8DC"
                                 font.pixelSize: ts(2.1)
                                 wrapMode: Text.WordWrap

@@ -7,3 +7,6 @@
 /vendor/piper_aarch64/
 *.po~
 /src/moc_location_props.cpp
+
+# venv de la herramienta i18n (po/i18n_tool.py)
+po/.venv-translate/
