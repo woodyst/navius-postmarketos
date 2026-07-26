@@ -659,6 +659,10 @@ ApplicationWindow {
     property var  _voteAlerta:    null   // alerta seleccionada para votar
     property var  _autostartPos:  null   // {lat, lon} posición inicial del autostart, aplicada en initLayers
     property var  _gpsTickDots:   []      // [{lat,lon}] ticks isReal=true (debug)
+    // Separación longitudinal (m) entre el último fix real y la posición mostrada
+    // en el instante en que llegó. >0 = el icono va por delante del fix.
+    property real _fixVsDispM:    0
+    property real _fixVsDispMs:   0
     property var  _pendingSimAction: null // contexto de carga async de track sim
     property bool _simTrackReplay:   false // cuando true, _startNavigation no sobreescribe simRoute
     property bool _trackReplayActive: false // true mientras se reproduce un track grabado
@@ -2831,7 +2835,21 @@ ApplicationWindow {
                 dots.push({lat: lat, lon: lon})
                 if (dots.length > 500) dots.splice(0, dots.length - 500)
                 root._gpsTickDots = dots
-                alertCanvas.requestPaint()
+                // Medida: separación entre el fix que acaba de llegar y la
+                // posición que se está mostrando en ese mismo instante.
+                // Positiva = el icono va POR DELANTE del fix; negativa = detrás.
+                // Es lo que decide si el retardo percibido es de pintado o de
+                // posición, sin tener que deducirlo mirando el mapa.
+                if (mapView._dispLat !== undefined && root._dispHeadRad !== undefined) {
+                    var _cosL = Math.cos(lat * Math.PI / 180)
+                    var _dN = (mapView._dispLat - lat) * 111319.49
+                    var _dE = (mapView._dispLon - lon) * 111319.49 * _cosL
+                    var _h  = root._dispHeadRad
+                    // Proyección sobre el rumbo: componente longitudinal con signo
+                    root._fixVsDispM = _dN * Math.cos(_h) + _dE * Math.sin(_h)
+                    root._fixVsDispMs = ms
+                }
+                gpsTickCanvas.requestPaint()
             }
 
             // Heading blend
@@ -3124,7 +3142,7 @@ ApplicationWindow {
         target: appSettings
         function onShowRadarTramoChanged()    { root._updateRadarLayers() }
         function onShowRadarFijosChanged()    { alertCanvas.requestPaint() }
-        function onShowGpsTicksChanged()      { if (!appSettings.showGpsTicks) root._gpsTickDots = []; alertCanvas.requestPaint() }
+        function onShowGpsTicksChanged()      { if (!appSettings.showGpsTicks) root._gpsTickDots = []; gpsTickCanvas.requestPaint() }
         function onNavMapModeChanged()        { mapView.apply3dBuildings() }
         function onMapModeChanged()           { mapView.apply3dBuildings() }
         function onValhallaUrlChanged()       { if (!root._osmScoutActive) _setEffectiveUrl(appSettings.valhallaUrl) }
@@ -3941,7 +3959,6 @@ ApplicationWindow {
                      (root._navActive && root._navDests.length > 0) ||
                      (appSettings.showRadarFijos && root._radarFijos.length > 0) ||
                      (appSettings.showRadarTramo && root._radarTramos.length > 0) ||
-                     (appSettings.showGpsTicks && root._gpsTickDots.length > 0) ||
                      root._commAlertas.length > 0 ||
                      root._commLimites.length > 0 ||
                      appSettings.showBisectorDebug)
@@ -4075,17 +4092,8 @@ ApplicationWindow {
 
 
             // Ticks GPS reales (debug)
-            if (appSettings.showGpsTicks && root._gpsTickDots.length > 0) {
-                var dotR = units.gu(0.5)
-                for (var di = 0; di < root._gpsTickDots.length; di++) {
-                    var td = root._gpsTickDots[di]
-                    var tp2 = root._geoToScreen(td.lat, td.lon)
-                    if (tp2.x < -dotR || tp2.x > iW + dotR || tp2.y < -dotR || tp2.y > iH + dotR) continue
-                    ctx.beginPath()
-                    ctx.arc(tp2.x, tp2.y, dotR, 0, Math.PI * 2)
-                    ctx.fillStyle = "#CC00E5FF"; ctx.fill()
-                }
-            }
+            // Los ticks GPS se dibujan en gpsTickCanvas (z:2), no aquí: este
+            // canvas es z:0 y quedaban tapados por la flecha del vehículo (z:1).
 
             // Debug bisector: extremos angulares de la ruta (relativo al bearing del mapa)
             if (appSettings.showBisectorDebug) {
@@ -4429,6 +4437,55 @@ ApplicationWindow {
                 NumberAnimation { to: 0.2; duration: 420 }
                 NumberAnimation { to: 1.0; duration: 420 }
                 onStopped: posDot.opacity = 1.0
+            }
+        }
+    }
+
+    // ── Ticks GPS reales (debug) — z:2, SOBRE la flecha del vehículo ─────────
+    // Estaban en alertCanvas (z:0), debajo de la flecha (z:1, gu(5.4) ≈ 43 px):
+    // el punto se pinta en el fix crudo, que en ese instante coincide con la
+    // posición mostrada, así que quedaba tapado y solo asomaba cuando el mapa
+    // había desplazado lo suficiente — un segundo largo a velocidad de carretera.
+    // Aquí se ve en cuanto llega. El último tick va resaltado para poder
+    // compararlo de un vistazo con la flecha al calibrar gpsLeadS.
+    Canvas {
+        id: gpsTickCanvas
+        anchors.fill: mapView
+        z: 2
+        // Sin `_gpsTickDots.length` en la condición: el array se muta en sitio y
+        // se reasigna la MISMA referencia, así que QML no emite el cambio y el
+        // binding no se reevaluaría nunca. Un canvas sin puntos no pinta nada.
+        visible: appSettings.showGpsTicks && !prefsPanel.visible && !satPanel.visible
+
+        Connections {
+            target: mapView
+            function onBearingChanged()        { gpsTickCanvas.requestPaint() }
+            function onPitchChanged()          { gpsTickCanvas.requestPaint() }
+            function onCenterChanged()         { gpsTickCanvas.requestPaint() }
+            function onZoomLevelChanged()      { gpsTickCanvas.requestPaint() }
+            function onMetersPerPixelChanged() { gpsTickCanvas.requestPaint() }
+        }
+
+        onPaint: {
+            var ctx = getContext("2d")
+            ctx.clearRect(0, 0, width, height)
+            if (!appSettings.showGpsTicks) return
+            var dots = root._gpsTickDots
+            var r    = units.gu(0.5)
+            for (var i = 0; i < dots.length; i++) {
+                var p = root._geoToScreen(dots[i].lat, dots[i].lon)
+                var ultimo = (i === dots.length - 1)
+                var rr = ultimo ? r * 1.8 : r
+                if (p.x < -rr || p.x > width + rr || p.y < -rr || p.y > height + rr) continue
+                ctx.beginPath()
+                ctx.arc(p.x, p.y, rr, 0, Math.PI * 2)
+                ctx.fillStyle = ultimo ? "#FF00E5FF" : "#8800E5FF"
+                ctx.fill()
+                if (ultimo) {                       // borde blanco: legible sobre la flecha
+                    ctx.lineWidth = units.gu(0.18)
+                    ctx.strokeStyle = "white"
+                    ctx.stroke()
+                }
             }
         }
     }
@@ -5024,6 +5081,25 @@ ApplicationWindow {
 
         property bool _hasRoute: gpsSource.routeShape !== null
                                   && gpsSource.routeShape.length > 1
+
+        // ── Medida: fix recibido vs posición mostrada ───────────────────
+        // Se refresca en cada tick real. Dice de un vistazo si el icono va por
+        // delante o por detrás del fix que acaba de llegar, y cuántos metros.
+        Rectangle {
+            width: gpsSmoothPanel.width; height: units.gu(3.5); radius: units.gu(0.5)
+            color: "#CC12122A"
+            border.color: Math.abs(root._fixVsDispM) < 3 ? "#546E7A"
+                        : (root._fixVsDispM > 0 ? "#FFB300" : "#FF7043")
+            border.width: units.gu(0.15)
+            Label {
+                anchors.centerIn: parent
+                // signo explícito: +N delante del fix, −N detrás
+                text: (root._fixVsDispM >= 0 ? "+" : "") + root._fixVsDispM.toFixed(1) + " m"
+                color: Math.abs(root._fixVsDispM) < 3 ? "#78909C"
+                     : (root._fixVsDispM > 0 ? "#FFB300" : "#FF7043")
+                font.pixelSize: units.gu(1.2 * appSettings.textScale)
+            }
+        }
 
         // ── Adelanto por latencia del fix (aplica con y sin ruta) ───────
         // El valor correcto depende del dispositivo: subir hasta que el icono
