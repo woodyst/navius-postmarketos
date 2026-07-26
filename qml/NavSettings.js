@@ -19,7 +19,7 @@ var SYNC_KEYS = [
     "valhallaUrl", "valhallaCustomServers", "preferOsmScout",
     "overpassServer", "routeAdjustZoom", "routeAheadSecs",
     // GPS
-    "drHz", "drEnabled", "useHardwareSpeed", "showGpsSmoothDebug",
+    "drHz", "drEnabled", "useHardwareSpeed", "showGpsSmoothDebug", "gpsLeadS",
     // Velocidad / radar
     "speedAlertPct", "speedAlertEnabled",
     "showRadarFijos", "showRadarTramo", "radarAlertDist",

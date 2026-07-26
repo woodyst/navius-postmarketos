@@ -163,6 +163,17 @@ Item {
     property bool interpUseHeadingBlend: true  // _vehicleHeadingRad en tick interp con ruta
     property bool interpUseAccelHeading: true  // _accelInterpHeading en tick interp sin ruta
 
+    // ── Compensación de latencia del fix (adelanto de predicción) ────────────
+    // Un fix describe DÓNDE ESTABA el coche cuando el GPS lo midió, no dónde está
+    // al llegar a la app: entre la medida y el tick QML hay HAL + LLS + D-Bus.
+    // La interpolación avanzaba v×(now − llegada_del_fix), así que en el instante
+    // del tick real el icono se colocaba exactamente sobre un fix ya caducado →
+    // el coche se veía permanentemente ~1 s por detrás de su posición real.
+    // Con gpsLeadS se avanza v×(dt + gpsLeadS): el instante representado en pantalla
+    // es "ahora" y no "hace gpsLeadS segundos".
+    property real gpsLeadS:  1.0   // s de adelanto (0 = comportamiento anterior)
+    property real gpsLeadMaxM: 60  // tope de metros que puede aportar el adelanto
+
     property real mapHeadRad: 0  // heading del mapa: solo ticks reales, nunca look-ahead interp
 
     // Último tick real
@@ -325,6 +336,10 @@ Item {
                   && !(gps.simMode && !gps.manualDriveMode && gps.simFinished)
         onTriggered: gps._onInterpTick()
     }
+
+    // true mientras el interp esté emitiendo posición de display. Main.qml lo usa
+    // para no escribir el fix crudo encima de la posición predicha en el tick real.
+    readonly property bool interpRunning: interpTimer.running
 
     // ── GPS real: tick primario ───────────────────────────────────────────────
     // Activa drActive si no lo está ya (misma lógica que usaba _onRealGpsTick
@@ -619,6 +634,14 @@ Item {
         var dt  = (_realTickMs > 0) ? (now - _realTickMs) / 1000.0 : 0
         if (dt < 0 || dt > 2.0) return
 
+        // Adelanto por latencia del fix: el reloj de display va gpsLeadS por delante
+        // del reloj de llegada de los fixes. Acotado en metros para que en curva o
+        // frenada fuerte la predicción no se dispare (el guard de dt sigue sobre dt).
+        var leadS = Math.max(0, gpsLeadS)
+        if (leadS > 0 && gpsLeadMaxM > 0)
+            leadS = Math.min(leadS, gpsLeadMaxM / Math.max(Math.abs(_lastRealTickSpeedMs), 0.1))
+        var dtP = dt + leadS
+
         var pLat, pLon, segHdg, v
 
         if (routeShape && routeShape.length > 1 && _lastRealTickPos !== null && !simPosOnly && _snapActive) {
@@ -637,8 +660,8 @@ Item {
                 }
             }
             var distM = 0
-            if (interpUseIdeal) distM += v * dt
-            if (interpUseAccel) distM += 0.5 * _accelMsFromRealTicks() * dt * dt
+            if (interpUseIdeal) distM += v * dtP
+            if (interpUseAccel) distM += 0.5 * _accelMsFromRealTicks() * dtP * dtP
             distM = Math.max(0, distM)
             var pos = _walkShape(_lastRealTickPos.idx, _lastRealTickPos.frac, distM)
             if (!pos) return
@@ -660,8 +683,8 @@ Item {
         } else {
             // Sin ruta: dead reckoning recto desde _drBaseLat/Lon
             v      = _speedMs
-            var dR = _advanceDist(v, dt)
-            segHdg = interpUseAccelHeading ? _accelInterpHeading(dt) : _headRad
+            var dR = _advanceDist(v, dtP)
+            segHdg = interpUseAccelHeading ? _accelInterpHeading(dtP) : _headRad
             var dst = _geoDest(_drBaseLat, _drBaseLon, _headRad, dR)
             pLat   = dst.lat
             pLon   = dst.lon

@@ -150,6 +150,7 @@ ApplicationWindow {
         manualLat:       appSettings.manualLat
         manualLon:       appSettings.manualLon
         interpolationHz: appSettings.drHz
+        gpsLeadS:        appSettings.gpsLeadS
         useHardwareSpeed: appSettings.useHardwareSpeed
         smoothGps:          appSettings.drEnabled
         snapToRouteEnabled: appSettings.snapToRouteEnabled
@@ -203,6 +204,7 @@ ApplicationWindow {
         property bool   hasLastPos: false
         property bool   simMode:    false
         property int    drHz:       20     // dead-reckoning rate: 2 | 10 | 20 | 30 | 50 | 75 | 100
+        property real   gpsLeadS:   1.0    // s de adelanto del display para compensar la latencia del fix
         property string bearingMode: "north"  // "north" | "heading"
         property int    autoZoomSecs: 15    // seconds of road visible ahead at current speed
         property real   lastZoom:   16     // map zoom level on last close
@@ -2997,7 +2999,9 @@ ApplicationWindow {
             // Con smoothGps+ruta activa, los ticks reales no actualizan el centro: los interp a
             // 10 Hz lo hacen a través de _smoothApplyPos, evitando saltos de posición GPS cruda.
             if (appSettings.bearingMode === "heading" && root._hasArrow
-                    && !(isReal && gpsSource.smoothGps && root._navActive)) {
+                    && !(isReal && gpsSource.smoothGps
+                         && (root._navActive
+                             || (gpsSource.interpRunning && gpsSource.gpsLeadS > 0)))) {
                 if (mapView.followMode && mapView.metersPerPixel > 0) {
                     mapView._gpsUpdating = true
                     mapView.center = mapView._navFollowCenter(lat, lon)
@@ -3025,7 +3029,12 @@ ApplicationWindow {
                 root._snapToRoute = gpsSource._snapActive
             var _isSnapFollowing = isReal && root._navActive && !root._navPaused
                                    && navBar.routeData && root._snapToRoute
-            if (!isReal || !gpsSource.smoothGps || !_isSnapFollowing) {
+            // Con adelanto de predicción activo (gpsLeadS>0) el display lo lleva ENTERO
+            // el interp, también sin ruta: si el tick real escribiera aquí el fix crudo,
+            // el icono retrocedería v×gpsLeadS una vez por segundo.
+            var _dispOwnedByInterp = gpsSource.smoothGps && gpsSource.interpRunning
+                                     && (_isSnapFollowing || gpsSource.gpsLeadS > 0)
+            if (!isReal || !_dispOwnedByInterp) {
                 var _dispLat = lat, _dispLon = lon
                 if (_isSnapFollowing) {
                     _dispLat = gpsSource.snapLat
@@ -5015,6 +5024,56 @@ ApplicationWindow {
 
         property bool _hasRoute: gpsSource.routeShape !== null
                                   && gpsSource.routeShape.length > 1
+
+        // ── Adelanto por latencia del fix (aplica con y sin ruta) ───────
+        // El valor correcto depende del dispositivo: subir hasta que el icono
+        // deje de ir por detrás del coche, sin llegar a adelantarse en curva.
+        Label {
+            text: i18n.tr("Adelanto")
+            color: "#90A4AE"; font.pixelSize: units.gu(1.2 * appSettings.textScale)
+            font.bold: true
+        }
+        Row {
+            width: gpsSmoothPanel.width; height: units.gu(3.5); spacing: units.gu(0.2)
+            property real _btnW: units.gu(2.2)
+            function _bump(d) {
+                appSettings.gpsLeadS = Math.max(0, Math.min(3,
+                    Math.round((appSettings.gpsLeadS + d) * 100) / 100))
+            }
+            Rectangle {
+                width: parent._btnW; height: units.gu(3.5); radius: units.gu(0.5)
+                color: "#CC12122A"; border.color: "#546E7A"; border.width: units.gu(0.15)
+                Label {
+                    anchors.centerIn: parent; text: "−"
+                    color: "#B0BEC5"; font.pixelSize: units.gu(1.4 * appSettings.textScale)
+                }
+                MouseArea { anchors.fill: parent; onClicked: parent.parent._bump(-0.25) }
+            }
+            // Toca el valor para desactivar el adelanto (0 = comportamiento anterior)
+            Rectangle {
+                width: gpsSmoothPanel.width - 2 * parent._btnW - units.gu(0.4)
+                height: units.gu(3.5); radius: units.gu(0.5)
+                color: appSettings.gpsLeadS > 0 ? "#CC1A3A1A" : "#CC12122A"
+                border.color: appSettings.gpsLeadS > 0 ? "#00E676" : "#546E7A"
+                border.width: units.gu(0.15)
+                Label {
+                    anchors.centerIn: parent
+                    text: appSettings.gpsLeadS.toFixed(2) + "s"
+                    color: appSettings.gpsLeadS > 0 ? "#00E676" : "#78909C"
+                    font.pixelSize: units.gu(1.1 * appSettings.textScale)
+                }
+                MouseArea { anchors.fill: parent; onClicked: appSettings.gpsLeadS = 0 }
+            }
+            Rectangle {
+                width: parent._btnW; height: units.gu(3.5); radius: units.gu(0.5)
+                color: "#CC12122A"; border.color: "#546E7A"; border.width: units.gu(0.15)
+                Label {
+                    anchors.centerIn: parent; text: "+"
+                    color: "#B0BEC5"; font.pixelSize: units.gu(1.4 * appSettings.textScale)
+                }
+                MouseArea { anchors.fill: parent; onClicked: parent.parent._bump(0.25) }
+            }
+        }
 
         // ── Con ruta ────────────────────────────────────────────────────
         Label {
