@@ -1269,7 +1269,15 @@ function _xhr(method, url, body, cb, timeoutMs) {
         } else if (req.readyState === XMLHttpRequest.DONE) {
             _fileDump("--- RESPONSE: HTTP " + req.status
                       + " · " + req.responseText.length + " bytes")
-            _fileDump("--- BODY: " + req.responseText)
+            // Recortado a propósito: log_to_file() escribe con writeln! SÍNCRONO
+            // en el hilo de UI. El endpoint de carburante del MINETUR devuelve
+            // ~12 MB (todas las gasolineras de España), y volcarlo entero
+            // suponía asignar un segundo string de 12 MB y escribirlo a flash
+            // antes siquiera de parsearlo. Los manejadores de POI ya recortaban
+            // a 500; esto faltaba por hacer aquí.
+            _fileDump("--- BODY: " + req.responseText.substring(0, 2000)
+                      + (req.responseText.length > 2000
+                         ? "… [+" + (req.responseText.length - 2000) + " bytes]" : ""))
             if (req.status === 200) {
                 _logMsg("HTTP 200 · " + req.responseText.length + " bytes")
                 cb(null, req.responseText)
