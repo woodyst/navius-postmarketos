@@ -129,23 +129,42 @@ const ROUND_DISTANCES: &[i32] = &[
 // Mapeo de tipo Valhalla → categoría simplificada.
 
 #[derive(Debug, Clone, Copy)]
-enum ManeuverCat { Right, Left, Straight, UTurn, Roundabout(u8) }
+enum ManeuverCat { Right, Left, Straight, UTurn, Exit, Roundabout(u8) }
 
+// Códigos de DirectionsLeg.Maneuver.Type de Valhalla. La numeración anterior estaba
+// desplazada en 1 a partir del 7, lo que hacía decir maniobras invertidas: el 19
+// (kRampLeft, "gire a la izquierda para tomar la vía de salida") se anunciaba como
+// derecha, el 20 (kExitRight) como izquierda y el 24 (kStayLeft) como derecha. Además
+// el 26 (entrada a glorieta) caía en "continúe recto", así que las rotondas nunca
+// llegaban a su frase.
+//
+// Verificado contra el servidor pidiendo rutas reales y comparando "type" con el texto
+// de la instrucción: 9 "Siga por la derecha", 10 "Gire a la derecha", 15 "Gire a la
+// izquierda", 16 "Siga por la izquierda", 17 "Siga recto para tomar la vía de salida",
+// 18 "Tome la vía de salida", 19 "Gire a la izquierda para tomar la vía de salida",
+// 20 "Tome la salida", 21 "Tome la salida ... a la izquierda", 23 "Manténgase a la
+// derecha", 24 "Manténgase a la izquierda", 26 "Haga la rotonda y tome la salida 3.ª",
+// 27 "Salga de la rotonda".
 fn classify_maneuver(man_type: i32, exit_count: i32) -> Option<ManeuverCat> {
     match man_type {
-        // Derecha: kStartRight(2), kSlightRight(10), kRight(11), kSharpRight(12),
-        //          kRampRight(19), kStayRight(24), kExitRight(22)
-        2 | 10 | 11 | 12 | 19 | 22 | 24 => Some(ManeuverCat::Right),
-        // Izquierda: kStartLeft(3), kSharpLeft(15), kLeft(16), kSlightLeft(17),
-        //            kRampLeft(20), kExitLeft(21), kStayLeft(25)
-        3 | 15 | 16 | 17 | 20 | 21 | 25 => Some(ManeuverCat::Left),
-        // Recto: kStart(1), kBecomes(8), kContinue(9), kRampStraight(18),
-        //        kStayStraight(23), kMerge(26)
-        1 | 8 | 9 | 18 | 23 | 26 => Some(ManeuverCat::Straight),
-        // Cambio de sentido: kUturnRight(13), kUturnLeft(14)
-        13 | 14 => Some(ManeuverCat::UTurn),
-        // Glorieta: kRoundaboutEnter(27) — exit_count = salida a tomar
-        27 => Some(ManeuverCat::Roundabout(exit_count.clamp(1, 9) as u8)),
+        // Derecha: kStartRight(2), kSlightRight(9), kRight(10), kSharpRight(11), kStayRight(23)
+        2 | 9 | 10 | 11 | 23 => Some(ManeuverCat::Right),
+        // Izquierda: kStartLeft(3), kSharpLeft(14), kLeft(15), kSlightLeft(16), kStayLeft(24)
+        3 | 14 | 15 | 16 | 24 => Some(ManeuverCat::Left),
+        // Recto: kStart(1), kBecomes(7), kContinue(8), kRampStraight(17),
+        //        kStayStraight(22), kMerge(25)
+        1 | 7 | 8 | 17 | 22 | 25 => Some(ManeuverCat::Straight),
+        // Cambio de sentido: kUturnRight(12), kUturnLeft(13)
+        12 | 13 => Some(ManeuverCat::UTurn),
+        // Salidas y ramales: kRampRight(18), kRampLeft(19), kExitRight(20), kExitLeft(21).
+        // El lado importa menos que el hecho de salir, y "Tome la salida" cabe donde no
+        // cabe la locución completa.
+        18 | 19 | 20 | 21 => Some(ManeuverCat::Exit),
+        // Glorieta: kRoundaboutEnter(26). Sin número de salida (el QML manda 0 cuando
+        // Valhalla no lo da) no se puede decir "la primera": se usa "Tome la salida".
+        26 if exit_count >= 1 => Some(ManeuverCat::Roundabout(exit_count.clamp(1, 9) as u8)),
+        26 => Some(ManeuverCat::Exit),
+        // kRoundaboutExit(27) no se anuncia: la información va en la entrada (26).
         _ => None,
     }
 }
@@ -157,6 +176,7 @@ fn maneuver_phrase(cat: ManeuverCat, lang: &str) -> &'static str {
             ManeuverCat::Left     => "Gire a la izquierda",
             ManeuverCat::Straight => "Continúe recto",
             ManeuverCat::UTurn    => "Dé la vuelta",
+            ManeuverCat::Exit     => "Tome la salida",
             ManeuverCat::Roundabout(n) => match n {
                 1 => "En la rotonda, tome la primera salida",
                 2 => "En la rotonda, tome la segunda salida",
@@ -172,6 +192,7 @@ fn maneuver_phrase(cat: ManeuverCat, lang: &str) -> &'static str {
             ManeuverCat::Left     => "Turn left",
             ManeuverCat::Straight => "Continue straight",
             ManeuverCat::UTurn    => "Make a U-turn",
+            ManeuverCat::Exit     => "Take the exit",
             ManeuverCat::Roundabout(n) => match n {
                 1 => "At the roundabout, take the first exit",
                 2 => "At the roundabout, take the second exit",
@@ -187,6 +208,7 @@ fn maneuver_phrase(cat: ManeuverCat, lang: &str) -> &'static str {
             ManeuverCat::Left     => "Tournez à gauche",
             ManeuverCat::Straight => "Continuez tout droit",
             ManeuverCat::UTurn    => "Faites demi-tour",
+            ManeuverCat::Exit     => "Prenez la sortie",
             ManeuverCat::Roundabout(n) => match n {
                 1 => "Au rond-point, prenez la première sortie",
                 2 => "Au rond-point, prenez la deuxième sortie",
@@ -199,6 +221,7 @@ fn maneuver_phrase(cat: ManeuverCat, lang: &str) -> &'static str {
             ManeuverCat::Left     => "Links abbiegen",
             ManeuverCat::Straight => "Geradeaus fahren",
             ManeuverCat::UTurn    => "Wenden",
+            ManeuverCat::Exit     => "Nehmen Sie die Ausfahrt",
             ManeuverCat::Roundabout(n) => match n {
                 1 => "Im Kreisverkehr, erste Ausfahrt nehmen",
                 2 => "Im Kreisverkehr, zweite Ausfahrt nehmen",
@@ -211,6 +234,7 @@ fn maneuver_phrase(cat: ManeuverCat, lang: &str) -> &'static str {
             ManeuverCat::Left     => "Vire à esquerda",
             ManeuverCat::Straight => "Continue em frente",
             ManeuverCat::UTurn    => "Faça o retorno",
+            ManeuverCat::Exit     => "Saia na saída",
             ManeuverCat::Roundabout(n) => match n {
                 1 => "Na rotatória, tome a primeira saída",
                 2 => "Na rotatória, tome a segunda saída",
@@ -223,6 +247,7 @@ fn maneuver_phrase(cat: ManeuverCat, lang: &str) -> &'static str {
             ManeuverCat::Left     => "Gira a sinistra",
             ManeuverCat::Straight => "Vai dritto",
             ManeuverCat::UTurn    => "Fai inversione",
+            ManeuverCat::Exit     => "Prendi l'uscita",
             ManeuverCat::Roundabout(n) => match n {
                 1 => "Alla rotonda, prendi la prima uscita",
                 2 => "Alla rotonda, prendi la seconda uscita",
@@ -238,6 +263,7 @@ fn maneuver_phrase(cat: ManeuverCat, lang: &str) -> &'static str {
 fn all_maneuver_cats() -> &'static [ManeuverCat] {
     &[
         ManeuverCat::Right, ManeuverCat::Left, ManeuverCat::Straight, ManeuverCat::UTurn,
+        ManeuverCat::Exit,
         ManeuverCat::Roundabout(1), ManeuverCat::Roundabout(2), ManeuverCat::Roundabout(3),
         ManeuverCat::Roundabout(4), ManeuverCat::Roundabout(5), ManeuverCat::Roundabout(6),
         ManeuverCat::Roundabout(7),  // "siguiente salida" (≥7)
