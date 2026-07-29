@@ -1084,7 +1084,7 @@ ApplicationWindow {
             for (var ti = 0; ti < _radarTramos.length; ti++) {
                 var t = _radarTramos[ti]
                 // Proyección sobre cada segmento para posición continua y distancia mínima real
-                var bestSegDist = 1e9, bestSegCum = 0, segCum = 0
+                var bestSegDist = 1e9, bestSegCum = 0, segCum = 0, bestSegIdx = 0
                 for (var si = 0; si < t.shape.length - 1; si++) {
                     var axm = t.shape[si][0]   * 111319 * cosL, aym = t.shape[si][1]   * 111319
                     var bxm = t.shape[si+1][0] * 111319 * cosL, bym = t.shape[si+1][1] * 111319
@@ -1093,9 +1093,17 @@ ApplicationWindow {
                     var tp = segLen > 0 ? Math.max(0, Math.min(1, ((pxm-axm)*dx + (pym-aym)*dy) / (segLen*segLen))) : 0
                     var nx = axm + tp*dx, ny = aym + tp*dy
                     var dist = Math.sqrt((pxm-nx)*(pxm-nx) + (pym-ny)*(pym-ny))
-                    if (dist < bestSegDist) { bestSegDist = dist; bestSegCum = segCum + tp * segLen }
+                    if (dist < bestSegDist) { bestSegDist = dist; bestSegCum = segCum + tp * segLen; bestSegIdx = si }
                     segCum += segLen
                 }
+                // El shape va de "from" a "to", así que su rumbo indica el sentido vigilado.
+                // En autovía la calzada contraria queda a bastante menos de 100 m, y sin esta
+                // comprobación su tramo se daba por activo — y también por "aproximándose".
+                var _tBrg = geoHeading(t.shape[bestSegIdx][1],   t.shape[bestSegIdx][0],
+                                       t.shape[bestSegIdx+1][1], t.shape[bestSegIdx+1][0])
+                var _dhT = Math.abs(_tBrg - headRad)
+                if (_dhT > Math.PI) _dhT = 2 * Math.PI - _dhT
+                if (_dhT >= halfPi) continue   // tramo del sentido contrario
                 if (bestSegDist < 100) {
                     _activeTramo = t
                     _tramoFrac = t.lengthM > 0 ? Math.min(1, Math.max(0, bestSegCum / t.lengthM)) : 0

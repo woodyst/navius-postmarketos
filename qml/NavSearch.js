@@ -1310,7 +1310,12 @@ function _nearRoute(lat, lon, shape, threshM) {
 // Llegan en orden arbitrario y con sentidos mezclados, así que se pegan por extremos
 // coincidentes: cada vía se engancha por delante o por detrás de la cadena, invirtiéndola
 // si hace falta. Devuelve [] si no se puede formar nada de al menos dos puntos.
-function _chainSectionWays(ways, nodeById) {
+//
+// El sentido resultante depende de qué vía tocara ser la primera y de cómo estuviera
+// dibujada, así que hay que fijarlo con los nodos from/to de la relación: medido sobre
+// 52 tramos de Cataluña, 12 salían del revés. Un tramo con el sentido invertido es peor
+// que no tenerlo, porque hace pasar por bueno el radar de la calzada contraria.
+function _chainSectionWays(ways, nodeById, fromN, toN) {
     var pend = []
     for (var i = 0; i < ways.length; i++) {
         var nd = ways[i].nodes || []
@@ -1337,7 +1342,21 @@ function _chainSectionWays(ways, nodeById) {
         var n = nodeById[chain[c]]
         if (n && n.lat !== undefined) out.push([n.lon, n.lat])
     }
-    return out.length >= 2 ? out : []
+    if (out.length < 2) return []
+
+    // Orientar de "from" hacia "to". Se compara por distancia y no por id de nodo porque
+    // from/to no siempre son exactamente los extremos de las vías section.
+    var ref = fromN || toN
+    if (ref) {
+        var kLat = 111319, kLon = 111319 * Math.cos(ref.lat * Math.PI / 180)
+        var dIni = Math.sqrt(Math.pow((out[0][1] - ref.lat) * kLat, 2) +
+                             Math.pow((out[0][0] - ref.lon) * kLon, 2))
+        var dFin = Math.sqrt(Math.pow((out[out.length-1][1] - ref.lat) * kLat, 2) +
+                             Math.pow((out[out.length-1][0] - ref.lon) * kLon, 2))
+        // Con "from" el inicio debe quedar más cerca; con "to" (si no hay from), al revés.
+        if (fromN ? (dFin < dIni) : (dIni < dFin)) out.reverse()
+    }
+    return out
 }
 
 // Parsea la respuesta Overpass y filtra fijos/tramos.
@@ -1383,7 +1402,7 @@ function _parseRadarResponse(text, nearShape, callback) {
                 } else if (mb.role === "from" && mb.type === "node") fromN = nodeById[mb.ref]
                 else if (mb.role === "to"   && mb.type === "node") toN   = nodeById[mb.ref]
             }
-            var rShape = _chainSectionWays(secWays, nodeById)
+            var rShape = _chainSectionWays(secWays, nodeById, fromN, toN)
             if (rShape.length < 2) {
                 // Sin section utilizable: recta entre extremos y que la enriquezca
                 // Valhalla igual que a los tramos sintéticos.
