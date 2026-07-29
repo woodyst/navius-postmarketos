@@ -1421,12 +1421,17 @@ function _parseRadarResponse(text, nearShape, callback) {
                 var dirStr = t["direction"]
                 var dirVal = parseInt(dirStr)
                 var hasDir = (dirStr !== undefined && dirStr !== "" && !isNaN(dirVal))
+                // Texto legible del radar, para mostrarlo en la alerta. No se usa "note",
+                // que suele ser anotación interna del mapeador ("F080 SIPU C-31Nord Km…").
+                var descr = t["description"] || t["name"] || t["loc_name"] || ""
                 if (hasDir) {
                     fijos.push({ id: "n" + el.id, lat: el.lat, lon: el.lon,
-                                 maxspeed: parseInt(t["maxspeed"]) || 0, direction: dirVal })
+                                 maxspeed: parseInt(t["maxspeed"]) || 0, direction: dirVal,
+                                 descr: descr })
                 } else {
                     tramoCands.push({ lat: el.lat, lon: el.lon,
-                                      maxspeed: parseInt(t["maxspeed"]) || 0, id: el.id })
+                                      maxspeed: parseInt(t["maxspeed"]) || 0, id: el.id,
+                                      descr: descr })
                 }
             } else if (el.type === "way" && t["enforcement"] === "average_speed") {
                 if (!el.nodes || el.nodes.length < 2) continue
@@ -1485,7 +1490,8 @@ function _parseRadarResponse(text, nearShape, callback) {
                                maxspeed: spd, lengthM: Math.round(bestD) })
             } else {
                 // Sin pareja → fijo sin dirección
-                fijos.push({ id: "n" + ca.id, lat: ca.lat, lon: ca.lon, maxspeed: ca.maxspeed, direction: -1 })
+                fijos.push({ id: "n" + ca.id, lat: ca.lat, lon: ca.lon, maxspeed: ca.maxspeed,
+                             direction: -1, descr: ca.descr || "" })
             }
         }
 
@@ -1695,6 +1701,13 @@ function setRadarDb(db) {
                 'maxspeed INTEGER, direction INTEGER, updated_at INTEGER)')
             tx.executeSql('CREATE TABLE IF NOT EXISTS radares_meta (key TEXT PRIMARY KEY, value TEXT)')
         })
+        // Columna añadida después: en bases ya creadas el CREATE de arriba no la añade.
+        // Falla si ya existe, que es el caso normal, así que se ignora el error.
+        try {
+            _radarDbRef.transaction(function(tx) {
+                tx.executeSql('ALTER TABLE radares ADD COLUMN descr TEXT')
+            })
+        } catch(e2) { /* la columna ya existía */ }
     } catch(e) { _logMsg("✗ Radar DB init: " + e); _radarDbRef = null }
 }
 
@@ -1708,8 +1721,8 @@ function _saveRadarsToDb(fijos, tramos) {
             for (var i = 0; i < fijos.length; i++) {
                 var f = fijos[i]
                 if (!f.id) continue
-                tx.executeSql('INSERT OR REPLACE INTO radares (id,kind,lat,lon,lat2,lon2,maxspeed,direction,updated_at) VALUES (?,?,?,?,?,?,?,?,?)',
-                    [f.id, 'fijo', f.lat, f.lon, null, null, f.maxspeed || 0, f.direction, now])
+                tx.executeSql('INSERT OR REPLACE INTO radares (id,kind,lat,lon,lat2,lon2,maxspeed,direction,updated_at,descr) VALUES (?,?,?,?,?,?,?,?,?,?)',
+                    [f.id, 'fijo', f.lat, f.lon, null, null, f.maxspeed || 0, f.direction, now, f.descr || ''])
             }
             for (var j = 0; j < tramos.length; j++) {
                 var t = tramos[j]
@@ -1754,7 +1767,8 @@ function _queryRadarsDb(minLat, minLon, maxLat, maxLon) {
             for (var i = 0; i < rs.rows.length; i++) {
                 var r = rs.rows.item(i)
                 if (r.kind === 'fijo') {
-                    out.fijos.push({ id: r.id, lat: r.lat, lon: r.lon, maxspeed: r.maxspeed, direction: r.direction })
+                    out.fijos.push({ id: r.id, lat: r.lat, lon: r.lon, maxspeed: r.maxspeed,
+                                     direction: r.direction, descr: r.descr || "" })
                 } else {
                     var shp = [[r.lon, r.lat], [r.lon2, r.lat2]]
                     out.tramos.push({ id: r.id, shape: shp, origShape: shp, maxspeed: r.maxspeed, lengthM: 0 })

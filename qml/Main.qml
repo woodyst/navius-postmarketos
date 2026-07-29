@@ -681,6 +681,11 @@ ApplicationWindow {
     property int  _radarAlertMaxspeed: 0
     property bool _radarApproachingTramo: false
     property bool _radarContrario:        false
+    // Yendo en ruta solo se avisa de los radares que se cruzan. Un radar fuera de la
+    // ruta pero a menos de esta distancia se avisa igualmente, pero por el canal de
+    // sentido contrario y como "Radar próximo": casi siempre es la calzada opuesta de
+    // la misma vía, o una calle paralela por la que no vamos a pasar.
+    readonly property int _radarOffRouteNearM: 150
     // Alertas separadas: tramo y fijo son independientes y coexisten
     property bool   _tramoAlertActive:   false
     property string _tramoAlertMsg:      ""
@@ -1029,6 +1034,7 @@ ApplicationWindow {
         _nextFijo = null; _nextFijoDist = 1e9
         var _nextFijoIsContrario = false
         var _nextFijoArcDist = -1
+        var _nextFijoOffRoute = false
         if (appSettings.showRadarFijos) {
             for (var fi = 0; fi < _radarFijos.length; fi++) {
                 var r = _radarFijos[fi]
@@ -1039,13 +1045,16 @@ ApplicationWindow {
                 if (dhR > Math.PI) dhR = 2 * Math.PI - dhR
                 if (dhR >= halfPi) continue   // radar por detrás o lateral
 
-                // Con ruta activa: filtrar radares que no estén sobre la ruta (margen 40 m)
+                // Con ruta activa solo se cruzan los radares que están sobre ella (margen
+                // 40 m). Los de fuera no se descartan del todo: si están muy cerca se
+                // avisan como "Radar próximo" por el canal de sentido contrario.
                 var riF = _routeInfo(r.lat, r.lon, 40)
-                if (!riF.onRoute) continue
+                var offRoute = !riF.onRoute
+                if (offRoute && d > root._radarOffRouteNearM) continue
 
                 // Comprobar dirección del radar (tag OSM) respecto a nuestro rumbo
-                var isContrario = false
-                if (r.direction >= 0) {
+                var isContrario = offRoute
+                if (!offRoute && r.direction >= 0) {
                     var radarDirRad = r.direction * Math.PI / 180
                     var ddR = Math.abs(radarDirRad - headRad)
                     if (ddR > Math.PI) ddR = 2 * Math.PI - ddR
@@ -1057,10 +1066,12 @@ ApplicationWindow {
                     (isContrario === _nextFijoIsContrario && d < _nextFijoDist)) {
                     _nextFijoDist = d; _nextFijo = r; _nextFijoIsContrario = isContrario
                     _nextFijoArcDist = riF.arcDist
+                    _nextFijoOffRoute = offRoute
                 }
             }
             if (_nextFijoDist > alertDist) {
                 _nextFijo = null; _nextFijoDist = 1e9; _nextFijoIsContrario = false; _nextFijoArcDist = -1
+                _nextFijoOffRoute = false
             }
         }
 
@@ -1147,8 +1158,16 @@ ApplicationWindow {
         if (_nextFijo) {
             fijoAlerting = true
             if (_nextFijoIsContrario) {
-                fijoMsg = "Radar sentido contrario  ·  " + Math.round(_nextFijoDist) + " m"
-                fijoTtsMsg = "Radar sentido contrario en " + Math.round(_nextFijoDist) + " metros"
+                // Fuera de la ruta no sabemos si lo cruzaremos, así que no se anuncia como
+                // "sentido contrario" (que afirma un sentido) sino como "próximo".
+                var _cTxt = _nextFijoOffRoute ? "Radar próximo" : "Radar sentido contrario"
+                fijoMsg    = _cTxt + "  ·  " + Math.round(_nextFijoDist) + " m"
+                fijoTtsMsg = _cTxt + " en " + Math.round(_nextFijoDist) + " metros"
+                var _cDes = _nextFijo.descr || ""
+                if (_cDes) {
+                    fijoMsg    += "  ·  " + _cDes
+                    fijoTtsMsg += ", " + _cDes
+                }
                 fijoContrario = true
             } else {
                 var fijoDispDist = (_nextFijoArcDist > 0) ? _nextFijoArcDist : _nextFijoDist
