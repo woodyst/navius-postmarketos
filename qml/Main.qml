@@ -1142,21 +1142,21 @@ ApplicationWindow {
         if (_activeTramo) {
             tramoAlerting = true
             var rem = Math.round(_activeTramo.lengthM * (1 - _tramoFrac))
-            tramoMsg = "Radar de tramo  ·  " + rem + " m restantes"
-            tramoTtsMsg = "Radar de tramo, " + rem + " metros"
+            tramoMsg = i18n.tr("Radar de tramo  ·  %1 m restantes").arg(rem)
+            tramoTtsMsg = i18n.tr("Radar de tramo, %1 metros").arg(rem)
             if (_activeTramo.maxspeed > 0) {
-                tramoMsg += "  ·  " + _activeTramo.maxspeed + " km/h"
-                tramoTtsMsg += ", límite " + _activeTramo.maxspeed + " kilómetros por hora"
+                tramoMsg += i18n.tr("  ·  %1 km/h").arg(_activeTramo.maxspeed)
+                tramoTtsMsg += i18n.tr(", límite %1 kilómetros por hora").arg(_activeTramo.maxspeed)
             }
             tramoMaxspeed = _activeTramo.maxspeed
         } else if (approachTramoInfo) {
             tramoAlerting = true
             var tramoDispDist = (approachTramoInfo.arcDist > 0) ? approachTramoInfo.arcDist : approachTramoInfo.dist
-            tramoMsg = "Radar de tramo  ·  a " + Math.round(tramoDispDist) + " m"
-            tramoTtsMsg = "Radar de tramo en " + Math.round(tramoDispDist) + " metros"
+            tramoMsg = i18n.tr("Radar de tramo  ·  a %1 m").arg(Math.round(tramoDispDist))
+            tramoTtsMsg = i18n.tr("Radar de tramo en %1 metros").arg(Math.round(tramoDispDist))
             if (approachTramoInfo.maxspeed > 0) {
-                tramoMsg += "  ·  " + approachTramoInfo.maxspeed + " km/h"
-                tramoTtsMsg += ", límite " + approachTramoInfo.maxspeed + " kilómetros por hora"
+                tramoMsg += i18n.tr("  ·  %1 km/h").arg(approachTramoInfo.maxspeed)
+                tramoTtsMsg += i18n.tr(", límite %1 kilómetros por hora").arg(approachTramoInfo.maxspeed)
             }
             tramoMaxspeed = approachTramoInfo.maxspeed
         }
@@ -1168,9 +1168,11 @@ ApplicationWindow {
             if (_nextFijoIsContrario) {
                 // Fuera de la ruta no sabemos si lo cruzaremos, así que no se anuncia como
                 // "sentido contrario" (que afirma un sentido) sino como "próximo".
-                var _cTxt = _nextFijoOffRoute ? "Radar próximo" : "Radar sentido contrario"
-                fijoMsg    = _cTxt + "  ·  " + Math.round(_nextFijoDist) + " m"
-                fijoTtsMsg = _cTxt + " en " + Math.round(_nextFijoDist) + " metros"
+                var _cD = Math.round(_nextFijoDist)
+                fijoMsg    = _nextFijoOffRoute ? i18n.tr("Radar próximo  ·  %1 m").arg(_cD)
+                                               : i18n.tr("Radar sentido contrario  ·  %1 m").arg(_cD)
+                fijoTtsMsg = _nextFijoOffRoute ? i18n.tr("Radar próximo en %1 metros").arg(_cD)
+                                               : i18n.tr("Radar sentido contrario en %1 metros").arg(_cD)
                 var _cDes = _nextFijo.descr || ""
                 if (_cDes) {
                     fijoMsg    += "  ·  " + _cDes
@@ -1179,11 +1181,11 @@ ApplicationWindow {
                 fijoContrario = true
             } else {
                 var fijoDispDist = (_nextFijoArcDist > 0) ? _nextFijoArcDist : _nextFijoDist
-                fijoMsg = "Radar  ·  " + Math.round(fijoDispDist) + " m"
-                fijoTtsMsg = "Radar en " + Math.round(fijoDispDist) + " metros"
+                fijoMsg = i18n.tr("Radar  ·  %1 m").arg(Math.round(fijoDispDist))
+                fijoTtsMsg = i18n.tr("Radar en %1 metros").arg(Math.round(fijoDispDist))
                 if (_nextFijo.maxspeed > 0) {
-                    fijoMsg += "  ·  " + _nextFijo.maxspeed + " km/h"
-                    fijoTtsMsg += ", límite " + _nextFijo.maxspeed + " kilómetros por hora"
+                    fijoMsg += i18n.tr("  ·  %1 km/h").arg(_nextFijo.maxspeed)
+                    fijoTtsMsg += i18n.tr(", límite %1 kilómetros por hora").arg(_nextFijo.maxspeed)
                 }
                 fijoMaxspeed = _nextFijo.maxspeed
             }

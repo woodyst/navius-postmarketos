@@ -123,6 +123,12 @@ fn walk_dir(dir: PathBuf, ext: &str) -> Vec<PathBuf> {
         }
     }
 
+    // read_dir devuelve las entradas en orden del sistema de ficheros (en ext4, orden de
+    // hash, que además cambia al crear o borrar ficheros), no alfabético. Sin ordenar, la
+    // lista de fuentes que recibe xgettext varía entre compilaciones, el orden de entradas
+    // del .pot varía con ella y msgmerge reordena los 11 .po en consecuencia: cada build
+    // dejaba ~22 000 líneas de diff sin un solo cambio de contenido.
+    files.sort();
     files
 }
 
