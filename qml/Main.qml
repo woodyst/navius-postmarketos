@@ -847,7 +847,10 @@ ApplicationWindow {
     }
 
     // Metros de ruta cubiertos en secsAhead segundos según velocidades Valhalla de cada tramo.
-    function _routeAheadDistM(secsAhead) {
+    // ignoreSpeedRatio: usa las velocidades nominales de Valhalla sin corregir por la
+    // velocidad real. Es lo que ocurre de forma natural con el vehículo detenido, y se
+    // usa como tope de aumento del autoZoom (ver zoomTimer).
+    function _routeAheadDistM(secsAhead, ignoreSpeedRatio) {
         var man = navBar.routeData ? navBar.routeData.maneuvers : null
         if (!man || !man.length) return 0
         var step = navBar._step
@@ -855,7 +858,7 @@ ApplicationWindow {
         var dist = 0
         // Ratio velocidad real / Valhalla del tramo actual (clamped 0.1–3.0)
         var curVhSpd = (man[step] ? NavSearch.segSpeedKmh(man[step], navBar.commSpeedLimit) : 0) / 3.6
-        var ratio = (curVhSpd > 0.1 && gpsSource._speedMs > 0)
+        var ratio = (!ignoreSpeedRatio && curVhSpd > 0.1 && gpsSource._speedMs > 0)
                     ? Math.max(0.1, Math.min(3.0, gpsSource._speedMs / curVhSpd)) : 1.0
         // Tramo actual
         var curSpd  = curVhSpd * ratio
@@ -3568,6 +3571,11 @@ ApplicationWindow {
                 if (appSettings.routeAdjustZoom && root._navActive && navBar.routeData) {
                     distM = root._routeAheadDistM(appSettings.autoZoomSecs)
                     if (distM < 1) return
+                    // Tope de aumento: nunca acercar más de lo que se acerca con el
+                    // vehículo detenido. Yendo despacio el ratio real/Valhalla se satura
+                    // en 0.1, la distancia se divide por 10 y el zoom se iba al tope.
+                    var distParado = root._routeAheadDistM(appSettings.autoZoomSecs, true)
+                    if (distParado > distM) distM = distParado
                 } else {
                     var speedMs = activeModel.pos_speed_kmh / 3.6
                     if (speedMs < 0.5) return
