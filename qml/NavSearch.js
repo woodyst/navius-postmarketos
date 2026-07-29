@@ -1306,28 +1306,117 @@ function _nearRoute(lat, lon, shape, threshM) {
     return false
 }
 
+// Une las vías role=section de una relación de tramo en una sola polilínea.
+// Llegan en orden arbitrario y con sentidos mezclados, así que se pegan por extremos
+// coincidentes: cada vía se engancha por delante o por detrás de la cadena, invirtiéndola
+// si hace falta. Devuelve [] si no se puede formar nada de al menos dos puntos.
+function _chainSectionWays(ways, nodeById) {
+    var pend = []
+    for (var i = 0; i < ways.length; i++) {
+        var nd = ways[i].nodes || []
+        if (nd.length >= 2) pend.push(nd.slice())
+    }
+    if (pend.length === 0) return []
+    var chain = pend.shift()
+    var progress = true
+    while (pend.length > 0 && progress) {
+        progress = false
+        for (var k = 0; k < pend.length; k++) {
+            var w = pend[k], wl = w.length
+            var head = chain[0], tail = chain[chain.length - 1]
+            if      (w[0]      === tail) chain = chain.concat(w.slice(1))
+            else if (w[wl - 1] === tail) chain = chain.concat(w.slice(0, wl - 1).reverse())
+            else if (w[wl - 1] === head) chain = w.slice(0, wl - 1).concat(chain)
+            else if (w[0]      === head) chain = w.slice(1).reverse().concat(chain)
+            else continue
+            pend.splice(k, 1); progress = true; break
+        }
+    }
+    var out = []
+    for (var c = 0; c < chain.length; c++) {
+        var n = nodeById[chain[c]]
+        if (n && n.lat !== undefined) out.push([n.lon, n.lat])
+    }
+    return out.length >= 2 ? out : []
+}
+
 // Parsea la respuesta Overpass y filtra fijos/tramos.
 // Detecta también tramos formados por DOS nodos speed_camera sin direction tag.
 // nearShape: si se proporciona, filtra por proximidad; si null, devuelve todo.
 function _parseRadarResponse(text, nearShape, callback) {
     try {
         var data = JSON.parse(text)
-        var nodeById = {}, wayNodeIds = {}
+        var nodeById = {}, wayById = {}, wayNodeIds = {}
         for (var i = 0; i < data.elements.length; i++) {
             var el = data.elements[i]
             if (el.type === "node") nodeById[el.id] = el
-            else if (el.type === "way")
-                for (var j = 0; j < (el.nodes||[]).length; j++) wayNodeIds[el.nodes[j]] = true
+            else if (el.type === "way") {
+                wayById[el.id] = el
+                // Solo los ways de tramo aportan nodos a descartar. Desde que pedimos
+                // las relaciones llegan también vías corrientes, y sus vértices no deben
+                // hacer desaparecer las cámaras que estén sobre ellas.
+                if ((el.tags||{})["enforcement"] === "average_speed")
+                    for (var j = 0; j < (el.nodes||[]).length; j++) wayNodeIds[el.nodes[j]] = true
+            }
         }
         var fijos = [], tramos = []
         // Candidatos a tramo: nodos speed_camera sin etiqueta direction
         var tramoCands = []
+        // Cámaras ya consumidas por una relación de tramo: no son fijos sueltos ni
+        // deben entrar en el emparejamiento heurístico de más abajo.
+        var relDeviceIds = {}
+
+        // ── Radares de tramo declarados como relación ──────────────────────────
+        for (var i = 0; i < data.elements.length; i++) {
+            var rel = data.elements[i]
+            if (rel.type !== "relation") continue
+            var rt = rel.tags || {}
+            if (rt["type"] !== "enforcement" || rt["enforcement"] !== "average_speed") continue
+            var secWays = [], devIds = [], fromN = null, toN = null
+            var mem = rel.members || []
+            for (var m = 0; m < mem.length; m++) {
+                var mb = mem[m]
+                if (mb.role === "section" && mb.type === "way" && wayById[mb.ref])
+                    secWays.push(wayById[mb.ref])
+                else if (mb.role === "device" && mb.type === "node") {
+                    devIds.push(mb.ref); relDeviceIds[mb.ref] = true
+                } else if (mb.role === "from" && mb.type === "node") fromN = nodeById[mb.ref]
+                else if (mb.role === "to"   && mb.type === "node") toN   = nodeById[mb.ref]
+            }
+            var rShape = _chainSectionWays(secWays, nodeById)
+            if (rShape.length < 2) {
+                // Sin section utilizable: recta entre extremos y que la enriquezca
+                // Valhalla igual que a los tramos sintéticos.
+                var pA = fromN || nodeById[devIds[0]]
+                var pB = toN   || nodeById[devIds[devIds.length - 1]]
+                if (!pA || !pB) continue
+                rShape = [[pA.lon, pA.lat], [pB.lon, pB.lat]]
+            }
+            if (nearShape) {
+                var s0r = rShape[0], sNr = rShape[rShape.length - 1]
+                if (!_nearRoute(s0r[1], s0r[0], nearShape, 200) &&
+                    !_nearRoute(sNr[1], sNr[0], nearShape, 200)) continue
+            }
+            var rLen = 0
+            for (var q2 = 1; q2 < rShape.length; q2++) {
+                var dlaR = (rShape[q2][1] - rShape[q2-1][1]) * 111319
+                var dloR = (rShape[q2][0] - rShape[q2-1][0]) * 111319 * Math.cos(rShape[q2][1] * Math.PI / 180)
+                rLen += Math.sqrt(dlaR*dlaR + dloR*dloR)
+            }
+            tramos.push({
+                id: "r" + rel.id,
+                shape: rShape,
+                maxspeed: parseInt(rt["maxspeed:enforcement"]) || parseInt(rt["maxspeed"]) || 0,
+                lengthM: Math.round(rLen)
+            })
+        }
 
         for (var i = 0; i < data.elements.length; i++) {
             var el = data.elements[i]
             var t = el.tags || {}
             if (el.type === "node" && t["highway"] === "speed_camera") {
                 if (wayNodeIds[el.id]) continue
+                if (relDeviceIds[el.id]) continue   // ya va dentro de su relación de tramo
                 if (nearShape && !_nearRoute(el.lat, el.lon, nearShape, 200)) continue
                 var dirStr = t["direction"]
                 var dirVal = parseInt(dirStr)
@@ -1550,10 +1639,17 @@ function _enrichTramoShapes(tramos, nearShape, callback) {
 
 function _overpassPost(bbox, callback, _tried) {
     if (!_tried) _tried = []
+    // Los radares de tramo están en OSM como relación type=enforcement con
+    // enforcement=average_speed: los miembros device son las cámaras, los section las
+    // vías recorridas y from/to los extremos. La etiqueta average_speed va en la
+    // relación, no en los ways, así que la línea de way no devuelve nada casi nunca;
+    // se mantiene por si algún sitio la usa. ">>" (recursivo) hace falta para bajar de
+    // la relación a sus vías y de estas a sus nodos con coordenadas.
     var q = "[out:json][timeout:25];(" +
             "node[\"highway\"=\"speed_camera\"]("+bbox+");" +
             "way[\"enforcement\"=\"average_speed\"]("+bbox+");" +
-            ");out body;>;out skel qt;"
+            "relation[\"type\"=\"enforcement\"][\"enforcement\"=\"average_speed\"]("+bbox+");" +
+            ");out body;>>;out skel qt;"
     var _bparts = bbox.split(",")
     var _cLat = (_bparts.length === 4) ? (parseFloat(_bparts[0]) + parseFloat(_bparts[2])) / 2 : 40
     var _cLon = (_bparts.length === 4) ? (parseFloat(_bparts[1]) + parseFloat(_bparts[3])) / 2 : -3
