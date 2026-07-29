@@ -171,7 +171,11 @@ Item {
     // el coche se veía permanentemente ~1 s por detrás de su posición real.
     // Con gpsLeadS se avanza v×(dt + gpsLeadS): el instante representado en pantalla
     // es "ahora" y no "hace gpsLeadS segundos".
-    property real gpsLeadS:  1.0   // s de adelanto (0 = comportamiento anterior)
+    // Por defecto 0: el adelanto está disponible pero desactivado. El 1.0 inicial venía
+    // de la percepción de "va un segundo por detrás", nunca de una medida, y en prueba
+    // real no se confirmó. Para ajustarlo, panel de depuración "Suavizado GPS": la
+    // lectura ±N m es la separación entre el fix que llega y la posición pintada.
+    property real gpsLeadS:  0     // s de adelanto (0 = sin predicción)
     property real gpsLeadMaxM: 60  // tope de metros que puede aportar el adelanto
 
     property real mapHeadRad: 0  // heading del mapa: solo ticks reales, nunca look-ahead interp

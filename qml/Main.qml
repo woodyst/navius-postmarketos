@@ -204,7 +204,7 @@ ApplicationWindow {
         property bool   hasLastPos: false
         property bool   simMode:    false
         property int    drHz:       20     // dead-reckoning rate: 2 | 10 | 20 | 30 | 50 | 75 | 100
-        property real   gpsLeadS:   1.0    // s de adelanto del display para compensar la latencia del fix
+        property real   gpsLeadS:   0      // s de adelanto del display (0 = sin predicción; ver GpsSource)
         property string bearingMode: "north"  // "north" | "heading"
         property int    autoZoomSecs: 15    // seconds of road visible ahead at current speed
         property real   lastZoom:   16     // map zoom level on last close
