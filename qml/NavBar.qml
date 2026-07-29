@@ -65,6 +65,11 @@ Rectangle {
     property bool   _legArrivalArmed:   true   // puede disparar la pregunta (se rearma al alejarse / parar cerca)
     property real   _legDismissMs:      0      // ms del último "Todavía no" (0 = ninguno)
     property real   _legStoppedMs:      0      // ms desde que estás parado cerca del destino (0 = no)
+    // Tras confirmar una parada intermedia, el destino siguiente NO se arma hasta haber
+    // salido de él: si no, dos waypoints próximos harían que el siguiente se diera por
+    // alcanzado sin recorrer el tramo. Ningún destino posterior cuenta como alcanzado
+    // mientras no se complete el actual.
+    property bool   _legArmOnLeave:     false
     property int    _speedLimit:          -1     // km/h del tramo actual, -1 = desconocido
     property bool   _speedLimitVerified:  false  // true = confirmado por OSM edge.speed_limit
     property string _speedLimitSrc:       ""     // origen del dato: "OSM", "dflt(ES/primary)", etc.
@@ -196,7 +201,8 @@ Rectangle {
             bar.arrived()
         } else {
             _completedLegs += 1            // el siguiente destino pasa a ser el activo
-            _legArrivalArmed = true        // rearmado para la pregunta del nuevo leg
+            _legArrivalArmed = false       // no armar aún: primero hay que salir de aquí
+            _legArmOnLeave   = true
             // _step se reposiciona en el siguiente tick (snap ya acotado al nuevo leg)
             bar.intermediateArrived(_completedLegs - 1)
         }
@@ -287,6 +293,23 @@ Rectangle {
         var _legDestDLat = (_realLat - _legDest[1]) * 111319
         var _legDestDLon = (_realLon - _legDest[0]) * cosLat * 111319
         var _distToLegEnd = Math.sqrt(_legDestDLat*_legDestDLat + _legDestDLon*_legDestDLon)
+        // Distancia restante POR LA RUTA (no en recta) desde el snap hasta el final del
+        // leg activo. La recta se queda corta cuando hay que rodear la manzana, salir de
+        // un sentido único o cruzar una mediana: pasas a 5 m del destino con 300 m aún
+        // por conducir. Se corta en cuanto supera 60 m porque solo se compara con 10.
+        var _routeRemToLegEnd = 0
+        if (minI < _legEndIdx) {
+            var _rs1 = shape[minI + 1]
+            var _rsLat = (_rs1[1] - _sp0[1]) * K
+            var _rsLon = (_rs1[0] - _sp0[0]) * K * cosLat
+            _routeRemToLegEnd = (1 - minT) * Math.sqrt(_rsLat*_rsLat + _rsLon*_rsLon)
+            for (var r = minI + 1; r < _legEndIdx && _routeRemToLegEnd <= 60; r++) {
+                var _ra = shape[r], _rb = shape[r + 1]
+                var _raLat = (_rb[1] - _ra[1]) * K
+                var _raLon = (_rb[0] - _ra[0]) * K * cosLat
+                _routeRemToLegEnd += Math.sqrt(_raLat*_raLat + _raLon*_raLon)
+            }
+        }
         // nearDest suprime off-route/sentido: última maniobra, esperando confirmación,
         // o GPS a <150 m del waypoint (evita rerouting espúreo por deriva en el cruce)
         var nearDest     = (man && _step >= man.length - 1) || _legArrivalPending
@@ -419,23 +442,32 @@ Rectangle {
             }
             var _isFinalLeg = (_legEndIdx >= shape.length - 1)
             var _nowA = Date.now()
+            // Estar en el destino exige las DOS cosas: cerca en recta y sin ruta que
+            // recorrer. Solo con la recta saltaba con cientos de metros aún por conducir.
+            var _atDest = (distToDest <= 6 && _routeRemToLegEnd <= 10)
             // Cronómetro de "parado cerca" (para re-preguntar)
-            if (distToDest <= 10 && bar.gpsSpeedKmh < 3) {
+            if (_atDest && bar.gpsSpeedKmh < 3) {
                 if (_legStoppedMs === 0) _legStoppedMs = _nowA
             } else {
                 _legStoppedMs = 0
             }
             var _stoppedNear = _legStoppedMs > 0 && (_nowA - _legStoppedMs) > 5000
 
-            if (_legArrivalArmed && !_legArrivalPending && (distToDest <= 10 || passed || _stoppedNear)) {
+            if (_legArrivalArmed && !_legArrivalPending && (_atDest || passed || _stoppedNear)) {
                 console.log("NavBar LEG ARRIVAL leg=" + _completedLegs + " final=" + _isFinalLeg
                             + " dist=" + distToDest.toFixed(1) + " passed=" + passed)
                 _legArrivalPending = true
                 _legArrivalArmed   = false
                 bar.legArrivalReached(_completedLegs, _isFinalLeg)
             } else if (!_legArrivalPending && !_legArrivalArmed) {
+                if (_legArmOnLeave) {
+                    // Venimos de confirmar la parada anterior: basta con haber salido del
+                    // destino nuevo. No se exigen los 50 m del descarte manual, que dejarían
+                    // sin preguntar dos paradas próximas entre sí.
+                    if (!_atDest) { _legArrivalArmed = true; _legArmOnLeave = false }
+                }
                 // Rearmar: te has alejado (>50 m) o sigues parado cerca >5 s tras descartar
-                if (distToDest > 50)
+                else if (distToDest > 50)
                     _legArrivalArmed = true
                 else if (_stoppedNear && _legDismissMs > 0 && (_nowA - _legDismissMs) > 5000)
                     _legArrivalArmed = true
@@ -699,6 +731,7 @@ Rectangle {
     onRouteDataChanged: {
         _step = 0; _offCount = 0; _status = "nav"; _arrivedEmitted = false; _completedLegs = 0; _lastUpdateMs = 0
         _legArrivalPending = false; _legArrivalArmed = true; _legDismissMs = 0; _legStoppedMs = 0
+        _legArmOnLeave = false
         _navStartMs = Date.now()
         if (routeData && routeData.shape && routeData.shape.length > 0) {
             _realLat = routeData.shape[0][1]
