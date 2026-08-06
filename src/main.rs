@@ -32,6 +32,7 @@ use cpp::cpp;
 mod i18n_units;
 mod nav_http;
 mod nav_music;
+mod nav_osk;
 mod nav_power;
 mod nav_tile_cache;
 mod nav_tracker;
@@ -41,6 +42,7 @@ mod satellite_model;
 
 use i18n_units::{NavI18n, NavUnits};
 use nav_http::NavHttp;
+use nav_osk::NavOsk;
 use nav_power::NavPower;
 use nav_tile_cache::NavTileCache;
 use nav_tracker::NavTracker;
@@ -70,6 +72,7 @@ fn main() {
             QCoreApplication::setApplicationName(QStringLiteral("navius"));
         }}
     }
+
     // Estilo QQC2 estándar del sistema (Suru era exclusivo del SDK Lomiri, no
     // existe en postmarketOS). Material viene siempre con qt5-qtquickcontrols2,
     // sin depender de ningún paquete extra.
@@ -108,6 +111,14 @@ fn main() {
     );
 
     let mut engine = QmlEngine::new();
+
+    // Instancia única: si ya hay un navius corriendo (nombre D-Bus ya reservado
+    // en el bus de sesión), esta segunda instancia se cierra sin llegar a
+    // cargar Main.qml, en vez de abrir una segunda app en paralelo.
+    if already_running() {
+        return;
+    }
+
     engine.set_property("appVersion".into(), QString::from(env!("CARGO_PKG_VERSION")).into());
     engine.set_property("sharedUri".into(), QString::from(shared_uri).into());
 
@@ -132,12 +143,33 @@ fn main() {
     engine.set_object_property("units".into(), unsafe { QObjectPinned::new(nav_units) });
     engine.set_object_property("i18n".into(),  unsafe { QObjectPinned::new(nav_i18n) });
 
+    // `navOsk`: teclado en pantalla vía D-Bus propio de Phosh (ver
+    // src/nav_osk.rs) — usado por qml/TextInput.qml (sombrea el TextInput de
+    // QtQuick para todo el proyecto).
+    let nav_osk: &'static RefCell<NavOsk> = Box::leak(Box::new(RefCell::new(NavOsk::default())));
+    engine.set_object_property("navOsk".into(), unsafe { QObjectPinned::new(nav_osk) });
+
     // El plugin QML MapboxMap ahora viene del paquete del sistema
     // mapbox-gl-qml (usr/lib/qt5/qml/MapboxMap), ya en el import path por
     // defecto de Qt — no hace falta añadir ningún directorio extra.
     engine.add_import_path("qrc:/qml".into());
     engine.load_file("qrc:/qml/Main.qml".into());
     engine.exec();
+}
+
+// Reserva un nombre en el bus de sesión D-Bus (org.navius.App). Si ya está
+// cogido, hay otra instancia viva y esta debe cederle el turno sin cargar QML.
+fn already_running() -> bool {
+    unsafe {
+        cpp! { {
+            #include <QtDBus/QDBusConnection>
+            #include <QtCore/QString>
+        }}
+        cpp!([] -> bool as "bool" {
+            return !QDBusConnection::sessionBus().registerService(
+                QStringLiteral("org.navius.App"));
+        })
+    }
 }
 
 fn init_gettext() {

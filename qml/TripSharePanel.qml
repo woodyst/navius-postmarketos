@@ -82,7 +82,7 @@ Item {
                     color: "#1C2A3A"; radius: units.gu(0.6)
                     border { color: "#29B6F6"; width: units.gu(0.12) }
 
-                    TextInput {
+                    NavTextInput {
                         id: urlInput
                         anchors {
                             fill: parent

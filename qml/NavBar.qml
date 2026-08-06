@@ -917,7 +917,7 @@ Rectangle {
                         width: parent.width
                         visible: bar._status === "nav"
                         text: NavSearch.formatDist(bar._stepDistKm, bar.imperial)
-                        color: "#29B6F6"; font.pixelSize: ts(2.75); font.bold: true
+                        color: "#29B6F6"; font.pixelSize: ts(2.2); font.bold: true
                     }
 
                     // Instrucción principal
@@ -933,7 +933,7 @@ Rectangle {
                         }
                         color: bar._status === "offroute"  ? "#FFA726" :
                                bar._status === "rerouting" ? "#B0BEC5" : "white"
-                        font.pixelSize: ts(2.4); font.bold: true
+                        font.pixelSize: ts(1.9); font.bold: true
                         wrapMode: Text.WordWrap
                     }
 
@@ -947,7 +947,7 @@ Rectangle {
                             var nx = man[bar._step + 2]
                             return "▸ " + (nx.verbal_pre_transition_instruction || nx.instruction || "")
                         }
-                        color: "#B0BEC5"; font.pixelSize: ts(1.9)
+                        color: "#B0BEC5"; font.pixelSize: ts(1.5)
                         elide: Text.ElideRight
                     }
 

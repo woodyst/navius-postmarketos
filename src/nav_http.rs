@@ -6,6 +6,21 @@ cpp! {{
     #include <QtNetwork/QNetworkAccessManager>
     #include <QtNetwork/QNetworkRequest>
     #include <QtNetwork/QNetworkReply>
+    #include <QtDBus/QDBusConnection>
+    #include <QtDBus/QDBusConnectionInterface>
+    #include <QtDBus/QDBusReply>
+
+    // Arranca OSM Scout Server por activación D-Bus si no está ya corriendo
+    // (io.github.rinigus.OSMScoutServer.service ya lo declara con
+    // Exec=osmscout-server --dbus-activated --quiet). Si el bus name ya tiene
+    // dueño, startService() no hace nada y devuelve éxito igualmente.
+    extern "C" bool navius_ensure_osmscout() {
+        auto *iface = QDBusConnection::sessionBus().interface();
+        if (!iface) return false;
+        QDBusReply<void> reply = iface->startService(
+            QStringLiteral("io.github.rinigus.OSMScoutServer"));
+        return reply.isValid();
+    }
 
     extern "C" void navius_http_done(uintptr_t obj_ptr, int32_t req_id,
                                       const uint8_t* body_ptr, int32_t body_len,
@@ -55,6 +70,7 @@ extern "C" {
         ua_ptr:   *const u8, ua_len:   i32,
         req_id:   i32,
     );
+    fn navius_ensure_osmscout() -> bool;
 }
 
 #[derive(QObject, Default)]
@@ -79,6 +95,12 @@ pub struct NavHttp {
     // Quita una pista de la biblioteca (symlink → solo el enlace).
     pub music_remove: qt_method!(fn music_remove(&mut self, name: QString) -> bool {
         crate::nav_music::remove_track(&Into::<String>::into(name))
+    }),
+
+    // QML: navHttp.ensure_osmscout_running() — activa OSM Scout Server por
+    // D-Bus (io.github.rinigus.OSMScoutServer) si no está ya corriendo.
+    pub ensure_osmscout_running: qt_method!(fn ensure_osmscout_running(&mut self) -> bool {
+        unsafe { navius_ensure_osmscout() }
     }),
 
     // QML: navHttp.post(url, formData, reqId)

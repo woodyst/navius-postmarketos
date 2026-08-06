@@ -1,6 +1,7 @@
 qrc!(qml_resources,
     "/" {
         "qml/Main.qml",
+        "qml/NavTextInput.qml",
         "qml/CompassWidget.qml",
         "qml/PreferencesPanel.qml",
         "qml/PrefListItem.qml",

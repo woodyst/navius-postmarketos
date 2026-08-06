@@ -1,0 +1,6 @@
+# Qt5 en Alpine/postmarketOS solo existe como .so, nunca .a. El target musl
+# activa crt-static por defecto, lo que hace que rustc intente enlazar Qt5
+# estáticamente (falla: "cannot find -lQt5Quick" etc.). Se desactiva aquí para
+# que el enlace final sea dinámico contra las Qt5 del sistema.
+[build]
+rustflags = ["-C", "target-feature=-crt-static"]

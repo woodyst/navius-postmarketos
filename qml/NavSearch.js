@@ -46,13 +46,21 @@ function setValhallaUrl(url)     { if (url && url.length > 4) VALHALLA = url }
 function setFallbackUrl(url)     { _fallbackUrl = (url && url.length > 4) ? url : null }
 function valhallaHost()          { return VALHALLA.replace(/^https?:\/\//, "").replace(/\/.*$/, "") }
 
-function detectOsmScout(cb) {
+// autoLaunch: false = solo comprobar si ya está corriendo (arranque de la app,
+// preferOsmScout pasivo — NO debe arrancar el servidor solo). true = intención
+// explícita del usuario de usar OSM Scout (botón "detectar", diálogo de fallback,
+// elegirlo como fuente de mapa) — sí lo arranca por activación D-Bus si hace falta.
+function detectOsmScout(cb, autoLaunch) {
     // Fase 1: intento rápido — ya está corriendo
     _detectOsmScoutTry(function(found) {
         if (found) { cb(true); return }
-        // Fase 2: intento largo — DBus lo arranca (hasta 30 s para cargar mapas)
-        _fileDump("OSM Scout: no estaba corriendo — esperando activación DBus (30s)…")
+        if (!autoLaunch) { cb(false); return }
+        // Fase 2: lo arrancamos nosotros por activación D-Bus (io.github.rinigus.
+        // OSMScoutServer, ver ensure_osmscout_running en NavHttp) y esperamos
+        // hasta 30s a que cargue mapas y responda.
+        _fileDump("OSM Scout: no estaba corriendo — activando por D-Bus (hasta 30s)…")
         _logMsg("OSM Scout: activando…")
+        if (_navHttp) _navHttp.ensure_osmscout_running()
         _detectOsmScoutTry(cb, 1, 99, 30000)
     }, 2, 0, 2000)
 }

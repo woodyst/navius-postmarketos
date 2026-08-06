@@ -76,6 +76,13 @@ fn piper_enqueue(job: PiperJob) {
 // libpcaudio.so.0, libpiper_limit.so). Ruta fija, no depende de $HOME.
 const APP_ROOT: &str = "/usr/lib/navius";
 
+// piper (Fase 8: aport propio, paquete normal del sistema) y la ruta de
+// espeak-ng-data que necesita en runtime (sin --espeak_data explícito,
+// piper busca por defecto un directorio "espeak-ng-data" hermano de su
+// propio binario, convención del tarball de release que no aplica aquí).
+const PIPER_BIN: &str = "/usr/bin/piper";
+const ESPEAK_NG_DATA_DIR: &str = "/usr/share/espeak-ng-data";
+
 /// Directorio HOME del usuario actual (variable, a diferencia de Ubuntu Touch
 /// donde el usuario del sistema era siempre el mismo, fijo).
 fn home_dir() -> String {
@@ -355,13 +362,12 @@ fn espeak_voice(lang: &str) -> &'static str {
 // ── Engine selection ─────────────────────────────────────────────────────────
 
 fn try_piper(orig: &str, norm: &str, base: &str) -> Option<(Engine, String)> {
-    // El paquete "piper" de postmarketOS/Alpine es libratbag/Piper (GUI de
-    // ratones), NO rhasspy/piper (motor TTS) — no existe como paquete del
-    // sistema. Se usa el binario glibc oficial de rhasspy/piper vendorizado
-    // (vendor/piper_aarch64, con su propio libonnxruntime.so) vía gcompat
-    // (paquete `gcompat` = intérprete/libs de compatibilidad glibc en musl),
-    // instalado junto al resto de binarios propios bajo APP_ROOT/lib.
-    let bin = format!("{APP_ROOT}/lib/piper");
+    // rhasspy/piper compilado nativo para musl (Fase 8, aport propio
+    // pmaports/temp/piper contra onnxruntime/espeak-ng/fmt/spdlog del
+    // sistema) — instalado como paquete normal en /usr/bin/piper. El
+    // paquete "piper" que trae Alpine por defecto (libratbag/Piper, GUI de
+    // ratones, sin relación) queda reemplazado al instalar el nuestro.
+    let bin = PIPER_BIN.to_string();
     if !std::path::Path::new(&bin).exists() {
         log(&format!("try_piper: binary absent: {bin}"));
         return None;
@@ -727,18 +733,18 @@ fn daemon_synthesize(voice: &str, text: &str, out_path: &str) -> bool {
             let _ = old.child.kill();
             let _ = old.child.wait();
         }
-        // Binario glibc oficial de rhasspy/piper vía gcompat (ver try_piper).
-        let bin     = format!("{APP_ROOT}/lib/piper");
-        let lib_dir = format!("{APP_ROOT}/lib");
+        // piper nativo musl, paquete normal del sistema (ver try_piper) — ya no
+        // hace falta LD_LIBRARY_PATH (sus deps onnxruntime/espeak-ng/fmt/spdlog
+        // están en /usr/lib estándar). libpiper_limit.so (nice+10) se mantiene.
         let shim    = format!("{APP_ROOT}/lib/libpiper_limit.so");
-        let mut cmd = std::process::Command::new(&bin);
-        cmd.env("LD_LIBRARY_PATH", &lib_dir)
-           .env("LD_PRELOAD",      &shim)
+        let mut cmd = std::process::Command::new(PIPER_BIN);
+        cmd.env("LD_PRELOAD",      &shim)
            .env("OMP_NUM_THREADS", "2")
            .env("GOMP_SPINCOUNT",  "0")
            .arg("--model").arg(voice)
            .arg("--json-input")
            .arg("--num-threads").arg("2")
+           .arg("--espeak_data").arg(ESPEAK_NG_DATA_DIR)
            .arg("--quiet")
            .stdin(std::process::Stdio::piped())
            .stdout(std::process::Stdio::piped())
@@ -1571,7 +1577,7 @@ pub struct NavTts {
     pub engine_available: qt_method!(fn engine_available(&self, name: QString) -> bool {
         let name: String = name.into();
         match name.as_str() {
-            "piper"   => std::path::Path::new(&format!("{APP_ROOT}/lib/piper")).exists(),
+            "piper"   => std::path::Path::new(PIPER_BIN).exists(),
             "mimic"   => std::path::Path::new(&format!("{APP_ROOT}/lib/mimic_hts_es")).exists(),
             "picotts" => std::path::Path::new(&format!("{APP_ROOT}/lib/pico2wave")).exists(),
             "espeak"  => true,

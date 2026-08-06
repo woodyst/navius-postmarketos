@@ -17,15 +17,16 @@ depends="
 	qt5-qtwayland
 	mapbox-gl-qml
 	espeak-ng
-	gcompat
+	piper
 	sqlite-libs
 	gettext
 	geoclue
 	"
-# OJO: el paquete "piper" de postmarketOS/Alpine es libratbag/Piper (GUI de
-# ratones gaming), NO rhasspy/piper (motor TTS neural) — NO añadir a depends,
-# son proyectos homónimos sin relación. El motor TTS real se vendoriza como
-# binario glibc (vendor/piper_aarch64) y se ejecuta vía gcompat, ver build().
+# "piper" aquí es nuestro aport propio (pmaports/temp/piper, Fase 8): el
+# paquete "piper" que trae Alpine por defecto es libratbag/Piper (GUI de
+# ratones gaming, sin relación) y queda reemplazado al instalar el nuestro
+# (rhasspy/piper compilado nativo musl contra onnxruntime/espeak-ng/fmt/
+# spdlog del sistema — ya no gcompat ni binario glibc vendorizado).
 makedepends="
 	cargo
 	rust
@@ -43,14 +44,9 @@ makedepends="
 # gettext (no gettext-tiny) para xgettext/msgmerge/msgfmt en build.rs — ambos
 # paquetes proveen los mismos comandos y se pisan entre sí, apk no deja tener
 # los dos a la vez.
-# !tracedeps: el paquete incluye vendor/piper_aarch64 (rhasspy/piper, binario
-# glibc + sus .so propios como libonnxruntime.so/libpiper_phonemize.so, pensado
-# para ejecutarse vía gcompat). El rastreador automático de dependencias de
-# abuild solo entiende ABI musl y falla al no encontrar paquetes musl que
-# provean las entradas NEEDED glibc de esos binarios (ej. "libdl.so.2: path
-# not found") — es exactamente el escenario para el que existe !tracedeps.
-# depends= ya declara gcompat explícitamente a mano.
-options="!check !tracedeps net"
+# !tracedeps ya NO hace falta (Fase 8): piper es ahora un binario musl nativo
+# normal, sin entradas NEEDED glibc que el rastreador de abuild no entienda.
+options="!check net"
 # abuild SIEMPRE limpia $srcdir antes de build() (parte normal de su ciclo de
 # vida, no un bug) — su default es "$startdir/src", que colisiona con nuestro
 # propio directorio src/ (fuentes Rust) y lo borra por completo (ocurrió una
@@ -62,12 +58,9 @@ options="!check !tracedeps net"
 srcdir="$startdir/.abuild-srcdir"
 builddir="$startdir"
 
-# Dos directorios vendor NO van en git por tamaño — deben sincronizarse antes
-# de compilar (ver README.md del repo):
-#   extras/mimic/        (~320MB, fuente de Mimic1 sin _build/voices)
-#   vendor/piper_aarch64/ (~90MB, binario oficial de rhasspy/piper para
-#                          aarch64/glibc + sus .so — se ejecuta vía gcompat
-#                          porque no existe paquete Alpine para rhasspy/piper)
+# extras/mimic/ (~320MB, fuente de Mimic1 sin _build/voices) NO va en git por
+# tamaño — debe sincronizarse antes de compilar (ver README.md del repo).
+# piper ya no se vendoriza (Fase 8): es el paquete "piper" propio (depends=).
 
 build() {
 	# ── Mimic HTS (motor TTS en español) ────────────────────────────────
@@ -193,12 +186,6 @@ package() {
 	install -Dm755 "$builddir"/libpcaudio.so.0    "$navlib"/libpcaudio.so.0
 	install -Dm755 "$builddir"/libpiper_limit.so  "$navlib"/libpiper_limit.so
 
-	# rhasspy/piper (glibc, vendorizado) + sus .so propios (libonnxruntime,
-	# libpiper_phonemize, su propio libespeak-ng.so interno para fonemizar,
-	# datos de idioma y el modelo tashkeel) — se ejecuta vía gcompat
-	# (LD_LIBRARY_PATH=$navlib, ver nav_tts.rs). Se copia el árbol completo
-	# tal cual venía en el release oficial para preservar cualquier ruta
-	# relativa interna que piper_phonemize pueda asumir.
-	cp -a "$builddir"/vendor/piper_aarch64/. "$navlib"/
-	chmod 755 "$navlib"/piper "$navlib"/piper_phonemize 2>/dev/null || true
+	# piper ya no se instala aquí (Fase 8): viene del paquete "piper" propio
+	# (depends=, /usr/bin/piper + /usr/lib/libpiper_phonemize.so*).
 }

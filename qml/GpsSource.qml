@@ -465,6 +465,9 @@ Item {
             while (si < simRoute.length - 2 && _simRouteCumDistM[si + 1] <= _simDistM) si++
             var routeSpd = simRoute[si].spd
             var effSpd   = commSpeedLimitKmh > 0 ? commSpeedLimitKmh : routeSpd
+            // simMinSpeedKmh: suelo para no arrastrarse en tramos Valhalla muy lentos
+            // (declarada desde hace tiempo pero nunca aplicada — bug preexistente).
+            if (simMinSpeedKmh > 0) effSpd = Math.max(effSpd, simMinSpeedKmh)
             var effSpdMs = effSpd * bias / 3.6
 
             _simDistM += effSpdMs * dt
@@ -587,6 +590,10 @@ Item {
             if (interpUseVhRatio && routeShapeSpeedKmh
                     && _lastRealTickPos.idx < routeShapeSpeedKmh.length) {
                 var vVh = routeShapeSpeedKmh[_lastRealTickPos.idx] / 3.6
+                // Mismo suelo que en _simAdvance(): si no se aplica aquí, el ratio
+                // v/vVh se satura en el tope ±3× cuando el suelo eleva v muy por
+                // encima de la vVh original, y la interpolación va a saltos.
+                if (simMinSpeedKmh > 0) vVh = Math.max(vVh, simMinSpeedKmh / 3.6)
                 if (vVh > 0.1) {
                     var ratio = Math.max(0.1, Math.min(3.0, v / vVh))
                     v = vVh * ratio

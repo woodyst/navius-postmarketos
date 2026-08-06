@@ -245,7 +245,7 @@ Rectangle {
                             anchors { left: parent.left; leftMargin: units.gu(2); right: pCancelBtn.left; rightMargin: units.gu(0.5); verticalCenter: parent.verticalCenter }
                             height: units.gu(3.5)
                             Rectangle { anchors.fill: parent; color: "#0D1B2A"; radius: units.gu(0.3) }
-                            TextInput {
+                            NavTextInput {
                                 anchors { left: parent.left; leftMargin: units.gu(0.5); right: parent.right; rightMargin: units.gu(0.5); verticalCenter: parent.verticalCenter }
                                 text: pendRow._editText
                                 onTextChanged: pendRow._editText = text
@@ -358,7 +358,7 @@ Rectangle {
                             anchors { left: parent.left; leftMargin: units.gu(2); right: dCancelBtn.left; rightMargin: units.gu(0.5); verticalCenter: parent.verticalCenter }
                             height: units.gu(3.5)
                             Rectangle { anchors.fill: parent; color: "#0D1B2A"; radius: units.gu(0.3) }
-                            TextInput {
+                            NavTextInput {
                                 anchors { left: parent.left; leftMargin: units.gu(0.5); right: parent.right; rightMargin: units.gu(0.5); verticalCenter: parent.verticalCenter }
                                 text: doneRow._editText
                                 onTextChanged: doneRow._editText = text

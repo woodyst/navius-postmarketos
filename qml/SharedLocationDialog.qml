@@ -75,7 +75,7 @@ Item {
                 color: "#1C2A3A"; radius: units.gu(0.6)
                 border.color: nameInput.activeFocus ? "#29B6F6" : "#37474F"
                 border.width: units.gu(0.12)
-                TextInput {
+                NavTextInput {
                     id: nameInput
                     anchors {
                         left: parent.left; right: parent.right

@@ -95,7 +95,7 @@ Item {
                 width: parent.width; height: units.gu(5)
                 color: "#252540"; radius: units.gu(0.7)
                 border.color: aliasField.activeFocus ? "#29B6F6" : "#37474F"; border.width: 1
-                TextInput {
+                NavTextInput {
                     id: aliasField
                     anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter
                               leftMargin: units.gu(1.2); rightMargin: units.gu(1.2) }

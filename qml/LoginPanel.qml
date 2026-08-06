@@ -213,7 +213,7 @@ Item {
                 width: parent.width; height: units.gu(5.5)
                 color: "#131F2E"; radius: units.gu(0.8)
                 border.color: emailField.activeFocus ? "#29B6F6" : "#1E3A5F"; border.width: 1
-                TextInput {
+                NavTextInput {
                     id: emailField
                     anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter
                               leftMargin: units.gu(1.5); rightMargin: units.gu(1.5) }
@@ -236,7 +236,7 @@ Item {
                 width: parent.width; height: units.gu(5.5)
                 color: "#131F2E"; radius: units.gu(0.8)
                 border.color: passField.activeFocus ? "#29B6F6" : "#1E3A5F"; border.width: 1
-                TextInput {
+                NavTextInput {
                     id: passField
                     anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter
                               leftMargin: units.gu(1.5); rightMargin: units.gu(1.5) }
@@ -263,7 +263,7 @@ Item {
                 width: parent.width; height: units.gu(5.5)
                 color: "#131F2E"; radius: units.gu(0.8)
                 border.color: pass2Field.activeFocus ? "#29B6F6" : "#1E3A5F"; border.width: 1
-                TextInput {
+                NavTextInput {
                     id: pass2Field
                     anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter
                               leftMargin: units.gu(1.5); rightMargin: units.gu(1.5) }
