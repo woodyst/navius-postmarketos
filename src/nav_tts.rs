@@ -80,8 +80,22 @@ const APP_ROOT: &str = "/usr/lib/navius";
 // espeak-ng-data que necesita en runtime (sin --espeak_data explícito,
 // piper busca por defecto un directorio "espeak-ng-data" hermano de su
 // propio binario, convención del tarball de release que no aplica aquí).
-const PIPER_BIN: &str = "/usr/bin/piper";
+// El binario se instala como "piper-tts" y no como "piper" porque en Alpine
+// ese nombre ya lo ocupa libratbag/Piper (una GUI para ratones): dos paquetes
+// no pueden instalar /usr/bin/piper. Se mantiene /usr/bin/piper como respaldo
+// para quien tenga instalada la versión anterior del aport.
+const PIPER_BIN_CANDIDATES: [&str; 2] = ["/usr/bin/piper-tts", "/usr/bin/piper"];
 const ESPEAK_NG_DATA_DIR: &str = "/usr/share/espeak-ng-data";
+
+/// Primer binario de piper presente en el sistema, o el nombre preferido si no
+/// hay ninguno (para que los mensajes de error digan cuál se buscaba).
+fn piper_bin() -> &'static str {
+    PIPER_BIN_CANDIDATES
+        .iter()
+        .copied()
+        .find(|p| std::path::Path::new(p).exists())
+        .unwrap_or(PIPER_BIN_CANDIDATES[0])
+}
 
 /// Directorio HOME del usuario actual (variable, a diferencia de Ubuntu Touch
 /// donde el usuario del sistema era siempre el mismo, fijo).
@@ -393,7 +407,7 @@ fn try_piper(orig: &str, norm: &str, base: &str) -> Option<(Engine, String)> {
     // sistema) — instalado como paquete normal en /usr/bin/piper. El
     // paquete "piper" que trae Alpine por defecto (libratbag/Piper, GUI de
     // ratones, sin relación) queda reemplazado al instalar el nuestro.
-    let bin = PIPER_BIN.to_string();
+    let bin = piper_bin().to_string();
     if !std::path::Path::new(&bin).exists() {
         log(&format!("try_piper: binary absent: {bin}"));
         return None;
@@ -763,7 +777,7 @@ fn daemon_synthesize(voice: &str, text: &str, out_path: &str) -> bool {
         // hace falta LD_LIBRARY_PATH (sus deps onnxruntime/espeak-ng/fmt/spdlog
         // están en /usr/lib estándar). libpiper_limit.so (nice+10) se mantiene.
         let shim    = format!("{APP_ROOT}/lib/libpiper_limit.so");
-        let mut cmd = std::process::Command::new(PIPER_BIN);
+        let mut cmd = std::process::Command::new(piper_bin());
         cmd.env("LD_PRELOAD",      &shim)
            .env("OMP_NUM_THREADS", "2")
            .env("GOMP_SPINCOUNT",  "0")
@@ -1603,7 +1617,7 @@ pub struct NavTts {
     pub engine_available: qt_method!(fn engine_available(&self, name: QString) -> bool {
         let name: String = name.into();
         match name.as_str() {
-            "piper"   => std::path::Path::new(PIPER_BIN).exists(),
+            "piper"   => PIPER_BIN_CANDIDATES.iter().any(|p| std::path::Path::new(p).exists()),
             "mimic"   => std::path::Path::new(&format!("{APP_ROOT}/lib/mimic_hts_es")).exists(),
             "picotts" => std::path::Path::new(&format!("{APP_ROOT}/lib/pico2wave")).exists(),
             "espeak"  => true,
