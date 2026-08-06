@@ -24,8 +24,12 @@ ApplicationWindow {
     id: root
     objectName: 'mainView'
 
-    width:   units.gu(45)
-    height:  units.gu(80)
+    // Tamaño inicial = pantalla completa. Antes era units.gu(45)×units.gu(80)
+    // (el "phone portrait" de Ubuntu Touch), pero con el grid unit ya ajustado
+    // a la escala real de Phosh eso pedía una ventana mucho más pequeña que la
+    // pantalla y dependía de que el compositor la maximizara.
+    width:   Screen.width  > 0 ? Screen.width  : units.gu(45)
+    height:  Screen.height > 0 ? Screen.height : units.gu(80)
     visible: true
 
     SatelliteModel { id: satModel }
@@ -210,7 +214,7 @@ ApplicationWindow {
         property bool   tracesEnabled:    false // activa trazas (net_debug, tts, piper) y TUI
         property bool   debugCleanOnExit: false // borra todos los ficheros debug al salir
         property bool   showZoomSlider:  false  // muestra barra lateral de zoom
-        property bool   showSimScrubber: true  // muestra el desplegable de posición GPS simulada
+        property bool   showSimScrubber: false  // muestra el desplegable de posición GPS simulada
         property bool   showVSimDebug:        false // muestra el panel debug de velocidades
         property bool   showGpsSmoothDebug:   false // muestra panel de funciones de suavizado GPS
         property bool   showImuDebug:         false // muestra panel de debug IMU (NavImu)
@@ -265,6 +269,9 @@ ApplicationWindow {
         property int    snapDistM:          11      // distancia máx de ajuste a la ruta (m, 5-15)
         property int    offRouteDistM:     11       // distancia para detectar desvío y recalcular (m, 5-15)
         property real   textScale:         1.0      // escala global de texto (0.8 – 1.5)
+        property real   uiScale:           1.0      // escala global de la UI: multiplica el grid unit
+                                                    // (lo lee Rust al arrancar, ver src/i18n_units.rs;
+                                                    //  requiere reiniciar para aplicarse)
         property bool   inhibitSuspend:      true   // inhibe suspensión durante navegación activa
         property bool   showRoadSpeedLimit:  false  // mostrar límite de la vía (fuente no fiable)
         property real   duckVolume:          0.70   // volumen de música durante TTS (0.10 – 1.00)
@@ -2399,6 +2406,12 @@ ApplicationWindow {
         NavSearch.probeOverpassServers()
         NavSearch.setFileLogCallback(function(msg) { satModel.log_to_file(msg) })
         NavSearch.setLogCallback(function(msg)     { satModel.log_to_file(msg) })
+        // NavSearch.js no usa .pragma library: cada import tiene su propio estado
+        // aislado. SearchPanel.qml ya fija su navHttp para sus propias llamadas,
+        // pero este import de Main.qml (usado por onOsmScoutDetectRequested,
+        // ServerFallbackDialog.onUseOsmScout, onMapOnlineSourceChanged) necesita
+        // el suyo — si no, ensure_osmscout_running() nunca se invoca (_navHttp null).
+        NavSearch.setNavHttp(navHttp)
         NavSearch.setStatusPushCallback(function(text, color) { root._pushStatus(text, color) })
         NavSearch.setDeferFn(function(fn, ms) {
             if (ms && ms > 0) {
@@ -3134,8 +3147,12 @@ ApplicationWindow {
         cacheDatabaseDefaultPath: !_usingOsmScoutMaps
         cacheDatabaseMaximalSize: _usingOsmScoutMaps ? 0 : appSettings.mapCacheMaxMb * 1024 * 1024
 
-        onDayUrlChanged:  if (_layersInit) Qt.callLater(applyLightMode)
-        onNightUrlChanged: if (_layersInit) Qt.callLater(applyLightMode)
+        onDayUrlChanged:      if (_layersInit) Qt.callLater(applyLightMode)
+        onNightUrlChanged:    if (_layersInit) Qt.callLater(applyLightMode)
+        onPositronUrlChanged: if (_layersInit) Qt.callLater(applyLightMode)
+        onBrightUrlChanged:   if (_layersInit) Qt.callLater(applyLightMode)
+        onFiordUrlChanged:    if (_layersInit) Qt.callLater(applyLightMode)
+        onDarkUrlChanged:     if (_layersInit) Qt.callLater(applyLightMode)
 
         onErrorChanged: {
             satModel.log_to_file("MapboxMap.error: " + error)
@@ -3146,7 +3163,12 @@ ApplicationWindow {
         styleUrl:   dayUrl
         center:     QtPositioning.coordinate(appSettings.lastLat, appSettings.lastLon)
         zoomLevel:  appSettings.lastZoom
-        pixelRatio: (Screen.devicePixelRatio || 1) * 4.0
+        // ×4.0 se calibró para cómo UT/Lomiri reportaba devicePixelRatio; en
+        // postmarketOS/Phosh (epolan: devicePixelRatio=3, = escalado del sistema
+        // al 300%) eso daba pixelRatio=12, haciendo la ruta/líneas visiblemente
+        // más gordas que en UT. Calibrado en dispositivo: ×1.0 (pixelRatio=3)
+        // queda muy pequeño, ×2.0 (pixelRatio=6) es el valor bueno confirmado.
+        pixelRatio: (Screen.devicePixelRatio || 1) * 2.0
 
         property bool   followMode:   true
         property bool   _gpsUpdating: false
@@ -3531,7 +3553,7 @@ ApplicationWindow {
                 mapView.addLayer("nav-route-leg-line-" + lci, {"type": "line", "source": lsrc})
                 mapView.setPaintProperty("nav-route-leg-line-" + lci, "line-color",   legColors[lci])
                 mapView.setPaintProperty("nav-route-leg-line-" + lci, "line-width",   6)
-                mapView.setPaintProperty("nav-route-leg-line-" + lci, "line-opacity", 0.90)
+                mapView.setPaintProperty("nav-route-leg-line-" + lci, "line-opacity", 0.72)
                 mapView.setLayoutProperty("nav-route-leg-line-" + lci, "line-cap",  "round")
                 mapView.setLayoutProperty("nav-route-leg-line-" + lci, "line-join", "round")
                 mapView.setLayoutProperty("nav-route-leg-line-" + lci, "visibility", "none")
@@ -7785,7 +7807,7 @@ ApplicationWindow {
             Label {
                 anchors.centerIn: parent
                 text: i18n.tr("Satélites"); color: "white"
-                font.pixelSize: 20; font.bold: true
+                font.pixelSize: units.gu(2.5); font.bold: true
             }
 
             Rectangle {
@@ -7894,7 +7916,7 @@ ApplicationWindow {
                     root._startupMsg = i18n.tr("OSM Scout no disponible · usando ") + appSettings.valhallaUrl.replace("https://","").replace("http://","")
                 }
                 startupMsgTimer.restart()
-            })
+            }, true)  // autoLaunch: acción explícita del usuario al pulsar "Detectar"
         }
         onEngineChanged: function(engine) {
             _applyTtsLang()
@@ -8575,13 +8597,22 @@ ApplicationWindow {
     Connections {
         target: appSettings
         onMapOnlineSourceChanged: {
-            if (appSettings.mapOnlineSource === "osmscout" && root._osmScoutActive)
+            if (appSettings.mapOnlineSource === "osmscout" && root._osmScoutActive) {
                 root._startupMsg = i18n.tr("Mapa online: OSM Scout")
-            else if (appSettings.mapOnlineSource === "osmscout")
-                root._startupMsg = i18n.tr("Mapa online: OSM Scout (no disponible · usando Mapbox)")
-            else
+                startupMsgTimer.restart()
+            } else if (appSettings.mapOnlineSource === "osmscout") {
+                // Elección explícita del usuario: intentar detectar y arrancar si hace falta.
+                NavSearch.detectOsmScout(function(found) {
+                    root._osmScoutActive = found
+                    root._startupMsg = found
+                        ? i18n.tr("Mapa online: OSM Scout")
+                        : i18n.tr("Mapa online: OSM Scout (no disponible · usando Mapbox)")
+                    startupMsgTimer.restart()
+                }, true)
+            } else {
                 root._startupMsg = i18n.tr("Mapa online: Mapbox")
-            startupMsgTimer.restart()
+                startupMsgTimer.restart()
+            }
         }
         onMapOfflineModeChanged: {
             if (appSettings.mapOfflineMode === "osmscout" && root._osmScoutActive)
@@ -9620,7 +9651,7 @@ ApplicationWindow {
                         } else {
                             _osmNotFound = true
                         }
-                    })
+                    }, true)  // autoLaunch: el usuario pulsó "usar OSM Scout" explícitamente
                 }
             })
         }

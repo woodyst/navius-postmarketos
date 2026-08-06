@@ -138,7 +138,7 @@ Rectangle {
         Label {
             anchors.centerIn: parent
             text: i18n.tr("Ajustes"); color: pal.fgPrimary
-            font.pixelSize: 20; font.bold: true
+            font.pixelSize: units.gu(2.5); font.bold: true
         }
 
         Rectangle {
@@ -228,6 +228,7 @@ Rectangle {
                     panel.cfg.show3dBuildings     = true
                     panel.cfg.showZoomSlider      = false
                     panel.cfg.textScale           = 1.0
+                    panel.cfg.uiScale             = 1.0
                     panel.cfg.measureSystem       = "metric"
                     panel.cfg.speedAlertEnabled   = true
                     panel.cfg.speedAlertPct       = 2
@@ -545,7 +546,7 @@ Rectangle {
                             width: parent.width; height: units.gu(5)
                             color: pal.bgInput; radius: units.gu(0.7)
                             border.color: newVehName.activeFocus ? "#29B6F6" : pal.divider; border.width: 1
-                            TextInput {
+                            NavTextInput {
                                 id: newVehName
                                 anchors {
                                     left: parent.left; right: parent.right
@@ -658,6 +659,48 @@ Rectangle {
                         from: 0.70; to: 1.50; stepSize: 0.05; live: true
                         value: panel.cfg ? panel.cfg.textScale : 1.0
                         onValueChanged: if (panel.cfg) panel.cfg.textScale = Math.round(value / 0.05) * 0.05
+                    }
+                }
+            }
+
+            // ── Escala de interfaz ───────────────────────────────────────
+            // Multiplica el grid unit (units.gu) → afecta a TODO: texto,
+            // botones, márgenes. El valor base se calcula al arrancar a partir
+            // del tamaño de pantalla para reproducir la escala de Ubuntu Touch
+            // (ver src/i18n_units.rs); esto es solo el ajuste fino del usuario.
+            // Los bindings de gu() no se re-evalúan en caliente → hace falta
+            // reiniciar la app para que se aplique.
+            Rectangle {
+                width: parent.width; height: uiScaleCol.implicitHeight + units.gu(4)
+                color: pal.bgCard; radius: 0
+                Column {
+                    id: uiScaleCol
+                    anchors { left: parent.left; right: parent.right; top: parent.top; margins: units.gu(2) }
+                    spacing: units.gu(1)
+                    Item {
+                        width: parent.width; height: units.gu(3)
+                        Label {
+                            anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                            text: i18n.tr("Escala de interfaz"); color: pal.fgPrimary; font.pixelSize: ts(1.8)
+                        }
+                        Label {
+                            anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                            text: panel.cfg ? (Math.round(panel.cfg.uiScale * 100) + " %  ↺ 100 %") : "100 %"
+                            color: "#29B6F6"; font.pixelSize: ts(1.7)
+                        }
+                    }
+                    Slider {
+                        id: uiScaleSlider
+                        width: parent.width
+                        from: 0.60; to: 2.00; stepSize: 0.05; live: true
+                        value: panel.cfg ? panel.cfg.uiScale : 1.0
+                        onValueChanged: if (panel.cfg) panel.cfg.uiScale = Math.round(value / 0.05) * 0.05
+                    }
+                    Label {
+                        width: parent.width; wrapMode: Text.WordWrap
+                        text: i18n.tr("Se aplica al reiniciar la aplicación") +
+                              (units.grid_unit_px ? "  (1 gu = " + units.grid_unit_px.toFixed(1) + " px)" : "")
+                        color: pal.fgSecondary; font.pixelSize: ts(1.5)
                     }
                 }
             }
@@ -895,7 +938,7 @@ Rectangle {
                                 text: i18n.tr("Nombre (ej. Mi servidor)"); color: pal.fgSecondary; font.pixelSize: ts(1.8)
                                 visible: vhLabelIn.text.length === 0
                             }
-                            TextInput {
+                            NavTextInput {
                                 id: vhLabelIn
                                 anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; margins: units.gu(1.5) }
                                 color: pal.fgPrimary; font.pixelSize: ts(1.8); selectionColor: "#29B6F6"
@@ -910,7 +953,7 @@ Rectangle {
                                 text: "https://mi-valhalla.local"; color: pal.fgSecondary; font.pixelSize: ts(1.8)
                                 visible: vhUrlIn.text.length === 0
                             }
-                            TextInput {
+                            NavTextInput {
                                 id: vhUrlIn
                                 anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; margins: units.gu(1.5) }
                                 color: pal.fgPrimary; font.pixelSize: ts(1.8); selectionColor: "#29B6F6"
@@ -2137,7 +2180,7 @@ Rectangle {
                             Row {
                                 anchors { fill: parent; margins: units.gu(0.8) }
                                 spacing: units.gu(0.6)
-                                TextInput {
+                                NavTextInput {
                                     id: renameInput
                                     width: parent.width - units.gu(6)
                                     anchors.verticalCenter: parent.verticalCenter
@@ -2181,7 +2224,7 @@ Rectangle {
                             Row {
                                 anchors { fill: parent; margins: units.gu(0.8) }
                                 spacing: units.gu(0.6)
-                                TextInput {
+                                NavTextInput {
                                     id: addSimInput
                                     width: parent.width - units.gu(6)
                                     anchors.verticalCenter: parent.verticalCenter
@@ -3500,7 +3543,7 @@ Rectangle {
                         width: parent.width - ttsSayBtn.width - units.gu(1)
                         height: units.gu(5); radius: units.gu(0.6)
                         color: "#0D1B2A"; border.color: pal.bgBtn; border.width: 1
-                        TextInput {
+                        NavTextInput {
                             id: ttsTestInput
                             anchors { fill: parent; leftMargin: units.gu(1); rightMargin: units.gu(1) }
                             verticalAlignment: TextInput.AlignVCenter

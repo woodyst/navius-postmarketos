@@ -103,7 +103,32 @@ class NmeaSatSource {
         if (talker == QLatin1String("GA")) return 3;
         if (talker == QLatin1String("GB") || talker == QLatin1String("BD")) return 4;
         if (talker == QLatin1String("GQ")) return 5;
-        return 0;  // GN (multi-constelación) u otro: desconocido
+        return 0;  // GN (multi-constelación) u otro: hay que mirar el PRN
+    }
+
+    // Muchos receptores multi-constelación (entre ellos el GNSS del módem de
+    // Qualcomm) no emiten $GLGSV/$GAGSV sino un único $GNGSV con TODAS las
+    // constelaciones mezcladas. Con talker "GN" el sistema no se puede deducir
+    // de la frase, solo del PRN: numeración NMEA 0183 v4.10.
+    static int system_from_prn(int prn) {
+        if (prn >=   1 && prn <=  32) return 1;  // GPS
+        if (prn >=  65 && prn <=  96) return 2;  // GLONASS (algunos usan 64+slot)
+        if (prn >= 301 && prn <= 336) return 3;  // Galileo
+        if (prn >= 201 && prn <= 237) return 4;  // BeiDou
+        if (prn >= 193 && prn <= 199) return 5;  // QZSS
+        return 0;  // 33-64 = SBAS y cualquier otro rango: desconocido
+    }
+
+    // Sistema efectivo de un satélite: manda el talker si es específico; si es
+    // GN (o desconocido) se deduce del PRN; como último recurso, el systemId
+    // que NMEA 4.11 añade al final de las frases GSA/GSV (misma numeración que
+    // la nuestra: 1=GPS 2=GLONASS 3=Galileo 4=BeiDou 5=QZSS).
+    static int resolve_system(int talkerSystem, int prn, int sentenceSystemId) {
+        if (talkerSystem != 0) return talkerSystem;
+        int bySys = system_from_prn(prn);
+        if (bySys != 0) return bySys;
+        if (sentenceSystemId >= 1 && sentenceSystemId <= 5) return sentenceSystemId;
+        return 0;
     }
 
     // Analiza el texto NMEA acumulado (varias líneas $..GSV / $..GSA) y
@@ -116,6 +141,7 @@ class NmeaSatSource {
 
         QMap<QPair<int,int>, SpVehicle> bySystemPrn;  // (system,prn) -> vehicle
         QVector<QPair<int,int>> usedPrns;             // (system,prn) marcados en GSA
+        QMap<QString,int> gsvByTalker;                // diagnóstico: GP/GL/GA/GN...
         int gsvLines = 0, gsaLines = 0, otherLines = 0;
 
         const QStringList lines = text.split(QRegExp("[\r\n]"), Qt::SkipEmptyParts);
@@ -132,12 +158,12 @@ class NmeaSatSource {
             QString talker   = sentence.left(2);      // GP/GL/GA/GB/GQ/GN
             QString type     = sentence.mid(2);       // GSV/GSA/...
 
-            if (type == QLatin1String("GSV")) ++gsvLines;
+            if (type == QLatin1String("GSV")) { ++gsvLines; ++gsvByTalker[talker]; }
             else if (type == QLatin1String("GSA")) ++gsaLines;
             else ++otherLines;
 
             if (type == QLatin1String("GSV") && f.size() >= 4) {
-                int system = talker_to_system(talker);
+                int talkerSystem = talker_to_system(talker);
                 // Campos 4..N en grupos de 4: prn, elev, azim, snr (el último
                 // grupo puede venir incompleto; algunos receptores añaden un
                 // signal-id al final que no encaja en grupos de 4 — se ignora
@@ -152,27 +178,52 @@ class NmeaSatSource {
                     sv.azimuth   = f[i+2].toFloat();
                     sv.snr       = (i + 3 < f.size()) ? f[i+3].toFloat() : 0.0f;
                     sv.used      = false;
-                    sv.system    = system;
-                    bySystemPrn[{system, prn}] = sv;
+                    sv.system    = resolve_system(talkerSystem, prn, 0);
+                    bySystemPrn[{sv.system, prn}] = sv;
                 }
             } else if (type == QLatin1String("GSA") && f.size() >= 15) {
-                int system = talker_to_system(talker);
+                int talkerSystem = talker_to_system(talker);
+                // NMEA 4.11: campo 18 (el último) = systemId de la frase.
+                int sentenceSystemId = (f.size() >= 19) ? f[18].toInt() : 0;
                 for (int i = 3; i <= 14; ++i) {
                     bool ok = false;
                     int prn = f[i].toInt(&ok);
-                    if (ok && prn > 0) usedPrns.append({system, prn});
+                    if (ok && prn > 0)
+                        usedPrns.append({resolve_system(talkerSystem, prn, sentenceSystemId), prn});
                 }
             }
         }
 
-        NAVIUS_TRACE("[navius] nmea: lines=%d gsv=%d gsa=%d other=%d parsed_sats=%d\n",
-                lines.size(), gsvLines, gsaLines, otherLines, bySystemPrn.size());
+        QString talkerSummary;
+        for (auto it = gsvByTalker.constBegin(); it != gsvByTalker.constEnd(); ++it)
+            talkerSummary += QStringLiteral("%1=%2 ").arg(it.key()).arg(it.value());
+        NAVIUS_TRACE("[navius] nmea: lines=%d gsv=%d gsa=%d other=%d parsed_sats=%d gsv_talkers=[%s]\n",
+                lines.size(), gsvLines, gsaLines, otherLines, bySystemPrn.size(),
+                talkerSummary.trimmed().toUtf8().constData());
         if (bySystemPrn.isEmpty()) return;  // bloque sin GSV útil: no pisar datos previos
 
         for (const auto &key : usedPrns) {
             auto it = bySystemPrn.find(key);
-            if (it != bySystemPrn.end()) it->used = true;
+            if (it != bySystemPrn.end()) {
+                it->used = true;
+                continue;
+            }
+            // El GSA puede resolver el sistema distinto que el GSV (p.ej. GSV
+            // con talker GL y GSA con GN y PRN fuera de rango): entonces se
+            // casa solo por PRN, que dentro de un mismo bloque es único.
+            for (auto sv = bySystemPrn.begin(); sv != bySystemPrn.end(); ++sv)
+                if (sv->prn == key.second) sv->used = true;
         }
+
+        // Reparto por constelación, para ver de un vistazo si el módem está
+        // dando solo GPS o multi-constelación.
+        QMap<int,int> bySystem;
+        for (const SpVehicle &sv : bySystemPrn) ++bySystem[sv.system];
+        QString systemSummary;
+        for (auto it = bySystem.constBegin(); it != bySystem.constEnd(); ++it)
+            systemSummary += QStringLiteral("%1=%2 ").arg(it.key()).arg(it.value());
+        NAVIUS_TRACE("[navius] nmea: sats por sistema (1=GPS 2=GLO 3=GAL 4=BDS 5=QZSS 0=?): %s\n",
+                systemSummary.trimmed().toUtf8().constData());
 
         m_vehicles = QVector<SpVehicle>(bySystemPrn.begin(), bySystemPrn.end());
         m_updated  = true;

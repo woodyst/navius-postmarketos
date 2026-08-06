@@ -16,9 +16,20 @@ Item {
     property var  satModel:    null
     property bool isLandscape: false
 
+    // Sistema: 0=desconocido 1=GPS 2=GLONASS 3=Galileo 4=BeiDou 5=QZSS
+    // (ver src/nmea_sat_source.h y src/location_props.cpp)
+    function systemColor(sys) {
+        switch (sys) {
+        case 2:  return "#29B6F6"   // GLONASS
+        case 3:  return "#FFA726"   // Galileo
+        case 4:  return "#AB47BC"   // BeiDou
+        case 5:  return "#EC407A"   // QZSS
+        default: return "#66BB6A"   // GPS (y desconocido)
+        }
+    }
+
     function signalColor(inUse, sys) {
-        if (inUse) return sys === 2 ? "#29B6F6" : "#66BB6A"
-        return "#546E7A"
+        return inUse ? systemColor(sys) : "#546E7A"
     }
 
     // Dibuja la esfera celeste en el contexto dado. Llamado desde ambos modos.
@@ -126,7 +137,7 @@ Item {
                         if (satModel.pos_has_fix) return "GPS activo"
                         return "0/0 sat"
                     }
-                    color: "white"; font.pixelSize: 16; font.bold: true
+                    color: "white"; font.pixelSize: units.gu(2); font.bold: true
                 }
                 Item { Layout.fillWidth: true }
                 Rectangle {
@@ -142,7 +153,7 @@ Item {
                 Label {
                     text: satModel && satModel.pos_has_fix ? i18n.tr("Activo") : i18n.tr("Buscando…")
                     color: satModel && satModel.pos_has_fix ? "#66BB6A" : "#FFA726"
-                    font.pixelSize: 14
+                    font.pixelSize: units.gu(1.75)
                 }
             }
         }
@@ -182,11 +193,11 @@ Item {
                 anchors.rightMargin: units.gu(2)
                 spacing: units.gu(1.5)
 
-                Label { text: satModel ? satModel.pos_lat.toFixed(6) + "°" : ""; color: "#A5D6A7"; font.pixelSize: 14; font.family: "Monospace" }
-                Label { text: satModel ? satModel.pos_lon.toFixed(6) + "°" : ""; color: "#A5D6A7"; font.pixelSize: 14; font.family: "Monospace" }
+                Label { text: satModel ? satModel.pos_lat.toFixed(6) + "°" : ""; color: "#A5D6A7"; font.pixelSize: units.gu(1.75); font.family: "Monospace" }
+                Label { text: satModel ? satModel.pos_lon.toFixed(6) + "°" : ""; color: "#A5D6A7"; font.pixelSize: units.gu(1.75); font.family: "Monospace" }
                 Item { Layout.fillWidth: true }
-                Label { visible: satModel && satModel.pos_speed_kmh >= 0; text: satModel ? satModel.pos_speed_kmh.toFixed(1) + " km/h" : ""; color: "#81C784"; font.pixelSize: 14 }
-                Label { visible: satModel && satModel.pos_accuracy >= 0;  text: satModel ? "±" + satModel.pos_accuracy.toFixed(0) + " m" : "";    color: "#B0BEC5";  font.pixelSize: 12 }
+                Label { visible: satModel && satModel.pos_speed_kmh >= 0; text: satModel ? satModel.pos_speed_kmh.toFixed(1) + " km/h" : ""; color: "#81C784"; font.pixelSize: units.gu(1.75) }
+                Label { visible: satModel && satModel.pos_accuracy >= 0;  text: satModel ? "±" + satModel.pos_accuracy.toFixed(0) + " m" : "";    color: "#B0BEC5";  font.pixelSize: units.gu(1.5) }
             }
         }
 
@@ -207,7 +218,7 @@ Item {
                     return i18n.tr("Pulsa Iniciar para activar el GPS")
                 }
                 color: satModel && satModel.pos_has_fix ? "#FFA726" : "#78909C"
-                font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter
+                font.pixelSize: units.gu(1.75); horizontalAlignment: Text.AlignHCenter
             }
 
             Flickable {
@@ -239,7 +250,7 @@ Item {
                             Label {
                                 id: pIdLbl
                                 text: satModel.sat_ids[index].toString()
-                                font.pixelSize: 12; color: "#B0BEC5"
+                                font.pixelSize: units.gu(1.5); color: "#B0BEC5"
                                 horizontalAlignment: Text.AlignHCenter; width: parent.width
                             }
                         }
@@ -260,12 +271,14 @@ Item {
                     model: [
                         { color: "#66BB6A", label: "GPS en uso"     },
                         { color: "#29B6F6", label: "GLONASS en uso" },
+                        { color: "#FFA726", label: "Galileo"        },
+                        { color: "#AB47BC", label: "BeiDou"         },
                         { color: "#90A4AE", label: "No en uso"      },
                     ]
                     delegate: Row {
                         spacing: units.gu(0.5)
                         Rectangle { width: units.gu(1.2); height: units.gu(1.2); radius: width/2; color: modelData.color; anchors.verticalCenter: parent.verticalCenter }
-                        Label { text: modelData.label; font.pixelSize: 12; color: "#90A4AE"; anchors.verticalCenter: parent.verticalCenter }
+                        Label { text: modelData.label; font.pixelSize: units.gu(1.5); color: "#90A4AE"; anchors.verticalCenter: parent.verticalCenter }
                     }
                 }
             }
@@ -332,7 +345,7 @@ Item {
                             if (satModel.pos_has_fix) return "GPS activo"
                             return "0/0 sat"
                         }
-                        color: "white"; font.pixelSize: 16; font.bold: true
+                        color: "white"; font.pixelSize: units.gu(2); font.bold: true
                     }
                     Item { Layout.fillWidth: true }
                     Rectangle {
@@ -348,7 +361,7 @@ Item {
                     Label {
                         text: satModel && satModel.pos_has_fix ? i18n.tr("Activo") : i18n.tr("Buscando…")
                         color: satModel && satModel.pos_has_fix ? "#66BB6A" : "#FFA726"
-                        font.pixelSize: 14
+                        font.pixelSize: units.gu(1.75)
                     }
                 }
             }
@@ -366,12 +379,14 @@ Item {
                         model: [
                             { color: "#66BB6A", label: "GPS"     },
                             { color: "#29B6F6", label: "GLONASS" },
+                            { color: "#FFA726", label: "GAL"     },
+                            { color: "#AB47BC", label: "BDS"     },
                             { color: "#90A4AE", label: "No uso"  },
                         ]
                         delegate: Row {
                             spacing: units.gu(0.4)
                             Rectangle { width: units.gu(1.1); height: units.gu(1.1); radius: width/2; color: modelData.color; anchors.verticalCenter: parent.verticalCenter }
-                            Label { text: modelData.label; font.pixelSize: 12; color: "#90A4AE"; anchors.verticalCenter: parent.verticalCenter }
+                            Label { text: modelData.label; font.pixelSize: units.gu(1.5); color: "#90A4AE"; anchors.verticalCenter: parent.verticalCenter }
                         }
                     }
                 }
@@ -391,10 +406,10 @@ Item {
                     anchors.rightMargin: units.gu(1.5)
                     spacing: units.gu(1)
 
-                    Label { text: satModel ? satModel.pos_lat.toFixed(5) + "°" : ""; color: "#A5D6A7"; font.pixelSize: 12; font.family: "Monospace" }
-                    Label { text: satModel ? satModel.pos_lon.toFixed(5) + "°" : ""; color: "#A5D6A7"; font.pixelSize: 12; font.family: "Monospace" }
+                    Label { text: satModel ? satModel.pos_lat.toFixed(5) + "°" : ""; color: "#A5D6A7"; font.pixelSize: units.gu(1.5); font.family: "Monospace" }
+                    Label { text: satModel ? satModel.pos_lon.toFixed(5) + "°" : ""; color: "#A5D6A7"; font.pixelSize: units.gu(1.5); font.family: "Monospace" }
                     Item { Layout.fillWidth: true }
-                    Label { visible: satModel && satModel.pos_accuracy >= 0; text: satModel ? "±" + satModel.pos_accuracy.toFixed(0) + " m" : ""; color: "#B0BEC5"; font.pixelSize: 12 }
+                    Label { visible: satModel && satModel.pos_accuracy >= 0; text: satModel ? "±" + satModel.pos_accuracy.toFixed(0) + " m" : ""; color: "#B0BEC5"; font.pixelSize: units.gu(1.5) }
                 }
             }
 
@@ -417,7 +432,7 @@ Item {
                         if (satModel.is_active)   return i18n.tr("Esperando satélites…")
                         return i18n.tr("Pulsa Iniciar para activar el GPS")
                     }
-                    color: "#78909C"; font.pixelSize: 12; horizontalAlignment: Text.AlignHCenter
+                    color: "#78909C"; font.pixelSize: units.gu(1.5); horizontalAlignment: Text.AlignHCenter
                 }
 
                 // Filas horizontales: [barra crece desde la derecha] [número]
@@ -445,7 +460,7 @@ Item {
                                     id: lsIdLbl
                                     anchors { right: parent.right; rightMargin: units.gu(0.8); verticalCenter: parent.verticalCenter }
                                     text: satModel.sat_ids[index].toString()
-                                    font.pixelSize: 12; color: "#B0BEC5"
+                                    font.pixelSize: units.gu(1.5); color: "#B0BEC5"
                                     width: units.gu(2.4); horizontalAlignment: Text.AlignHCenter
                                 }
 

@@ -711,7 +711,7 @@ Rectangle {
         Label {
             anchors.centerIn: parent
             text: i18n.tr("Navegación"); color: "white"
-            font.pixelSize: 20; font.bold: true
+            font.pixelSize: units.gu(2.5); font.bold: true
         }
         Rectangle {
             anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: units.gu(2) }
@@ -736,7 +736,7 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 text: "⌕"; font.pixelSize: ts(2.2); color: "#B0BEC5"
             }
-            TextInput {
+            NavTextInput {
                 id: searchField
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width - units.gu(6) - (clearBtn.visible ? units.gu(4) : 0) - (logToggleBtn.visible ? units.gu(4) : 0)
@@ -1532,7 +1532,7 @@ Rectangle {
                                                 anchors { left: parent.left; leftMargin: units.gu(1.5); right: eCancel.left; rightMargin: units.gu(0.5); verticalCenter: parent.verticalCenter }
                                                 height: units.gu(3)
                                                 Rectangle { anchors.fill: parent; color: "#0D1B2A"; radius: units.gu(0.3) }
-                                                TextInput {
+                                                NavTextInput {
                                                     anchors { left: parent.left; leftMargin: units.gu(0.5); right: parent.right; rightMargin: units.gu(0.5); verticalCenter: parent.verticalCenter }
                                                     text: todoItemRect._editText
                                                     onTextChanged: todoItemRect._editText = text
@@ -1690,7 +1690,7 @@ Rectangle {
                                             anchors.verticalCenter: parent.verticalCenter
                                             width: parent.width - units.gu(6)
                                             height: units.gu(2.5)
-                                            TextInput {
+                                            NavTextInput {
                                                 id: newTodoInput
                                                 anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
                                                 onTextChanged: _newTodo = text
@@ -2114,7 +2114,7 @@ Rectangle {
                             spacing: units.gu(1)
                             Label { anchors.verticalCenter: parent.verticalCenter
                                 text: "★"; color: "#FFD600"; font.pixelSize: ts(2) }
-                            TextInput {
+                            NavTextInput {
                                 id: favNameField
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: parent.width - units.gu(5)

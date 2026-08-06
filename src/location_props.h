@@ -1,8 +1,20 @@
 #pragma once
 #include <QtCore/QObject>
 
-// Set to true to enable navius GPS debug traces on stderr.
-static constexpr bool NAVIUS_DEBUG = false;
+// Trazas de depuración del GPS por stderr. Se activan en tiempo de ejecución
+// con NAVIUS_DEBUG=1 en el entorno (antes era un constexpr false, con lo que
+// el compilador se llevaba por delante hasta los literales de las trazas y
+// había que recompilar para ver cualquier cosa en el dispositivo).
+#include <cstdio>
+#include <cstdlib>
+inline bool navius_debug_enabled() {
+    static const bool on = []() {
+        const char *v = std::getenv("NAVIUS_DEBUG");
+        return v && *v && *v != '0';
+    }();
+    return on;
+}
+#define NAVIUS_DEBUG (navius_debug_enabled())
 #define NAVIUS_TRACE(...) do { if (NAVIUS_DEBUG) fprintf(stderr, __VA_ARGS__); } while(0)
 #include <QtCore/QVariantMap>
 #include <QtCore/QStringList>

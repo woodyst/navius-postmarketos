@@ -23,7 +23,7 @@ Rectangle {
             anchors.centerIn: parent
             text: i18n.tr("Manual de usuario")
             color: "white"
-            font.pixelSize: 20
+            font.pixelSize: units.gu(2.5)
             font.bold: true
         }
 

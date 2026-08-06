@@ -28,7 +28,7 @@ var SYNC_KEYS = [
     "alertSound", "instrSound", "ttsLang", "ttsEngine",
     "ttsVoice", "ttsVoicePico", "ttsVoiceEspeak",
     // UI
-    "textScale", "measureSystem", "showChangesAtStartup",
+    "textScale", "uiScale", "measureSystem", "showChangesAtStartup",
     // Vehículos (lista para recuperar en dispositivo nuevo)
     "vehiclesJson"
 ]
