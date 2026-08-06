@@ -28,7 +28,10 @@ var SYNC_KEYS = [
     "alertSound", "instrSound", "ttsLang", "ttsEngine",
     "ttsVoice", "ttsVoicePico", "ttsVoiceEspeak",
     // UI
-    "textScale", "uiScale", "measureSystem", "showChangesAtStartup",
+    // uiScale NO se sincroniza: compensa la densidad/escalado del compositor de
+    // ESTE dispositivo (ver src/i18n_units.rs). Traer el valor de otro teléfono
+    // deja la interfaz al doble o a la mitad.
+    "textScale", "measureSystem", "showChangesAtStartup",
     // Vehículos (lista para recuperar en dispositivo nuevo)
     "vehiclesJson"
 ]
@@ -50,6 +53,10 @@ function applySnapshot(s, data) {
     for (var k in data) {
         if (!data.hasOwnProperty(k)) continue
         if (s[k] === undefined) continue   // clave desconocida → ignorar
+        // Solo se aplica lo que esta versión considera sincronizable: si una
+        // clave se saca de SYNC_KEYS (p.ej. uiScale, que es por dispositivo),
+        // el valor que quedó guardado en el servidor no debe volver a colarse.
+        if (SYNC_KEYS.indexOf(k) < 0) continue
         var local = s[k]
         var val   = data[k]
         try {
