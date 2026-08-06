@@ -1,0 +1,13 @@
+musl (unlike glibc) doesn't transitively pull in <cstdint> via <map>/<vector>/etc,
+so int64_t is undeclared when building natively on Alpine/musl.
+
+--- a/src/phoneme_ids.hpp
++++ b/src/phoneme_ids.hpp
+@@ -1,6 +1,7 @@
+ #ifndef PHONEME_IDS_H_
+ #define PHONEME_IDS_H_
+
++#include <cstdint>
+ #include <map>
+ #include <string>
+ #include <vector>

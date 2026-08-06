@@ -1,0 +1,110 @@
+# Contributor: Eduardo García-Mádico Portabella <woodyst@gmail.com>
+# Maintainer: Eduardo García-Mádico Portabella <woodyst@gmail.com>
+pkgname=piper-tts
+pkgver=2023.11.14.2
+pkgrel=0
+pkgdesc="Fast, local neural text to speech system (rhasspy/piper), built native for musl"
+url="https://github.com/rhasspy/piper"
+arch="all"
+license="MIT"
+depends="onnxruntime espeak-ng fmt spdlog"
+makedepends="cmake samurai g++ onnxruntime-dev espeak-ng-dev fmt-dev spdlog-dev"
+subpackages=""
+options="!check" # ctest de piper-phonemize necesita datos de voz de test que no vendorizamos
+
+_pipertag="2023.11.14-2"
+_phonemizetag="2023.11.14-2"
+_phonemizever="1.2.0"
+
+source="
+	piper-$_pipertag.tar.gz::https://github.com/rhasspy/piper/archive/refs/tags/$_pipertag.tar.gz
+	piper-phonemize-$_phonemizetag.tar.gz::https://github.com/rhasspy/piper-phonemize/archive/refs/tags/$_phonemizetag.tar.gz
+	fix-musl-cstdint.patch
+"
+builddir="$srcdir/piper-$_pipertag"
+
+prepare() {
+	# NOT calling default_prepare: it would try to auto-apply
+	# fix-musl-cstdint.patch to $builddir (piper's own tree), but the patch
+	# targets piper-phonemize's tree (a separate download extracted alongside
+	# it) -- apply it by hand to the right directory instead.
+	cd "$srcdir/piper-phonemize-$_phonemizetag"
+	patch -p1 -i "$srcdir/fix-musl-cstdint.patch"
+	cd "$builddir"
+}
+
+build() {
+	local phonemize_src="$srcdir/piper-phonemize-$_phonemizetag"
+	local phonemize_install="$srcdir/piper-phonemize-install"
+
+	# piper-phonemize's own CMakeLists.txt install() step copies the ENTIRE
+	# ${ONNXRUNTIME_DIR}/{include,lib} and ${ESPEAK_NG_DIR}/ tree into its own
+	# install prefix (designed for a small self-extracted release tarball, not
+	# for pointing at a whole system /usr). Build small isolated "sysroots"
+	# with just the relevant files instead of pointing directly at /usr.
+	#
+	# onnxruntime-dev on Alpine also nests headers under include/onnxruntime/
+	# (namespaced, to avoid global include clutter) while piper-phonemize's
+	# code expects a flat include/ (matching upstream's own release tarball
+	# layout) -- flatten one level here.
+	local ort_root="$srcdir/onnxruntime_sysroot"
+	mkdir -p "$ort_root/include" "$ort_root/lib"
+	cp -a /usr/include/onnxruntime/. "$ort_root/include/"
+	cp -a /usr/lib/libonnxruntime.so* "$ort_root/lib/"
+
+	local espeak_root="$srcdir/espeak_sysroot"
+	mkdir -p "$espeak_root/include" "$espeak_root/lib"
+	cp -a /usr/include/espeak-ng "$espeak_root/include/"
+	cp -a /usr/include/espeak "$espeak_root/include/"
+	cp -a /usr/lib/libespeak-ng.so* "$espeak_root/lib/"
+
+	cmake -B "$srcdir/build-phonemize" -S "$phonemize_src" \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX="$phonemize_install" \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DONNXRUNTIME_DIR="$ort_root" \
+		-DESPEAK_NG_DIR="$espeak_root" \
+		-GNinja
+	cmake --build "$srcdir/build-phonemize"
+	cmake --install "$srcdir/build-phonemize"
+
+	# piper itself: fmt/spdlog from system (-DFMT_DIR=/usr -DSPDLOG_DIR=/usr skip
+	# their own ExternalProject downloads), piper_phonemize from the step above.
+	# NOTE: onnxruntime is NOT referenced directly by piper's own CMakeLists.txt
+	# (its target_link_libraries/include_directories only reference FMT_DIR/
+	# SPDLOG_DIR/PIPER_PHONEMIZE_DIR) -- it expects onnxruntime headers/libs to
+	# be reachable via piper-phonemize's own install dir, which re-exports them.
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DPIPER_PHONEMIZE_DIR="$phonemize_install" \
+		-DFMT_DIR=/usr \
+		-DSPDLOG_DIR=/usr \
+		-DCMAKE_SKIP_RPATH=ON \
+		-GNinja
+	cmake --build build
+}
+
+package() {
+	# Install manually with plain FHS layout (/usr/bin, /usr/lib) instead of
+	# using piper's own cmake --install, which replicates the flat
+	# self-contained-tarball bundle layout (installs *.so directly under
+	# ${CMAKE_INSTALL_PREFIX} root, not ${CMAKE_INSTALL_PREFIX}/lib) -- onnxruntime
+	# and espeak-ng are already satisfied by the system packages declared in
+	# depends=, only our own freshly-built libpiper_phonemize needs bundling.
+	local phonemize_install="$srcdir/piper-phonemize-install"
+
+	# Se instala como "piper-tts": Alpine ya tiene un paquete "piper"
+	# (libratbag/Piper, GUI para ratones) que ocupa /usr/bin/piper, y dos
+	# paquetes no pueden instalar el mismo fichero.
+	install -Dm755 build/piper "$pkgdir/usr/bin/piper-tts"
+	install -Dm755 "$phonemize_install/lib/libpiper_phonemize.so.$_phonemizever" \
+		"$pkgdir/usr/lib/libpiper_phonemize.so.$_phonemizever"
+	ln -sf "libpiper_phonemize.so.$_phonemizever" "$pkgdir/usr/lib/libpiper_phonemize.so.1"
+	ln -sf "libpiper_phonemize.so.1" "$pkgdir/usr/lib/libpiper_phonemize.so"
+}
+
+sha512sums="
+2156c8d384aafc977a41eea181855b5e3fddab1eca353528d919d421958e4c10dbcf6526d03433e4246ac847a2fe4a7c43a57d2cb5666993ad0f28ed9fb68fe6  piper-2023.11.14-2.tar.gz
+dd0a8292d27f60349b80cb012ce4b02691d4fd6e3954d6fb22c4c85470d089e04bbe318c0e1312a54f51f03cfec7922a87322ae3ff1ff05fed7481bedcf7dfb7  piper-phonemize-2023.11.14-2.tar.gz
+5e0c4adb99fe6149d5e011a390b3a0b6da9bcb9b907922196a7865ac745b5dc328b726d3bdaf7731cbadd9ed990d8463fe30b8e872e8d7934eafe24184008d50  fix-musl-cstdint.patch
+"
