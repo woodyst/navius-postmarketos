@@ -3,7 +3,7 @@ pkgname=navius
 pkgver=1.0.10
 pkgrel=0
 pkgdesc="GPS navigator (offline, OSM-based)"
-url="https://github.com/woodyst/navius"
+url="https://github.com/woodyst/navius-postmarketos"
 arch="aarch64"
 license="GPL-3.0-or-later"
 depends="
@@ -17,16 +17,15 @@ depends="
 	qt5-qtwayland
 	mapbox-gl-qml
 	espeak-ng
-	piper
+	piper-tts
 	sqlite-libs
 	gettext
 	geoclue
 	"
-# "piper" aquí es nuestro aport propio (pmaports/temp/piper, Fase 8): el
-# paquete "piper" que trae Alpine por defecto es libratbag/Piper (GUI de
-# ratones gaming, sin relación) y queda reemplazado al instalar el nuestro
-# (rhasspy/piper compilado nativo musl contra onnxruntime/espeak-ng/fmt/
-# spdlog del sistema — ya no gcompat ni binario glibc vendorizado).
+# piper-tts es rhasspy/piper (motor TTS neural) compilado nativo para musl
+# contra onnxruntime/espeak-ng/fmt/spdlog del sistema — ya no gcompat ni
+# binario glibc vendorizado. Se llama así y no "piper" porque en Alpine ese
+# nombre ya lo ocupa libratbag/Piper, una GUI para ratones sin relación.
 makedepends="
 	cargo
 	rust
@@ -46,21 +45,17 @@ makedepends="
 # los dos a la vez.
 # !tracedeps ya NO hace falta (Fase 8): piper es ahora un binario musl nativo
 # normal, sin entradas NEEDED glibc que el rastreador de abuild no entienda.
-options="!check net"
-# abuild SIEMPRE limpia $srcdir antes de build() (parte normal de su ciclo de
-# vida, no un bug) — su default es "$startdir/src", que colisiona con nuestro
-# propio directorio src/ (fuentes Rust) y lo borra por completo (ocurrió una
-# vez, recuperado de git). Apuntar srcdir a un directorio dedicado que no se
-# usa para nada (no hay "source=" que extraer aquí) evita la colisión.
-# ¡OJO! NO poner srcdir="$startdir" ni nada que coincida con builddir: la
-# limpieza automática de srcdir borraría el repo entero (pasó una segunda
-# vez con esa configuración, también recuperado de git).
-srcdir="$startdir/.abuild-srcdir"
-builddir="$startdir"
+options="!check net"  # net: cargo descarga los crates en build()
 
-# extras/mimic/ (~320MB, fuente de Mimic1 sin _build/voices) NO va en git por
-# tamaño — debe sincronizarse antes de compilar (ver README.md del repo).
-# piper ya no se vendoriza (Fase 8): es el paquete "piper" propio (depends=).
+source="$pkgname-$pkgver.tar.gz::https://github.com/woodyst/navius-postmarketos/archive/refs/tags/$pkgver.tar.gz"
+builddir="$srcdir/navius-postmarketos-$pkgver"
+
+# Para iterar sin publicar una release:
+#   pmbootstrap build --src <ruta-al-checkout> navius
+# (--src ignora source= y usa el árbol local)
+
+# El tarball incluye extras/mimic (fuente de Mimic1 recortada: solo las libs y
+# la voz HTS que se usan, sin las voces en inglés que el build desactiva).
 
 build() {
 	# ── Mimic HTS (motor TTS en español) ────────────────────────────────
@@ -81,8 +76,7 @@ build() {
 	# Placeholder: el Makefile generado exige este fichero como prerequisito
 	# de "all-am" (voicesinstall_DATA) aunque no existe en el árbol fuente
 	# upstream — no usamos la voz de demo de mimic1, solo sus libs. mkdir -p
-	# porque el rsync de extras/mimic excluye el voices/ real (--exclude=voices,
-	# ~359MB de voces en inglés no usadas) y el directorio puede no existir.
+	# porque el árbol recortado de mimic no trae el directorio voices/.
 	mkdir -p ../voices
 	touch ../voices/cmu_us_slt_hts.htsvoice
 
@@ -154,6 +148,11 @@ build() {
 	# gettext del sistema ya instalado (makedepends ya lo declara). El
 	# clickable.yaml original de Ubuntu Touch ya usaba esta misma variable.
 	export GETTEXT_SYSTEM=1
+	# El chroot de pmbootstrap fija RUSTC_WRAPPER=sccache por defecto (para los
+	# builds del ecosistema pmOS en CI) pero sccache no está instalado ahí —
+	# quitarlo evita que cargo falle nada más arrancar. Fuera de pmbootstrap
+	# la variable no existe y esto no hace nada.
+	unset RUSTC_WRAPPER
 	cargo build --release --locked
 }
 
@@ -194,3 +193,7 @@ package() {
 	# piper ya no se instala aquí (Fase 8): viene del paquete "piper" propio
 	# (depends=, /usr/bin/piper + /usr/lib/libpiper_phonemize.so*).
 }
+
+sha512sums="
+fe5a53bcace39adefece338476603a09834dc1cfe9c81e3ce354e0407e8549ff4a21f2b12220b7c11e57c438873da82b4daa98693dc4abf39c93f1836064eabe  navius-1.0.10.tar.gz
+"
