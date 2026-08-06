@@ -1,46 +1,87 @@
-# Navius — port a postmarketOS
+# Navius — postmarketOS
 
-Port de [Navius](https://github.com/) (navegador GPS) desde Ubuntu Touch/Lomiri a
-postmarketOS (Phosh). Ver plan completo en el repo clickable original o pedir a Claude
-que recupere `/home/edi/.claude/plans/compressed-finding-wigderson.md`.
+Port de [Navius](https://github.com/woodyst/navius) — navegador GPS offline basado
+en OpenStreetMap — desde Ubuntu Touch / Lomiri a **postmarketOS con Phosh**.
 
-## Dependencias externas no versionadas aquí
+Misma app y misma lógica de navegación que la versión de Ubuntu Touch; cambia la
+capa de plataforma: interfaz sobre QtQuickControls2 en vez de Lomiri.Components,
+empaquetado APK (`abuild`/`pmbootstrap`) en vez de click, y motores de voz
+recompilados de forma nativa para musl/Alpine.
 
-Dos directorios vendor NO se copian a este repo por tamaño. Antes de compilar
-(APKBUILD `build()`), sincronizar ambos:
+Probado en un Xiaomi POCO X3 NFC (`qcom-sm7150`) con Phosh. Cualquier dispositivo
+aarch64 con postmarketOS y Phosh debería servir.
 
+## Qué trae
+
+- Navegación guiada con voz (Valhalla), rutas offline y online.
+- Mapas vectoriales (mapbox-gl-qml) online u offline vía OSM Scout Server.
+- Radares fijos y de tramo con caché local persistente.
+- Dead reckoning en túneles (posición por shape de ruta, IMU como señal).
+- Vista de satélites GNSS (GPS, GLONASS, Galileo, BeiDou) leyendo NMEA
+  directamente de ModemManager.
+- Voz en 4 motores: Piper (neural), Mimic HTS, PicoTTS y espeak-ng.
+- Interfaz en 12 idiomas.
+
+## Compilar
+
+El paquete se construye con [pmbootstrap](https://postmarketos.org/pmbootstrap).
+Hacen falta dos aports que no están en pmaports oficial y viven en el árbol local
+(`pmaports/temp/`): `navius` (este proyecto) y `piper` (rhasspy/piper compilado
+desde fuente para musl — el paquete `piper` de Alpine es libratbag/Piper, una GUI
+para ratones gaming sin ninguna relación).
+
+```sh
+# iteración rápida: compila desde un árbol de fuentes local sin commitear
+pmbootstrap build --src /ruta/a/navius_postmaketos navius
+
+# build reproducible desde el aport
+pmbootstrap build navius
 ```
-rsync -a --exclude=_build --exclude=voices \
-  /home/edi/prog_ia/navius/navius/extras/mimic/ ./extras/mimic/
 
-rsync -a /home/edi/prog_ia/navius/navius/vendor/piper_aarch64/ \
-  ./vendor/piper_aarch64/
+Instalar el `.apk` resultante en el dispositivo:
+
+```sh
+pmbootstrap sideload --host <dispositivo> --user <usuario> navius
+# o a mano:
+#   scp navius-*.apk usuario@dispositivo:/tmp/
+#   sudo apk add --allow-untrusted /tmp/navius-*.apk
 ```
 
-(o directamente a epolan si se compila ahí).
+### Fuentes de terceros no versionadas aquí
 
-- `extras/mimic` (~320 MB sin `_build`/`voices` — la mayoría es `lang/`, que sí
-  hace falta): fuente de Mimic1, se recompila nativamente para musl/aarch64.
-- `vendor/piper_aarch64` (~50 MB): binario oficial glibc de **rhasspy/piper**
-  (motor TTS neural) para aarch64, con sus `.so` propios (`libonnxruntime`,
-  `libpiper_phonemize`, etc.). Se ejecuta vía `gcompat` (capa de compatibilidad
-  glibc de Alpine) porque **no existe** paquete Alpine para rhasspy/piper — el
-  paquete `piper` de postmarketOS es libratbag/Piper (GUI de ratones gaming),
-  un proyecto homónimo sin ninguna relación. No confundir ambos.
+Por tamaño, el árbol de Mimic1 (`extras/mimic`, ~320 MB con `lang/`) se
+sincroniza desde el repo de la versión de Ubuntu Touch antes de compilar. El
+`build()` del APKBUILD lo recompila nativamente para musl/aarch64.
 
-## Diferencias respecto al repo clickable (Ubuntu Touch)
+## Diferencias respecto a la versión de Ubuntu Touch
 
-- UI: QtQuickControls2 nativo en vez de Lomiri.Components (ver plan).
-- Mapa: paquete del sistema `mapbox-gl-qml` en vez de lib/ vendorizada.
-- Google Maps embebido (`GoogleMapsPanel.qml`) eliminado: usaba QtWebEngine, que
-  en postmarketOS solo existe para Qt6 (esta app es Qt5). Sin sustituto por ahora.
-- TTS: mismas 4 capas (Piper/Mimic HTS/PicoTTS/espeak-ng), pero Mimic
-  HTS/PicoTTS recompilados nativamente para musl/Alpine, Piper vía gcompat
-  (ver arriba), y se quitó el dlopen especulativo de `libsonic.so.0` (sin
-  fuente vendorizada, mejora opcional de calidad no crítica).
-- Empaquetado: APKBUILD/abuild en vez de clickable/click.
-- Content-Hub sustituido por esquema `geo:` (compartir ubicación) y FileDialog nativo
-  (importar música).
+- **UI**: QtQuickControls2 nativo (estilo Material) en lugar de Lomiri.Components,
+  con una capa de compatibilidad que reimplementa `units.gu()` e `i18n.tr()`.
+- **Escala**: el grid unit se calcula al arrancar a partir de la geometría real de
+  la pantalla y del `devicePixelRatio` del compositor, en vez de venir de una
+  variable de entorno de la sesión. Ajustable en Preferencias → Escala de interfaz,
+  o forzable con `GRID_UNIT_PX`.
+- **Mapa**: paquete del sistema `mapbox-gl-qml`, no una librería vendorizada.
+- **Google Maps embebido**: eliminado. Usaba QtWebEngine, que en postmarketOS solo
+  existe para Qt6 y esta app es Qt5.
+- **Teclado en pantalla**: API D-Bus propia de Phosh (`sm.puri.OSK0`), porque Qt5
+  no trae integración nativa con ella.
+- **Satélites**: NMEA vía ModemManager. El plugin `geoclue2` de Qt solo expone la
+  posición agregada, sin datos por satélite.
+- **Content-Hub** sustituido por el esquema `geo:` para compartir ubicación y por
+  un FileDialog nativo para importar música.
+- **Empaquetado**: APKBUILD/abuild en vez de clickable.
 
-Cambios en lógica "core" (routing, tracking, alertas) deben portarse a mano desde el
-repo clickable si cambian allí — no hay sincronización automática.
+Los cambios de lógica "core" (routing, tracking, alertas) se portan a mano desde el
+repo de Ubuntu Touch: no hay sincronización automática entre ambos.
+
+## Depuración
+
+```sh
+NAVIUS_DEBUG=1 navius        # trazas de GPS/NMEA por stderr
+GRID_UNIT_PX=6 navius        # forzar el tamaño del grid unit
+```
+
+## Licencia
+
+GPL-3.0-or-later, igual que la versión de Ubuntu Touch.

@@ -545,7 +545,7 @@ function probeOverpassServers() {
 }
 
 // Elige servidor: navius mundial primero (réplica minutal, siempre al día).
-// El servidor España tiene la replicación rota (ver project_erebos3_infra) y
+// El servidor de España tiene la replicación rota y
 // puede llevar semanas de desfase, así que solo se usa como fallback.
 function _overpassForPos(lat, lon) {
     if (!_overpassNaviusEnabled) return _overpassActivePool[Math.floor(Math.random() * _overpassActivePool.length)]

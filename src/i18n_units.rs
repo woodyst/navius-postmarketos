@@ -11,17 +11,17 @@ cpp! {{
 }}
 
 /// Referencia de Ubuntu Touch: en el dispositivo donde se diseñó la UI
-/// (eut2/eutlan, 1080×2400) Lomiri arrancaba la app con `GRID_UNIT_PX=12` y
+/// (teléfono de referencia, 1080×2400) Lomiri arrancaba la app con `GRID_UNIT_PX=12` y
 /// `devicePixelRatio=1` (comprobado en los logs: "Using TextureNode for map
 /// rendering. devicePixelRatio: 1"), o sea 1080/12 = **90 grid units de ancho**
 /// en vertical.
 const UT_GU_ACROSS_PORTRAIT: f64 = 90.0;
 
-/// Ajuste sobre la referencia de UT, medido en el dispositivo: en epolan (Phosh
-/// al 300 %, dpr=3) la escala exacta de UT se queda pequeña, y el tamaño que el
-/// usuario dio por bueno es **1.7× la de UT** — 1 gu = 6.8 px lógicos = 20.4 px
-/// físicos, unos 53 gu de ancho de pantalla. Ese es ahora el 100 % de
-/// "Escala de interfaz"; el slider de Preferencias ajusta a partir de aquí.
+/// Ajuste sobre la referencia de UT, medido en el dispositivo: con Phosh al
+/// 300 % (dpr=3) la escala exacta de UT se queda pequeña, y el tamaño que se dio
+/// por bueno es **1.7× la de UT** — 1 gu = 6.8 px lógicos = 20.4 px físicos,
+/// unos 53 gu de ancho de pantalla. Ese es el 100 % de "Escala de interfaz";
+/// el slider de Preferencias ajusta a partir de aquí.
 const UI_SCALE_OVER_UT: f64 = 1.7;
 
 /// Grid units a lo ancho (en vertical) que se buscan al calcular el tamaño de

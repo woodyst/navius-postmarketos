@@ -1199,7 +1199,7 @@ cpp! {{
         // libespeak-ng.so.1 viene del paquete del sistema "espeak-ng": se resuelve
         // por el path estándar del linker dinámico, sin prefijo de ruta.
         std::string lib_path  = "libespeak-ng.so.1";
-        // TODO verificar en epolan: apk info -L espeak-ng
+        // TODO verificar en el dispositivo: apk info -L espeak-ng
         std::string data_path = "/usr/share/espeak-ng-data";
         // libpcaudio.so.0: no existe como paquete Alpine, pero SÍ tenemos su fuente
         // vendorizada (src/libpcaudio_stub.c, un stub — nunca fue la lib real ni en

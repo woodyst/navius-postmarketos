@@ -3345,7 +3345,7 @@ ApplicationWindow {
         center:     QtPositioning.coordinate(appSettings.lastLat, appSettings.lastLon)
         zoomLevel:  appSettings.lastZoom
         // ×4.0 se calibró para cómo UT/Lomiri reportaba devicePixelRatio; en
-        // postmarketOS/Phosh (epolan: devicePixelRatio=3, = escalado del sistema
+        // postmarketOS/Phosh (dispositivo de referencia: devicePixelRatio=3, escalado del sistema
         // al 300%) eso daba pixelRatio=12, haciendo la ruta/líneas visiblemente
         // más gordas que en UT. Calibrado en dispositivo: ×1.0 (pixelRatio=3)
         // queda muy pequeño, ×2.0 (pixelRatio=6) es el valor bueno confirmado.
