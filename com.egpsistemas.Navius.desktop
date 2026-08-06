@@ -1,0 +1,26 @@
+[Desktop Entry]
+Type=Application
+Name=Navius
+GenericName=GPS Navigator
+GenericName[es]=Navegador GPS
+GenericName[ca]=Navegador GPS
+GenericName[fr]=Navigateur GPS
+GenericName[de]=GPS-Navigation
+GenericName[it]=Navigatore GPS
+GenericName[pt]=Navegador GPS
+Comment=Offline GPS navigation with voice guidance
+Comment[es]=Navegación GPS sin conexión con indicaciones por voz
+Comment[ca]=Navegació GPS sense connexió amb indicacions per veu
+Comment[fr]=Navigation GPS hors ligne avec guidage vocal
+Comment[de]=Offline-GPS-Navigation mit Sprachansagen
+Comment[it]=Navigazione GPS offline con indicazioni vocali
+Comment[pt]=Navegação GPS offline com indicações por voz
+Exec=navius %u
+Icon=com.egpsistemas.Navius
+Terminal=false
+Categories=Utility;Maps;
+Keywords=navigation;GPS;map;route;OpenStreetMap;
+Keywords[es]=navegación;GPS;mapa;ruta;OpenStreetMap;
+MimeType=x-scheme-handler/geo;
+StartupWMClass=navius
+X-Purism-FormFactor=Workstation;Mobile;

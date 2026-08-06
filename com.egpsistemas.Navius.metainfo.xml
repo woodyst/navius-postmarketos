@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2026 Eduardo García-Mádico Portabella -->
+<component type="desktop-application">
+  <id>com.egpsistemas.Navius</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>Navius</name>
+  <name xml:lang="es">Navius</name>
+  <summary>Offline GPS navigation with voice guidance</summary>
+  <summary xml:lang="es">Navegación GPS sin conexión con indicaciones por voz</summary>
+  <summary xml:lang="ca">Navegació GPS sense connexió amb indicacions per veu</summary>
+  <summary xml:lang="fr">Navigation GPS hors ligne avec guidage vocal</summary>
+  <summary xml:lang="de">Offline-GPS-Navigation mit Sprachansagen</summary>
+  <summary xml:lang="it">Navigazione GPS offline con indicazioni vocali</summary>
+  <summary xml:lang="pt">Navegação GPS offline com indicações por voz</summary>
+
+  <description>
+    <p>
+      Navius is a turn-by-turn GPS navigator for mobile Linux, built on
+      OpenStreetMap data. It is designed for real driving: large controls,
+      spoken instructions and a map that stays readable at speed.
+    </p>
+    <p xml:lang="es">
+      Navius es un navegador GPS con indicaciones giro a giro para Linux móvil,
+      basado en datos de OpenStreetMap. Está pensado para conducir de verdad:
+      controles grandes, instrucciones habladas y un mapa que se lee bien en
+      marcha.
+    </p>
+    <p>Features:</p>
+    <p xml:lang="es">Características:</p>
+    <ul>
+      <li>Turn-by-turn navigation with spoken instructions in 12 languages</li>
+      <li xml:lang="es">Navegación guiada con voz en 12 idiomas</li>
+      <li>Fully offline routing and maps through OSM Scout Server</li>
+      <li xml:lang="es">Rutas y mapas totalmente sin conexión mediante OSM Scout Server</li>
+      <li>Vector maps with day, night and satellite styles</li>
+      <li xml:lang="es">Mapas vectoriales con estilos de día, noche y satélite</li>
+      <li>Fixed and average-speed camera warnings, with a local cache</li>
+      <li xml:lang="es">Avisos de radares fijos y de tramo, con caché local</li>
+      <li>Dead reckoning in tunnels, so the position keeps moving without GPS</li>
+      <li xml:lang="es">Dead reckoning en túneles: la posición sigue avanzando sin GPS</li>
+      <li>GNSS satellite view (GPS, GLONASS, Galileo, BeiDou)</li>
+      <li xml:lang="es">Vista de satélites GNSS (GPS, GLONASS, Galileo, BeiDou)</li>
+      <li>Speed limit and speeding alerts</li>
+      <li xml:lang="es">Límites de velocidad y avisos de exceso</li>
+      <li>Fuel prices, parking and points of interest along the route</li>
+      <li xml:lang="es">Precios de carburante, aparcamiento y puntos de interés en ruta</li>
+      <li>Trip sharing through a link, and community traffic alerts</li>
+      <li xml:lang="es">Compartir viaje por enlace y alertas de tráfico de la comunidad</li>
+    </ul>
+    <p>
+      Four speech engines are available — Piper (neural), Mimic HTS, PicoTTS and
+      espeak-ng — so voice guidance works entirely offline.
+    </p>
+    <p xml:lang="es">
+      Incluye cuatro motores de voz — Piper (neural), Mimic HTS, PicoTTS y
+      espeak-ng — para que las indicaciones funcionen sin conexión.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">com.egpsistemas.Navius.desktop</launchable>
+
+  <categories>
+    <category>Utility</category>
+    <category>Maps</category>
+  </categories>
+
+  <keywords>
+    <keyword>navigation</keyword>
+    <keyword>GPS</keyword>
+    <keyword>map</keyword>
+    <keyword>route</keyword>
+    <keyword>OpenStreetMap</keyword>
+    <keyword xml:lang="es">navegación</keyword>
+    <keyword xml:lang="es">mapa</keyword>
+    <keyword xml:lang="es">ruta</keyword>
+  </keywords>
+
+  <url type="homepage">https://github.com/woodyst/navius-postmarketos</url>
+  <url type="bugtracker">https://github.com/woodyst/navius-postmarketos/issues</url>
+  <url type="donation">https://liberapay.com/Navius-GPS/donate</url>
+  <url type="translate">https://github.com/woodyst/navius-postmarketos/tree/main/po</url>
+
+  <developer id="com.egpsistemas">
+    <name>Eduardo García-Mádico Portabella</name>
+  </developer>
+
+  <supports>
+    <control>touch</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-location">intense</content_attribute>
+  </content_rating>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/woodyst/navius-postmarketos/main/screenshots/navegacion.png</image>
+      <caption>Turn-by-turn navigation</caption>
+      <caption xml:lang="es">Navegación guiada</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/woodyst/navius-postmarketos/main/screenshots/busqueda.png</image>
+      <caption>Searching for a destination</caption>
+      <caption xml:lang="es">Búsqueda de destino</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/woodyst/navius-postmarketos/main/screenshots/mapa_noche.png</image>
+      <caption>Night map style</caption>
+      <caption xml:lang="es">Estilo de mapa nocturno</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/woodyst/navius-postmarketos/main/screenshots/satelites.png</image>
+      <caption>GNSS satellite view</caption>
+      <caption xml:lang="es">Vista de satélites GNSS</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/woodyst/navius-postmarketos/main/screenshots/radar_tramo.png</image>
+      <caption>Average-speed camera warning</caption>
+      <caption xml:lang="es">Aviso de radar de tramo</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/woodyst/navius-postmarketos/main/screenshots/ajustes.png</image>
+      <caption>Settings</caption>
+      <caption xml:lang="es">Ajustes</caption>
+    </screenshot>
+  </screenshots>
+
+  <releases>
+    <release version="1.0.10" date="2026-08-06">
+      <description>
+        <p>First release of the postmarketOS port, matching version 1.0.10 of the Ubuntu Touch app.</p>
+        <p xml:lang="es">Primera versión del port a postmarketOS, equivalente a la 1.0.10 de la app de Ubuntu Touch.</p>
+      </description>
+    </release>
+  </releases>
+</component>

@@ -160,10 +160,15 @@ build() {
 package() {
 	install -Dm755 "$builddir"/target/release/navius \
 		"$pkgdir"/usr/bin/navius
-	install -Dm644 "$builddir"/navius.desktop \
-		"$pkgdir"/usr/share/applications/navius.desktop
+	# .desktop, icono y metainfo con el ID inverso com.egpsistemas.Navius:
+	# GNOME Software (la "tienda" de Phosh) empareja los tres por ese nombre,
+	# y sin el metainfo la app no aparece en el catálogo con descripción.
+	install -Dm644 "$builddir"/com.egpsistemas.Navius.desktop \
+		"$pkgdir"/usr/share/applications/com.egpsistemas.Navius.desktop
 	install -Dm644 "$builddir"/assets/logo.svg \
-		"$pkgdir"/usr/share/icons/hicolor/scalable/apps/navius.svg
+		"$pkgdir"/usr/share/icons/hicolor/scalable/apps/com.egpsistemas.Navius.svg
+	install -Dm644 "$builddir"/com.egpsistemas.Navius.metainfo.xml \
+		"$pkgdir"/usr/share/metainfo/com.egpsistemas.Navius.metainfo.xml
 
 	install -d "$pkgdir"/usr/share/locale
 	cp -a "$builddir"/_locale_stage/share/locale/. "$pkgdir"/usr/share/locale/
