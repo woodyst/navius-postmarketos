@@ -82,6 +82,12 @@ NAVIUS_DEBUG=1 navius        # trazas de GPS/NMEA por stderr
 GRID_UNIT_PX=6 navius        # forzar el tamaño del grid unit
 ```
 
+## Documentación
+
+- [Instalación en postmarketOS](docs/instalacion.es.md) — [English](docs/install.en.md)
+- [Notas del port](docs/port.es.md) — [English](docs/port.en.md)
+- [Empaquetado](packaging/README.md)
+
 ## Licencia
 
 GPL-3.0-or-later, igual que la versión de Ubuntu Touch.

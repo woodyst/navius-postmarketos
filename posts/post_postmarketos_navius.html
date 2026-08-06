@@ -1,0 +1,24 @@
+<h1>Navius — an offline GPS navigator, now on postmarketOS/Phosh</h1>
+<p>I have been building <strong><a href="https://github.com/woodyst/navius">Navius</a></strong>, a turn-by-turn GPS navigator, for Ubuntu Touch for a while. It is now ported to <strong>postmarketOS with Phosh</strong>, and the first release is out:</p>
+<p><strong>https://github.com/woodyst/navius-postmarketos/releases/latest</strong></p>
+<p>Tested on a Xiaomi POCO X3 NFC (<code>qcom-sm7150</code>). It should work on any aarch64 device running postmarketOS with Phosh.</p>
+<hr>
+<h2>What it does</h2>
+<ul><li>Turn-by-turn navigation with spoken instructions, in 12 languages.</li><li>Fully offline routing and maps through OSM Scout Server, which it starts on</li><li>Vector maps (mapbox-gl-qml) with day, night and satellite styles.</li><li>Fixed and average-speed camera warnings, cached locally so it does not hammer</li><li>Dead reckoning in tunnels: position keeps following the route shape when GPS</li><li>GNSS satellite view: GPS, GLONASS, Galileo and BeiDou.</li><li>Four offline speech engines: Piper (neural), Mimic HTS, PicoTTS, espeak-ng.</li></ul>
+<p>GPL-3.0. No ads, no subscription, no telemetry in this version.</p>
+<h2>Install</h2>
+<p>Two packages, in this order:</p>
+<pre><code>sudo apk add --allow-untrusted piper-tts-*.apk navius-*.apk
+sudo apk add osmscout-server      # optional, for offline maps and routing</code></pre>
+<h2>Notes that may be useful to other porters</h2>
+<p>A few things I ran into that are not specific to this app:</p>
+<p><strong>Grid units and compositor scaling.</strong> The whole UI is measured in Lomiri "grid units". On Ubuntu Touch, Lomiri sets <code>GRID_UNIT_PX</code> in the session environment and apps run at <code>devicePixelRatio = 1</code>. Under Phosh there is no such variable and the compositor *does* scale: at 300 % the app sees <code>devicePixelRatio = 3</code> and a 360×800 logical screen. Carrying over a fixed pixel constant made the whole interface exactly twice its intended size. It is now derived at startup from the screen geometry, with a user-facing multiplier for fine tuning.</p>
+<p><strong>Per-satellite GNSS data.</strong> Qt's <code>geoclue2</code> plugin only exposes the aggregated position — no per-satellite information — and the legacy <code>geoclue</code> (v1) plugin always fails because that D-Bus service is long gone. What worked was reading raw NMEA from the modem through ModemManager (<code>MMModemLocationSource::GPS_NMEA</code>). Watch out for the reply signature: <code>GetLocation</code> returns <code>a{uv}</code>, with <strong>uint32</strong> keys, and a <code>QVariantMap</code> will not match it.</p>
+<p><strong>Multi-constellation NMEA.</strong> Qualcomm modems tend to emit a single <code>$GNGSV</code> with every constellation mixed in, rather than <code>$GPGSV</code>/<code>$GLGSV</code>/<code>$GAGSV</code>. If you derive the constellation from the sentence talker alone, everything shows up as "unknown" and nothing is ever marked as in use. The PRN ranges in NMEA 0183 v4.10 are what actually tell them apart.</p>
+<p><strong>glibc binaries through gcompat.</strong> I first ran the official glibc build of rhasspy/piper under <code>gcompat</code>. It worked on test phrases and crashed on real input: glibc's C++ exception ABI does not match Alpine's native libstdc++, which <code>gcompat</code> ends up loading. Compiling from source against Alpine's onnxruntime, espeak-ng, fmt and spdlog fixed it for good.</p>
+<p><strong>Package name collisions.</strong> If you package rhasspy/piper, note that Alpine already has a <code>piper</code> package — libratbag/Piper, a GUI for gaming mice. Mine is <code>piper-tts</code>, installing <code>/usr/bin/piper-tts</code>, so both can coexist.</p>
+<p><strong>On-screen keyboard.</strong> Qt5 has no integration with Phosh's OSK. It is driven through Phosh's own D-Bus interface (<code>sm.puri.OSK0</code>, <code>SetVisible</code>). The layout hints (numeric, URL…) would need real Wayland text-input support, so for now everything gets the default layout.</p>
+<h2>Where it stands</h2>
+<p>Working: map, routing, voice, GPS and satellite view, offline maps, on-screen keyboard, community alerts. Pending: screen/power inhibition during navigation (the Lomiri API has no port yet) and keyboard layout hints.</p>
+<p>The aports for both packages are in the repository, building from release tarballs. I would like to get them into Alpine eventually; feedback on the packaging is welcome, especially about the engines that are still vendored inside the app package.</p>
+<p>Happy to hear how it behaves on other devices.</p>
