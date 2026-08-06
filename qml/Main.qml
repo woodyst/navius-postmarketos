@@ -1467,6 +1467,48 @@ ApplicationWindow {
         onTriggered: root._flushTelemetria()
     }
 
+    // ── Detector de bloqueos del hilo de UI ──────────────────────────────────
+    // Un timer solo se dispara cuando el bucle de eventos de Qt puede atenderlo.
+    // Si algo bloquea ese hilo (una escritura síncrona grande, un JSON.parse de
+    // varios MB, una consulta SQLite lenta), el disparo se retrasa exactamente
+    // ese tiempo — y es tambien cuando los botones dejan de responder.
+    // Midiendo el retraso real frente al nominal se detecta el bloqueo y, sobre
+    // todo, queda su marca de tiempo en el log para poder correlacionarlo
+    // despues con lo que estuviera haciendo la app.
+    Timer {
+        id: uiStallWatchdog
+        property real _last: 0
+        interval: 1000; repeat: true; running: true
+        onTriggered: {
+            var now = Date.now()
+            // Solo se mide con la app ACTIVA. En Ubuntu Touch, una app en segundo
+            // plano recibe SIGSTOP: sus timers no se disparan y, al reanudarse, el
+            // primer disparo llega retrasado toda la suspensión. Sin esta guarda el
+            // watchdog lo contaba como bloqueo — se midió un falso positivo de
+            // 294 s que era, exactamente, el rato que estuvo suspendida.
+            if (Qt.application.state !== Qt.ApplicationActive) { _last = 0; return }
+            if (_last > 0) {
+                var atraso = now - _last - interval
+                if (atraso > 1500) {           // ruido normal de scheduling: unas decenas de ms
+                    var t = new Date().toTimeString().substring(0, 8)
+                    satModel.log_to_file(t + "  ⚠ UI BLOQUEADA " + Math.round(atraso)
+                                         + " ms (hilo de eventos parado)")
+                    console.warn("[navius] UI bloqueada " + Math.round(atraso) + " ms")
+                }
+            }
+            _last = now
+        }
+    }
+
+    // Al volver de segundo plano, descartar la medida anterior: entre medias el
+    // proceso pudo estar parado y el intervalo no significa nada.
+    Connections {
+        target: Qt.application
+        function onStateChanged() {
+            if (Qt.application.state !== Qt.ApplicationActive) uiStallWatchdog._last = 0
+        }
+    }
+
     // Renueva el token silenciosamente y llama callback(ok: bool)
     function _refreshToken(callback) {
         var xhr = new XMLHttpRequest()
