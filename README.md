@@ -1,3 +1,5 @@
+**Español** · [English](README.en.md)
+
 # Navius — postmarketOS
 
 Port de [Navius](https://github.com/woodyst/navius) — navegador GPS offline basado
