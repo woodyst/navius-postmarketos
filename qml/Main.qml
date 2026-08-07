@@ -2600,9 +2600,11 @@ ApplicationWindow {
             NavSearch.detectOsmScout(function(found) {
                 root._osmScoutActive = found
                 // El buscador conmuta con el mismo interruptor que las rutas y
-                // el mapa: con el servidor local activo, buscar destinos deja de
-                // depender de la cobertura.
+                // el mapa: con el servidor local activo, buscar destinos y POIs
+                // deja de depender de la cobertura. Hay que decírselo también al
+                // panel, que tiene su propia copia de NavSearch.js.
                 NavSearch.setOsmScoutSearch(found)
+                searchPanel.setOsmScoutSearch(found)
                 satModel.log_to_file("OSM Scout detect result: " + (found ? "ACTIVO" : "no disponible"))
                 if (found) {
                     NavSearch.setRouteBlocked(false)
@@ -8244,9 +8246,11 @@ ApplicationWindow {
             NavSearch.detectOsmScout(function(found) {
                 root._osmScoutActive = found
                 // El buscador conmuta con el mismo interruptor que las rutas y
-                // el mapa: con el servidor local activo, buscar destinos deja de
-                // depender de la cobertura.
+                // el mapa: con el servidor local activo, buscar destinos y POIs
+                // deja de depender de la cobertura. Hay que decírselo también al
+                // panel, que tiene su propia copia de NavSearch.js.
                 NavSearch.setOsmScoutSearch(found)
+                searchPanel.setOsmScoutSearch(found)
                 if (found) {
                     _setEffectiveUrl("http://127.0.0.1:8553/v2")
                     root._startupMsg = i18n.tr("OSM Scout · rutas y mapas offline")
@@ -8949,9 +8953,11 @@ ApplicationWindow {
                 NavSearch.detectOsmScout(function(found) {
                     root._osmScoutActive = found
                     // El buscador conmuta con el mismo interruptor que las rutas
-                    // y el mapa: con el servidor local activo, buscar destinos
-                    // deja de depender de la cobertura.
+                    // y el mapa: con el servidor local activo, buscar destinos y
+                    // POIs deja de depender de la cobertura. Hay que decírselo
+                    // también al panel, que tiene su copia de NavSearch.js.
                     NavSearch.setOsmScoutSearch(found)
+                    searchPanel.setOsmScoutSearch(found)
                     root._startupMsg = found
                         ? i18n.tr("Mapa online: OSM Scout")
                         : i18n.tr("Mapa online: OSM Scout (no disponible · usando Mapbox)")
@@ -9061,6 +9067,10 @@ ApplicationWindow {
         osmScoutMaps: mapView._usingOsmScoutMaps
         onIsOfflineChanged: {
             root._mapOffline = isOffline
+            // Para que la búsqueda de POIs no se pase recorriendo servidores de
+            // Overpass antes de mirar en el dispositivo.
+            NavSearch.setOffline(isOffline)
+            searchPanel.setOffline(isOffline)
             if (isOffline) {
                 if (appSettings.mapOfflineMode === "osmscout") {
                     if (root._osmScoutActive) {
@@ -9072,6 +9082,11 @@ ApplicationWindow {
                         NavSearch.pingOsmScout(function(found) {
                             if (!found) return
                             root._osmScoutActive = true
+                            // Faltaba: si el servidor aparece aquí y no en el
+                            // arranque, la búsqueda y los POIs seguían sin
+                            // enterarse y se quedaban sin respaldo local.
+                            NavSearch.setOsmScoutSearch(true)
+                            searchPanel.setOsmScoutSearch(true)
                             navTts.alert_beep()
                             root._startupMsg = i18n.tr("Sin internet · usando OSM Scout Server")
                             startupMsgTimer.restart()
@@ -9999,6 +10014,7 @@ ApplicationWindow {
                         if (found) {
                             root._osmScoutActive = true
                             NavSearch.setOsmScoutSearch(true)
+                            searchPanel.setOsmScoutSearch(true)
                             _setEffectiveUrl("http://127.0.0.1:8553/v2")
                             serverFallbackDialog.visible = false
                             serverFallbackDialog.retryRequested()

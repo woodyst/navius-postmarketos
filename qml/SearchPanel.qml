@@ -101,6 +101,13 @@ Rectangle {
     property int  completedLegs: 0    // tramos confirmados; sincronizado desde navBar._completedLegs por Main
 
     function setNavUrl(url)              { NavSearch.setValhallaUrl(url) }
+    // NavSearch.js NO es .pragma library, así que cada componente que lo importa
+    // tiene SU copia de las variables. Main.qml no puede poner el interruptor
+    // por nosotros: hay que reenviarlo, igual que se hace con setNavUrl. Sin
+    // esto, la búsqueda y los POIs se quedaban sin respaldo local aunque el
+    // servidor estuviera detectado.
+    function setOsmScoutSearch(ok)       { NavSearch.setOsmScoutSearch(ok) }
+    function setOffline(v)               { NavSearch.setOffline(v) }
     function setFallbackNavUrl(url)      { NavSearch.setFallbackUrl(url) }
     function setRouteBlocked(v)          { NavSearch.setRouteBlocked(v) }
     function setNaviusOverpassServer(en) { NavSearch.setNaviusServer(en) }

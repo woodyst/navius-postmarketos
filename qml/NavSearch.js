@@ -10,7 +10,12 @@ var VALHALLA = "https://valhalla1.openstreetmap.de"
 // esquema que Valhalla: si el servidor está activo pasa a ser el primario y el
 // online queda de respaldo; si no lo está, no cambia nada.
 var OSMSCOUT_SEARCH   = "http://127.0.0.1:8553/v2/search"
+var OSMSCOUT_GUIDE    = "http://127.0.0.1:8553/v1/guide"
 var _osmScoutSearchOk = false
+// Lo que dice el sondeo de OfflineBanner. Solo sirve para tomar atajos: sin red
+// no tiene sentido recorrer los diez servidores de Overpass, a 30 s de espera
+// cada uno, para acabar preguntándole al geocoder del dispositivo.
+var _networkOffline   = false
 
 var _log         = null
 var _fileLog     = null
@@ -54,6 +59,8 @@ function valhallaHost()          { return VALHALLA.replace(/^https?:\/\//, "").r
 // La llama Main.qml con el resultado de detectOsmScout(): mismo interruptor que
 // ya conmuta las rutas y el mapa.
 function setOsmScoutSearch(ok)   { _osmScoutSearchOk = !!ok }
+// La llama Main.qml cuando OfflineBanner cambia de estado.
+function setOffline(v)           { _networkOffline = !!v }
 
 // autoLaunch: false = solo comprobar si ya está corriendo (arranque de la app,
 // preferOsmScout pasivo — NO debe arrancar el servidor solo). true = intención
@@ -652,14 +659,100 @@ function _distLabel(km) {
     return km < 1 ? Math.round(km * 1000) + " m" : km.toFixed(1) + " km"
 }
 
+// Los POIs del dispositivo, vía /v1/guide de OSM Scout Server. Devuelve por el
+// mismo callback y con la misma forma que Overpass ({elements:[…]}) para que
+// _poiProcess no tenga que enterarse de por dónde vinieron.
+//
+// El tipo del geocoder es la etiqueta OSM con guión bajo: amenity=fuel es
+// "amenity_fuel", que es justo tag + "_" + val de _poiDefs.
+var POI_LOCAL_MAX_PTS = 40
+
+function _poiOsmScout(meta, callback) {
+    var def  = meta.def || {}
+    var type = (def.tag && def.val) ? def.tag + "_" + def.val : ""
+    if (!type) { callback("Sin tipo de POI para el geocoder local", null, meta); return }
+
+    // El geocoder consulta un punto y un radio, no una unión de «around» como
+    // Overpass, así que en modo «en ruta» hay que repetir por cada muestra.
+    var pts = (meta.samples && meta.samples.length > 0)
+              ? meta.samples
+              : [{ lat: (meta.qLat !== undefined ? meta.qLat : meta.lat),
+                   lon: (meta.qLon !== undefined ? meta.qLon : meta.lon) }]
+    if (pts.length > POI_LOCAL_MAX_PTS) {
+        _logMsg("POI local: ruta larga · se consultan " + POI_LOCAL_MAX_PTS
+                + " de " + pts.length + " puntos")
+        pts = pts.slice(0, POI_LOCAL_MAX_PTS)
+    }
+
+    var radius = meta.radiusM || 1000
+    var elements = [], seen = {}, idx = 0, errs = 0
+
+    // En serie, no en paralelo: son consultas locales de milisegundos y no
+    // merece la pena echarle cuarenta peticiones simultáneas al servidor.
+    function _step() {
+        if (idx >= pts.length) {
+            if (elements.length === 0 && errs === pts.length) {
+                callback("El geocoder del dispositivo no respondió", null, meta)
+            } else {
+                _logMsg("POI: " + elements.length + " en los mapas del dispositivo")
+                callback(null, { elements: elements }, meta)
+            }
+            return
+        }
+        var p = pts[idx++]
+        var u = OSMSCOUT_GUIDE + "?poitype=" + encodeURIComponent(type)
+              + "&lat=" + p.lat.toFixed(6) + "&lng=" + p.lon.toFixed(6)
+              + "&radius=" + Math.round(radius) + "&limit=50"
+        _xhr("GET", u, null, function(err, text) {
+            if (err) { errs++; _step(); return }
+            try {
+                var arr = JSON.parse(text).results || []
+                for (var k = 0; k < arr.length; k++) {
+                    var r = arr[k]
+                    if (r.lat === undefined || r.lng === undefined) continue
+                    var key = r.lat.toFixed(6) + "," + r.lng.toFixed(6)
+                    if (seen[key]) continue   // las muestras de la ruta se solapan
+                    seen[key] = true
+                    // El «title» del geocoder viene como «Nombre, número, calle»
+                    // y el «admin_region» arrastra hasta el país. Se parte por
+                    // la primera coma: el nombre a la primera línea y el resto
+                    // de dirección al subtítulo, que es lo que hace Overpass.
+                    var t = (r.title || "").split(",")
+                    var nombre = t.shift().trim()
+                    elements.push({
+                        lat: r.lat, lon: r.lng,
+                        tags: { name: nombre || def.label,
+                                "addr:street": t.join(",").trim() }
+                    })
+                }
+            } catch(e) { errs++ }
+            _step()
+        }, 6000)
+    }
+    _step()
+}
+
 // Envía query Overpass via XHR y llama callback(json|null)
 function _poiPost(q, meta, callback, _tried, _zeroRetries) {
     if (!_tried) _tried = []
     if (!_zeroRetries) _zeroRetries = 0
+    // Sin red y con servidor local: derecho al geocoder del dispositivo. El
+    // online sigue siendo el primario cuando hay cobertura, igual que en la
+    // búsqueda de destinos, porque su índice está más al día.
+    if (_tried.length === 0 && _networkOffline && _osmScoutSearchOk) {
+        _logMsg("Sin red · buscando POIs en los mapas del dispositivo…")
+        _poiOsmScout(meta, callback)
+        return
+    }
     var sLat = meta.qLat !== undefined ? meta.qLat : meta.lat
     var sLon = meta.qLon !== undefined ? meta.qLon : meta.lon
     var _srv = _tried.length === 0 ? _overpassForPos(sLat, sLon) : _overpassNext(_tried, sLat, sLon)
     if (!_srv) {
+        if (_osmScoutSearchOk) {
+            _logMsg("Overpass agotado · probando los mapas del dispositivo")
+            _poiOsmScout(meta, callback)
+            return
+        }
         if (_statusPush) _statusPush("Sin red · búsqueda POI", "#EF9A9A")
         callback("Sin servidores Overpass disponibles", null, meta)
         return
@@ -779,7 +872,8 @@ function fetchPois(lat, lon, radiusM, type, navSpeedKmh, callback) {
           + "way(around:" + radiusM + "," + lat.toFixed(6) + "," + lon.toFixed(6) + ")"
           + "[\"" + def.tag + "\"=\"" + def.val + "\"];"
           + ");out center;"
-    var meta = { lat: lat, lon: lon, def: def, type: type, navSpeedKmh: navSpeedKmh || 0 }
+    var meta = { lat: lat, lon: lon, def: def, type: type, radiusM: radiusM,
+                 navSpeedKmh: navSpeedKmh || 0 }
     _poiPost(q, meta, function(err, data, m) { _poiProcess(err, data, m, callback) })
 }
 
@@ -834,6 +928,7 @@ function fetchPoisAlongRoute(curLat, curLon, shape, radiusM, type, navSpeedKmh, 
     }
     _logMsg("POI «" + def.label + "» en ruta (" + samples.length + " pts, r=" + radiusM + "m) qCenter=" + qLat.toFixed(2) + "," + qLon.toFixed(2))
     var meta = { lat: curLat, lon: curLon, qLat: qLat, qLon: qLon, def: def, type: type,
+                 radiusM: radiusM, samples: samples,
                  navSpeedKmh: navSpeedKmh || 0, routeSegment: shape.slice(startIdx), maxDetourMin: maxDetourMin || 0 }
     _poiPost(q, meta, function(err, data, m) { _poiProcess(err, data, m, callback) })
 }
