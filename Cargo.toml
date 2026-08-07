@@ -1,6 +1,6 @@
 [package]
 name = "navius"
-version = "1.0.10"
+version = "1.0.11"
 authors = ["Eduardo García-Mádico Portabella <woodyst@gmail.com>"]
 edition = "2021"
 build = "src/build.rs"

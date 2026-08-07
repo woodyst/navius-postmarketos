@@ -131,6 +131,12 @@
   </screenshots>
 
   <releases>
+    <release version="1.0.11" date="2026-08-07">
+      <description>
+        <p>The app now tells the server its version and platform, so update notices only reach installs that are actually out of date. Internal server signals are no longer shown as empty messages.</p>
+        <p xml:lang="es">La app informa al servidor de su versión y plataforma, de modo que los avisos de actualización solo llegan a instalaciones desactualizadas. Las señales internas del servidor ya no se muestran como mensajes vacíos.</p>
+      </description>
+    </release>
     <release version="1.0.10" date="2026-08-06">
       <description>
         <p>First release of the postmarketOS port, matching version 1.0.10 of the Ubuntu Touch app.</p>

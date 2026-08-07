@@ -1,6 +1,6 @@
 # Maintainer: Eduardo García-Mádico Portabella <woodyst@gmail.com>
 pkgname=navius
-pkgver=1.0.10
+pkgver=1.0.11
 pkgrel=0
 pkgdesc="GPS navigator (offline, OSM-based)"
 url="https://github.com/woodyst/navius-postmarketos"
