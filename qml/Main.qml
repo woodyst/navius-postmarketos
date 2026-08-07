@@ -25,12 +25,14 @@ ApplicationWindow {
     id: root
     objectName: 'mainView'
 
-    // Tamaño inicial = pantalla completa. Antes era units.gu(45)×units.gu(80)
-    // (el "phone portrait" de Ubuntu Touch), pero con el grid unit ya ajustado
-    // a la escala real de Phosh eso pedía una ventana mucho más pequeña que la
-    // pantalla y dependía de que el compositor la maximizara.
-    width:   Screen.width  > 0 ? Screen.width  : units.gu(45)
-    height:  Screen.height > 0 ? Screen.height : units.gu(80)
+    // Maximizada, que es lo que corresponde en un teléfono: el compositor la
+    // ajusta al área ÚTIL (descontando el panel de Phosh). Pedir Screen.height
+    // a pelo hacía que la ventana sobresaliera por abajo y se perdiera la barra
+    // inferior de la app — con navegación activa, la del contador de satélites.
+    // width/height solo se usan si algún día corre sin maximizar (escritorio).
+    width:   units.gu(45)
+    height:  units.gu(80)
+    visibility: Window.Maximized
     visible: true
 
     SatelliteModel { id: satModel }
