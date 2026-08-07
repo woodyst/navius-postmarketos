@@ -2,12 +2,29 @@
 
 var _serverUrl = "https://navius-api.egpsistemas.com"
 
+// Versión y plataforma del build. El servidor las usa para dirigir cada mensaje solo a
+// quien le corresponde (ver migración 0021 de navius_server): un aviso de actualización
+// va únicamente a versiones anteriores a la anunciada. Este fichero es .pragma library,
+// así que no ve el contexto QML y hay que inyectarlas desde Main.qml.
+var _appVersion  = ""
+var _appPlatform = ""
+function setAppInfo(version, plataforma) {
+    _appVersion  = version    || ""
+    _appPlatform = plataforma || ""
+}
+function _addAppHeaders(xhr) {
+    if (_appVersion)  xhr.setRequestHeader("X-App-Version", _appVersion)
+    if (_appPlatform) xhr.setRequestHeader("X-App-Platform", _appPlatform)
+}
+
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 function _xhr(method, path, deviceId, token, body, cb) {
     var r = new XMLHttpRequest()
     r.open(method, _serverUrl + path)
+    _addAppHeaders(r)
     r.setRequestHeader("X-Device-Id", deviceId)
     if (token) r.setRequestHeader("Authorization", "Bearer " + token)
     if (body)  r.setRequestHeader("Content-Type", "application/json")

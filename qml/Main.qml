@@ -2465,6 +2465,13 @@ ApplicationWindow {
 
     Component.onCompleted: {
         console.log("TRACE [" + Date.now() + "]: root.onCompleted START")
+        // Identificarse ante el servidor con versión y plataforma. Los tres módulos son
+        // .pragma library y no ven el contexto QML, así que hay que pasárselas. Sin esto
+        // el servidor no puede dirigir un aviso solo a las versiones que lo necesitan.
+        var _plat = (typeof appPlatform !== "undefined") ? appPlatform : ""
+        NavMessages.setAppInfo(root._version, _plat)
+        NavSettings.setAppInfo(root._version, _plat)
+        NavAlerts.setAppInfo(root._version, _plat)
         // Ubicación compartida por otra app vía esquema geo: (argv al lanzar,
         // ver sharedUri en main.rs) — sustituye al Content-Hub de Lomiri.
         if (typeof sharedUri !== "undefined" && sharedUri.length > 0) {

@@ -2,6 +2,22 @@
 
 var _serverUrl = "https://navius-api.egpsistemas.com"
 
+// Versión y plataforma del build. El servidor las usa para dirigir cada mensaje solo a
+// quien le corresponde (ver migración 0021 de navius_server): un aviso de actualización
+// va únicamente a versiones anteriores a la anunciada. Este fichero es .pragma library,
+// así que no ve el contexto QML y hay que inyectarlas desde Main.qml.
+var _appVersion  = ""
+var _appPlatform = ""
+function setAppInfo(version, plataforma) {
+    _appVersion  = version    || ""
+    _appPlatform = plataforma || ""
+}
+function _addAppHeaders(xhr) {
+    if (_appVersion)  xhr.setRequestHeader("X-App-Version", _appVersion)
+    if (_appPlatform) xhr.setRequestHeader("X-App-Platform", _appPlatform)
+}
+
+
 function setServerUrl(url) { _serverUrl = url }
 
 // Qt 5.12 bug: for 4xx/5xx responses QML XHR resets status=0 and clears
@@ -14,6 +30,7 @@ function _xhrPost(url, token, body, callback) {
     var savedStatus = 0
     var savedBody   = ""
     xhr.open("POST", url)
+    _addAppHeaders(xhr)
     xhr.setRequestHeader("Content-Type", "application/json")
     if (token) xhr.setRequestHeader("Authorization", "Bearer " + token)
     xhr.onreadystatechange = function() {
@@ -33,6 +50,7 @@ function _xhrGet(url, callback) {
     var savedStatus = 0
     var savedBody   = ""
     xhr.open("GET", url)
+    _addAppHeaders(xhr)
     xhr.onreadystatechange = function() {
         if (xhr.readyState >= 2 && xhr.status !== 0)      savedStatus = xhr.status
         if (xhr.readyState >= 3 && xhr.responseText !== "") savedBody  = xhr.responseText
@@ -125,6 +143,7 @@ function eliminarAlerta(token, alertaId, callback) {
     var xhr = new XMLHttpRequest()
     var savedStatus = 0
     xhr.open("DELETE", _serverUrl + "/api/v1/alertas/" + alertaId)
+    _addAppHeaders(xhr)
     if (token) xhr.setRequestHeader("Authorization", "Bearer " + token)
     xhr.onreadystatechange = function() {
         if (xhr.readyState >= 2 && xhr.status !== 0) savedStatus = xhr.status
@@ -139,6 +158,7 @@ function eliminarLimite(token, limiteId, callback) {
     var xhr = new XMLHttpRequest()
     var savedStatus = 0
     xhr.open("DELETE", _serverUrl + "/api/v1/limites/" + limiteId)
+    _addAppHeaders(xhr)
     if (token) xhr.setRequestHeader("Authorization", "Bearer " + token)
     xhr.onreadystatechange = function() {
         if (xhr.readyState >= 2 && xhr.status !== 0) savedStatus = xhr.status
@@ -186,6 +206,7 @@ function obtenerBillboards(lat, lng, radio, token, callback) {
     var xhr = new XMLHttpRequest()
     var savedStatus = 0, savedBody = ""
     xhr.open("GET", url)
+    _addAppHeaders(xhr)
     if (token) xhr.setRequestHeader("Authorization", "Bearer " + token)
     xhr.onreadystatechange = function() {
         if (xhr.readyState >= 2 && xhr.status !== 0)       savedStatus = xhr.status
@@ -217,6 +238,7 @@ function registrarImpresion(token, deviceId, billboardId) {
     if (!billboardId) return
     var xhr = new XMLHttpRequest()
     xhr.open("POST", _serverUrl + "/api/v1/billboards/" + billboardId + "/impresion")
+    _addAppHeaders(xhr)
     xhr.setRequestHeader("Content-Type", "application/json")
     if (token) xhr.setRequestHeader("Authorization", "Bearer " + token)
     if (deviceId) xhr.setRequestHeader("X-Device-Id", deviceId)

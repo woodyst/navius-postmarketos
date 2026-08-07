@@ -3,6 +3,22 @@
 // ── Configuración del servidor ────────────────────────────────────────────────
 var _serverUrl = "https://navius-api.egpsistemas.com"
 function setServerUrl(u) { _serverUrl = u }
+
+// Versión y plataforma del build. El servidor las usa para dirigir cada mensaje solo a
+// quien le corresponde (ver migración 0021 de navius_server): un aviso de actualización
+// va únicamente a versiones anteriores a la anunciada. Este fichero es .pragma library,
+// así que no ve el contexto QML y hay que inyectarlas desde Main.qml.
+var _appVersion  = ""
+var _appPlatform = ""
+function setAppInfo(version, plataforma) {
+    _appVersion  = version    || ""
+    _appPlatform = plataforma || ""
+}
+function _addAppHeaders(xhr) {
+    if (_appVersion)  xhr.setRequestHeader("X-App-Version", _appVersion)
+    if (_appPlatform) xhr.setRequestHeader("X-App-Platform", _appPlatform)
+}
+
 function serverUrl()     { return _serverUrl }
 
 // ── Claves que se sincronizan con el servidor ─────────────────────────────────
@@ -74,6 +90,7 @@ function _xhr(method, url, token, body, callback) {
     var xhr = new XMLHttpRequest()
     var savedStatus = 0, savedBody = ""
     xhr.open(method, url)
+    _addAppHeaders(xhr)
     xhr.setRequestHeader("Content-Type", "application/json")
     if (token) xhr.setRequestHeader("Authorization", "Bearer " + token)
     xhr.onreadystatechange = function() {

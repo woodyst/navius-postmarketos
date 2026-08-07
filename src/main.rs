@@ -120,6 +120,13 @@ fn main() {
     }
 
     engine.set_property("appVersion".into(), QString::from(env!("CARGO_PKG_VERSION")).into());
+    // Plataforma del build, para que el servidor pueda dirigir un mensaje solo a las que
+    // toque (ver migración 0021 de navius_server). Cada port es un binario distinto:
+    // "pmos" aquí, "ut" y "android" en los suyos. Se puede forzar con NAVIUS_PLATFORM.
+    engine.set_property(
+        "appPlatform".into(),
+        QString::from(option_env!("NAVIUS_PLATFORM").unwrap_or("pmos")).into(),
+    );
     engine.set_property("sharedUri".into(), QString::from(shared_uri).into());
 
     // Directorio de datos del usuario (antes hardcodeado a /home/phablet/.../
