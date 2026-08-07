@@ -63,7 +63,7 @@ ApplicationWindow {
         onTriggered: {
             var sinceId = deviceMsgSt.lastMsgId
             NavMessages.fetchMsgs(deviceMsgSt.deviceId, mainAuthSettings.token, sinceId,
-                function(msgs, err) { root._onMsgFetched(msgs, err, false) })
+                function(msgs, err, acc) { root._onMsgFetched(msgs, err, false, acc) })
         }
     }
     Connections {
@@ -442,21 +442,22 @@ ApplicationWindow {
         return "#1E88E5"
     }
 
-    function _onMsgFetched(msgs, err, isInit) {
+    // msgs llega ya sin los mensajes de acción: NavMessages.fetchMsgs los separa y los
+    // entrega aparte en `acciones`.
+    function _onMsgFetched(msgs, err, isInit, acciones) {
         if (err || !msgs) { if (isInit) root._msgInitDone = true; return }
-        // Separar mensajes de acción (sistema) de los mensajes visibles al usuario
         var actionBillboard = false
-        var visibleMsgs = []
-        for (var a = 0; a < msgs.length; a++) {
-            if (msgs[a].tipo === "aviso" && msgs[a].titulo === "fetch_billboards")
-                actionBillboard = true
-            else
-                visibleMsgs.push(msgs[a])
-        }
+        for (var a = 0; a < (acciones ? acciones.length : 0); a++)
+            if (acciones[a].titulo === "fetch_billboards") actionBillboard = true
+        var visibleMsgs = msgs
         messagesPanel.addNewMsgs(visibleMsgs)
+        // La marca de agua tiene que avanzar también con los de acción: si no, se
+        // vuelven a pedir en cada sondeo y no dejan de llegar nunca.
         var maxId = deviceMsgSt.lastMsgId
         for (var i = 0; i < msgs.length; i++)
             if (msgs[i].id > maxId) maxId = msgs[i].id
+        for (var b = 0; b < (acciones ? acciones.length : 0); b++)
+            if (acciones[b].id > maxId) maxId = acciones[b].id
         deviceMsgSt.lastMsgId = maxId
         // Badge total no leídos
         var unread = 0
@@ -2504,7 +2505,7 @@ ApplicationWindow {
         if (deviceMsgSt.deviceId === "") deviceMsgSt.deviceId = root._makeDeviceId()
         Qt.callLater(function() {
             NavMessages.fetchMsgs(deviceMsgSt.deviceId, mainAuthSettings.token, 0,
-                function(msgs, err) { root._onMsgFetched(msgs, err, true) })
+                function(msgs, err, acc) { root._onMsgFetched(msgs, err, true, acc) })
         })
         // Si ya hay sesión activa, sincronizar settings silenciosamente al arrancar
         if (mainAuthSettings.token !== "") {

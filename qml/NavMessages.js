@@ -30,12 +30,28 @@ function _xhr(method, path, deviceId, token, body, cb) {
 // sinceId=0 para traer todos; >0 para polling incremental.
 // callback(msgs_array, error_string)
 // ---------------------------------------------------------------------------
+// El servidor usa la tabla de mensajes también como canal de señales internas: por
+// ejemplo inserta un "fetch_billboards" con cuerpo vacío para que el dispositivo se
+// descargue los billboards. Eso no es contenido para el usuario y se separa AQUÍ, no en
+// cada llamante: MessagesPanel hacía su propia petición y se saltaba el filtro de
+// Main.qml, así que la señal acababa mostrándose como un mensaje vacío.
+var _TITULOS_ACCION = ["fetch_billboards"]
+
+function _esAccion(m) {
+    return !!m && m.tipo === "aviso" && _TITULOS_ACCION.indexOf(m.titulo) >= 0
+}
+
 function fetchMsgs(deviceId, token, sinceId, callback) {
     if (!deviceId) return
     var path = "/api/v1/mensajes" + (sinceId > 0 ? "?desde_id=" + sinceId : "")
     _xhr("GET", path, deviceId, token, null, function(ok, data) {
-        if (ok && Array.isArray(data)) callback(data, null)
-        else callback(null, "error")
+        if (!ok || !Array.isArray(data)) { callback(null, "error", []); return }
+        var visibles = [], acciones = []
+        for (var i = 0; i < data.length; i++) {
+            if (_esAccion(data[i])) acciones.push(data[i])
+            else                    visibles.push(data[i])
+        }
+        callback(visibles, null, acciones)
     })
 }
 
