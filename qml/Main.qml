@@ -7513,7 +7513,12 @@ ApplicationWindow {
     Item {
         id: radarAlertBanner
         anchors { left: parent.left; right: parent.right; top: adPanel.bottom }
-        height: root._tramoAlertActive && root._navActive && !prefsPanel.visible
+        // Se repliega con cualquier panel a pantalla completa por encima: estos
+        // banners van a z:12 y SearchPanel a z:10, así que si no, el aviso se
+        // dibujaba sobre el panel de buscar ruta. Se repliega en vez de subir el
+        // z del panel: entre z 11 y 24 hay ~10 overlays con el orden calibrado.
+        height: root._tramoAlertActive && root._navActive
+                && !prefsPanel.visible && !searchPanel.visible && !satPanel.visible
                 ? units.gu(5.5) : 0
         clip: true; z: 12
         Behavior on height { NumberAnimation { duration: 180 } }
@@ -7549,7 +7554,8 @@ ApplicationWindow {
     Item {
         id: fijoAlertBanner
         anchors { left: parent.left; right: parent.right; top: radarAlertBanner.bottom }
-        height: root._fijoAlertActive && root._navActive && !prefsPanel.visible
+        height: root._fijoAlertActive && root._navActive
+                && !prefsPanel.visible && !searchPanel.visible && !satPanel.visible
                 ? units.gu(5.5) : 0
         clip: true; z: 12
         Behavior on height { NumberAnimation { duration: 180 } }
@@ -9206,6 +9212,7 @@ ApplicationWindow {
         anchors { left: parent.left; right: parent.right; bottom: trafficBanner.visible ? trafficBanner.top : mapBottomAnchor.bottom }
         height: units.gu(7)
         visible: root._msgBannerShow && !msgDetailPopup.visible && !messagesPanel.visible && !root._menuOpen
+                 && !prefsPanel.visible && !searchPanel.visible && !satPanel.visible
         color: "#0A0E1A"
         z: 18
 
@@ -9257,6 +9264,7 @@ ApplicationWindow {
         anchors { left: parent.left; right: parent.right; bottom: mapBottomAnchor.bottom }
         height: units.gu(7)
         visible: root._trafficBannerVisible && root._navActive
+                 && !prefsPanel.visible && !searchPanel.visible && !satPanel.visible
         color: "#0D1F0D"
         z: 18
 
