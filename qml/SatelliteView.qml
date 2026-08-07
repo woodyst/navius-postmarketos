@@ -28,8 +28,12 @@ Item {
         }
     }
 
+    // El color dice SIEMPRE de qué constelación es; en uso o no lo dice el
+    // brillo. Antes los no fijados iban todos al mismo gris, así que un GLONASS
+    // sin fijar era indistinguible de un GPS sin fijar y parecía que el módem
+    // solo daba GPS.
     function signalColor(inUse, sys) {
-        return inUse ? systemColor(sys) : "#546E7A"
+        return inUse ? systemColor(sys) : Qt.darker(systemColor(sys), 2.6)
     }
 
     // Dibuja la esfera celeste en el contexto dado. Llamado desde ambos modos.
@@ -269,11 +273,11 @@ Item {
                 anchors.centerIn: parent; spacing: units.gu(2)
                 Repeater {
                     model: [
-                        { color: "#66BB6A", label: "GPS en uso"     },
-                        { color: "#29B6F6", label: "GLONASS en uso" },
-                        { color: "#FFA726", label: "Galileo"        },
-                        { color: "#AB47BC", label: "BeiDou"         },
-                        { color: "#90A4AE", label: "No en uso"      },
+                        { color: "#66BB6A", label: "GPS"      },
+                        { color: "#29B6F6", label: "GLONASS"  },
+                        { color: "#FFA726", label: "Galileo"  },
+                        { color: "#AB47BC", label: "BeiDou"   },
+                        { color: Qt.darker("#66BB6A", 2.6), label: "No en uso" },
                     ]
                     delegate: Row {
                         spacing: units.gu(0.5)
@@ -381,7 +385,7 @@ Item {
                             { color: "#29B6F6", label: "GLONASS" },
                             { color: "#FFA726", label: "GAL"     },
                             { color: "#AB47BC", label: "BDS"     },
-                            { color: "#90A4AE", label: "No uso"  },
+                            { color: Qt.darker("#66BB6A", 2.6), label: "No uso" },
                         ]
                         delegate: Row {
                             spacing: units.gu(0.4)
