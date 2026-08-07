@@ -10,3 +10,6 @@
 
 # venv de la herramienta i18n (po/i18n_tool.py)
 po/.venv-translate/
+
+# Documento de trabajo con datos del dispositivo y del servidor: no versionar
+PROMPT_PENDIENTE.md
