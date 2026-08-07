@@ -49,6 +49,19 @@ pmbootstrap sideload --host <dispositivo> --user <usuario> navius
 #   sudo apk add --allow-untrusted /tmp/navius-*.apk
 ```
 
+### Mapas en local
+
+Para rutas y mapas sin conexión hace falta **OSM Scout Server**, que está en el
+repositorio `community` de Alpine:
+
+```sh
+sudo apk add osmscout-server
+```
+
+No hay que arrancarlo a mano: Navius lo lanza cuando lo necesita. Sí hay que
+descargar los mapas de tu región desde su propia interfaz la primera vez. Ver
+[Instalación en postmarketOS](docs/instalacion.es.md).
+
 ### Fuentes de terceros no versionadas aquí
 
 Por tamaño, el árbol de Mimic1 (`extras/mimic`, ~320 MB con `lang/`) se
