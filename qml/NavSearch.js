@@ -6,6 +6,12 @@
 var PHOTON   = "https://navius-maps.egpsistemas.com/photon"
 var VALHALLA = "https://valhalla1.openstreetmap.de"
 
+// Geocoder local de OSM Scout Server, para buscar destinos sin conexión. Mismo
+// esquema que Valhalla: si el servidor está activo pasa a ser el primario y el
+// online queda de respaldo; si no lo está, no cambia nada.
+var OSMSCOUT_SEARCH   = "http://127.0.0.1:8553/v2/search"
+var _osmScoutSearchOk = false
+
 var _log         = null
 var _fileLog     = null
 var _navHttp     = null
@@ -45,6 +51,9 @@ function setStatusPushCallback(fn)   { _statusPush  = fn }
 function setValhallaUrl(url)     { if (url && url.length > 4) VALHALLA = url }
 function setFallbackUrl(url)     { _fallbackUrl = (url && url.length > 4) ? url : null }
 function valhallaHost()          { return VALHALLA.replace(/^https?:\/\//, "").replace(/\/.*$/, "") }
+// La llama Main.qml con el resultado de detectOsmScout(): mismo interruptor que
+// ya conmuta las rutas y el mapa.
+function setOsmScoutSearch(ok)   { _osmScoutSearchOk = !!ok }
 
 // autoLaunch: false = solo comprobar si ya está corriendo (arranque de la app,
 // preferOsmScout pasivo — NO debe arrancar el servidor solo). true = intención
@@ -441,8 +450,42 @@ function geocode(query, aroundLat, aroundLon, callback) {
             cb(null, results)
         } catch(e) { _logMsg("✗ Parse error: " + e); cb("Parse error", []) }
     }
-    _xhr("GET", url, null, function(err, text) {
-        if (!err) { _parse(text, callback); return }
+    // El geocoder local devuelve {title, admin_region, lat, lng, type}, no
+    // GeoJSON. Se convierte a Feature de Photon para que photonLabel() y todo
+    // lo que consume estos resultados sigan funcionando sin enterarse.
+    function _parseOsmScout(text, cb) {
+        try {
+            var raw = JSON.parse(text)
+            var arr = raw.result || raw   // /v2 envuelve en {result}, /v1 no
+            var results = []
+            for (var i = 0; i < arr.length; i++) {
+                var r = arr[i]
+                if (r.lat === undefined || r.lng === undefined) continue
+                results.push({
+                    geometry:   { coordinates: [r.lng, r.lat] },
+                    properties: { name: r.title || "", city: r.admin_region || "",
+                                  osm_value: r.type || "" }
+                })
+            }
+            _logMsg("Resultados: " + results.length + " lugar(es) · offline")
+            cb(null, results)
+        } catch(e) { _logMsg("✗ Parse error geocoder local: " + e); cb("Parse error", []) }
+    }
+
+    function _tryOsmScout(cb) {
+        var lu = OSMSCOUT_SEARCH + "?search=" + encodeURIComponent(query) + "&limit=6"
+        if (aroundLat !== 0 || aroundLon !== 0)
+            lu += "&lat=" + aroundLat + "&lng=" + aroundLon
+        _fileDump("GEOCODE local: " + lu)
+        // 6 s como en las rutas locales: es el mismo dispositivo, si tarda más
+        // es que algo va mal, no que la red esté lenta.
+        _xhr("GET", lu, null, function(errL, textL) {
+            if (errL) { cb(errL, []); return }
+            _parseOsmScout(textL, cb)
+        }, 6000)
+    }
+
+    function _tryKomoot(cb) {
         // Fallback a photon.komoot.io (soporta de/en/fr/it, no es → lang=en)
         var fbLang = (["de","en","fr","it"].indexOf(_photonLang()) >= 0) ? _photonLang() : "en"
         var fbUrl = PHOTON_FALLBACK + "/api/?q=" + encodeURIComponent(query) + "&limit=6&lang=" + fbLang
@@ -451,9 +494,30 @@ function geocode(query, aroundLat, aroundLon, callback) {
         _fileDump("GEOCODE fallback: " + fbUrl)
         _logMsg("Photon: servidor propio no disponible · usando komoot…")
         _xhr("GET", fbUrl, null, function(errFb, textFb) {
-            if (errFb) { callback(errFb, []); return }
-            _parse(textFb, callback)
+            if (errFb) { cb(errFb, []); return }
+            _parse(textFb, cb)
         }, 6000)
+    }
+
+    // Orden: online primero y el geocoder local de respaldo. A diferencia de las
+    // rutas, aquí el online NO se sustituye aunque haya servidor local, porque
+    // su índice es mundial y está más al día; el local es una instantánea de los
+    // territorios que se hayan instalado.
+    //
+    // El local va antes que komoot a propósito: si Photon ha fallado suele ser
+    // por falta de cobertura, y entonces komoot fallaría igual tras otros 6 s de
+    // espera, mientras que el local responde en el acto.
+    _xhr("GET", url, null, function(err, text) {
+        if (!err) { _parse(text, callback); return }
+
+        if (!_osmScoutSearchOk) { _tryKomoot(callback); return }
+
+        _fileDump("GEOCODE: Photon falló (" + err + "), probando el geocoder local")
+        _logMsg("Sin red · buscando en los mapas del dispositivo…")
+        _tryOsmScout(function(errL, resL) {
+            if (!errL && resL.length > 0) { callback(null, resL); return }
+            _tryKomoot(callback)
+        })
     }, 6000)
 }
 
