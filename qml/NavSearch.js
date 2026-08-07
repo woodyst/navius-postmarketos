@@ -465,14 +465,32 @@ function geocode(query, aroundLat, aroundLon, callback) {
             var raw = JSON.parse(text)
             var arr = raw.result || raw   // /v2 envuelve en {result}, /v1 no
             var results = []
+            var conRef = (aroundLat !== 0 || aroundLon !== 0)
             for (var i = 0; i < arr.length; i++) {
                 var r = arr[i]
                 if (r.lat === undefined || r.lng === undefined) continue
                 results.push({
+                    _n:  results.length,
+                    _km: conRef ? _haversineKm(aroundLat, aroundLon, r.lat, r.lng) : 0,
                     geometry:   { coordinates: [r.lng, r.lat] },
                     properties: { name: r.title || "", city: r.admin_region || "",
                                   osm_value: r.type || "" }
                 })
+            }
+            // El geocoder local NO ordena por cercanía aunque se le pase el punto
+            // de referencia: su sesgo por distancia tiene el radio clavado en
+            // 250 m, así que más allá de dos kilómetros da igual dónde estés.
+            // Buscando «Barcelona» desde Barcelona los primeros eran calles de
+            // Salamanca, León y Jaén. Se ordena aquí, no en el servidor, porque
+            // UT y postmarketOS hablan con el OSM Scout de rinigus, que no
+            // podemos tocar. El desempate por _n mantiene el orden del servidor
+            // entre los que están igual de lejos.
+            if (conRef) {
+                results.sort(function(a, b) { return (a._km - b._km) || (a._n - b._n) })
+                // Al servidor se le piden 25 justo para poder elegir: si solo se
+                // le pidieran 6, ordenarlos no serviría de nada cuando los seis
+                // que manda están todos al otro lado del país.
+                results = results.slice(0, 6)
             }
             _logMsg("Resultados: " + results.length + " lugar(es) · offline")
             cb(null, results)
@@ -480,7 +498,10 @@ function geocode(query, aroundLat, aroundLon, callback) {
     }
 
     function _tryOsmScout(cb) {
-        var lu = OSMSCOUT_SEARCH + "?search=" + encodeURIComponent(query) + "&limit=6"
+        // 25 y no 6: los que sobran son el margen con el que _parseOsmScout
+        // puede quedarse con los más cercanos. Son unos pocos kB de más y el
+        // servidor está en el propio dispositivo.
+        var lu = OSMSCOUT_SEARCH + "?search=" + encodeURIComponent(query) + "&limit=25"
         if (aroundLat !== 0 || aroundLon !== 0)
             lu += "&lat=" + aroundLat + "&lng=" + aroundLon
         _fileDump("GEOCODE local: " + lu)
