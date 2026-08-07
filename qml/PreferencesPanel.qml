@@ -3138,7 +3138,10 @@ Rectangle {
                         if (!panel.cfg) return
                         panel.cfg.debugMode = checked
                         if (!checked) {
-                            panel.cfg.simMode = false
+                            // La simulación NO se apaga aquí: quitar la depuración
+                            // solo esconde las herramientas, y una simulación en
+                            // marcha sigue hasta que se apague su propio
+                            // interruptor (que por eso se mantiene visible abajo).
                             if (panel.cfg.manualPosActive) panel.manualPosCleared()
                             panel.debugOff()
                         } else {
@@ -3171,7 +3174,10 @@ Rectangle {
 
             // ── Simulación GPS ───────────────────────────────────────────
             PrefListItem {
-                visible: panel.cfg && panel.cfg.debugMode
+                // Visible también sin depuración mientras la simulación esté en
+                // marcha: si no, al apagar la depuración no habría manera de
+                // pararla desde ningún sitio.
+                visible: panel.cfg && (panel.cfg.debugMode || panel.cfg.simMode)
                 width: parent.width
                 dividerColor: pal.divider
                 bgIdle: pal.bgCard
