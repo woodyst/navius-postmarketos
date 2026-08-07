@@ -8153,7 +8153,10 @@ ApplicationWindow {
         id: ttsVoicesPanel
         textScale: appSettings.textScale
         ttsRef: navTts
-        onClosed: _applyTtsLang()   // pick up newly installed voices
+        onClosed: {
+            _applyTtsLang()               // pick up newly installed voices
+            prefsPanel.refreshVoiceLists()  // y que el selector de voz las vea ya
+        }
     }
 
     Timer {

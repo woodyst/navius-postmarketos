@@ -46,6 +46,15 @@ Rectangle {
     signal simRouteChanged(int idx)
     signal manualPosApplied(real lat, real lon)
     signal manualPosCleared()
+    // Releer las voces instaladas. La lista solo se recalculaba al mostrarse la
+    // sección o al cambiar de idioma, así que al volver del gestor de voces con
+    // una recién descargada el selector seguía escondido (necesita dos o más) y
+    // había que plegar y desplegar "Voz" para que apareciera.
+    function refreshVoiceLists() {
+        if (typeof ttsVoicesBlock !== "undefined" && ttsVoicesBlock)
+            ttsVoicesBlock._refreshVoices()
+    }
+
     signal voicesRequested()
     signal voiceSelected(string voiceId)
     signal voicePicoSelected(string voiceId)
@@ -2284,6 +2293,7 @@ Rectangle {
 
             // ── Idioma de voz + Motor TTS ────────────────────────────────
             Rectangle {
+                id: ttsVoicesBlock
                 width: parent.width
                 height: ttsColumn.implicitHeight + units.gu(4)
                 color: pal.bgCard; radius: 0
