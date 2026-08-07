@@ -1,3 +1,5 @@
+[Español](instalacion.es.md) · **English**
+
 # Installing on postmarketOS
 
 Navius ships as an Alpine `.apk` package for **aarch64**. You need postmarketOS

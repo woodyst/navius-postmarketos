@@ -1,3 +1,5 @@
+[Español](port.es.md) · **English**
+
 # postmarketOS port notes
 
 Navius started as an Ubuntu Touch application: Qt5/QML on the Lomiri SDK,

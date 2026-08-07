@@ -1,3 +1,5 @@
+**Español** · [English](install.en.md)
+
 # Instalación en postmarketOS
 
 Navius se distribuye como paquete `.apk` de Alpine para **aarch64**. Necesitas

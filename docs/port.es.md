@@ -1,3 +1,5 @@
+**Español** · [English](port.en.md)
+
 # Notas del port a postmarketOS
 
 Navius nació como aplicación de Ubuntu Touch: Qt5/QML sobre el SDK de Lomiri,
