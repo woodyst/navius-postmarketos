@@ -46,7 +46,12 @@ ApplicationWindow {
 
     NavPower {
         id: navPower
-        inhibit: appSettings.inhibitSuspend && Qt.application.state === Qt.ApplicationActive
+        // Lo que promete el ajuste: mantener la pantalla encendida MIENTRAS SE
+        // NAVEGA. Antes miraba Qt.application.state, que en Lomiri reflejaba el
+        // primer plano pero en Phosh no llega a ApplicationActive, así que la
+        // inhibición no se pedía nunca (comprobado: ni un inhibidor registrado
+        // en org.gnome.SessionManager con la app en pantalla).
+        inhibit: appSettings.inhibitSuspend && root._navActive
     }
     Timer {
         id: navTrackerPollTimer

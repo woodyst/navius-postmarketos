@@ -3,32 +3,53 @@
 #include <QtDBus/QDBusReply>
 #include <QtCore/QDebug>
 
-static const char* UNITY_SERVICE  = "com.canonical.Unity.Screen";
-static const char* UNITY_PATH     = "/com/canonical/Unity/Screen";
-static const char* UNITY_IFACE    = "com.canonical.Unity.Screen";
+// Mantener la pantalla encendida mientras se navega.
+//
+// En Ubuntu Touch esto lo daba com.canonical.Unity.Screen (keepDisplayOn /
+// removeDisplayOnRequest) en el bus del sistema. Fuera de Lomiri ese servicio no
+// existe, y el port arrastraba el "[NavPower] Unity.Screen not available" de
+// cada arranque: la pantalla se apagaba navegando.
+//
+// El equivalente en Phosh es la API estándar org.freedesktop.ScreenSaver, en el
+// bus de SESIÓN (la sirve gsd-screensaver). Comprobado en el dispositivo:
+//
+//   org.freedesktop.ScreenSaver  →  gsd-screensaver
+//     .Inhibit    (ss → u)   app_name, reason  →  cookie
+//     .UnInhibit  (u)        cookie
+//
+// El cookie es un uint32 y aquí 0 significa "sin inhibición": es lo que asume
+// el lado Rust (ver src/nav_power.rs). La API no documenta 0 como valor
+// reservado, pero ningún servidor conocido lo entrega, y es el convenio que
+// usan el resto de clientes de esta interfaz.
+static const char* SS_SERVICE = "org.freedesktop.ScreenSaver";
+static const char* SS_PATH    = "/org/freedesktop/ScreenSaver";
+static const char* SS_IFACE   = "org.freedesktop.ScreenSaver";
 
-extern "C" int navius_power_keep_on() {
-    QDBusInterface iface(UNITY_SERVICE, UNITY_PATH, UNITY_IFACE,
-                         QDBusConnection::systemBus());
+extern "C" unsigned int navius_power_keep_on() {
+    QDBusInterface iface(SS_SERVICE, SS_PATH, SS_IFACE,
+                         QDBusConnection::sessionBus());
     if (!iface.isValid()) {
-        qWarning() << "[NavPower] Unity.Screen not available";
-        return -1;
+        qWarning() << "[NavPower] org.freedesktop.ScreenSaver no disponible";
+        return 0;
     }
-    QDBusReply<int> reply = iface.call("keepDisplayOn");
+    QDBusReply<unsigned int> reply = iface.call(
+        QStringLiteral("Inhibit"),
+        QStringLiteral("Navius"),
+        QStringLiteral("Navegación activa"));
     if (reply.isValid()) {
-        qDebug() << "[NavPower] keepDisplayOn cookie=" << reply.value();
+        qDebug() << "[NavPower] pantalla inhibida, cookie=" << reply.value();
         return reply.value();
     }
-    qWarning() << "[NavPower] keepDisplayOn failed:" << reply.error().message();
-    return -1;
+    qWarning() << "[NavPower] Inhibit falló:" << reply.error().message();
+    return 0;
 }
 
-extern "C" void navius_power_release(int cookie) {
-    if (cookie < 0) return;
-    QDBusInterface iface(UNITY_SERVICE, UNITY_PATH, UNITY_IFACE,
-                         QDBusConnection::systemBus());
+extern "C" void navius_power_release(unsigned int cookie) {
+    if (cookie == 0) return;
+    QDBusInterface iface(SS_SERVICE, SS_PATH, SS_IFACE,
+                         QDBusConnection::sessionBus());
     if (iface.isValid()) {
-        iface.call("removeDisplayOnRequest", cookie);
-        qDebug() << "[NavPower] removeDisplayOnRequest cookie=" << cookie;
+        iface.call(QStringLiteral("UnInhibit"), cookie);
+        qDebug() << "[NavPower] inhibición liberada, cookie=" << cookie;
     }
 }
