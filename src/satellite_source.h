@@ -266,6 +266,20 @@ class SatelliteSource {
                         [](QGeoPositionInfoSource::Error e) {
                             NAVIUS_TRACE("[navius] pos_src error: %d\n", (int)e);
                         });
+                    // Pedir explícitamente posicionamiento por satélite. El
+                    // plugin geoclue2 traduce esto al DesiredAccuracyLevel que
+                    // solicita a geoclue: sin pedirlo, geoclue sirve la fuente
+                    // de red (ichnaea) — se veían fixes de 26 km y ninguna
+                    // actualización posterior, mientras el módem tenía posición
+                    // con 1 m de precisión.
+                    m_pos_src->setPreferredPositioningMethods(
+                        QGeoPositionInfoSource::SatellitePositioningMethods);
+                    // 1 s: el ritmo al que la app repinta la posición. Sin
+                    // fijarlo queda el del plugin, que es más lento.
+                    m_pos_src->setUpdateInterval(1000);
+                    NAVIUS_TRACE("[navius] pos_src: methods=%d interval=%d\n",
+                            (int)m_pos_src->preferredPositioningMethods(),
+                            m_pos_src->updateInterval());
                     // startUpdates() on main thread: D-Bus replies are processed by
                     // the main event loop — no blocking.
                     m_pos_src->startUpdates();
