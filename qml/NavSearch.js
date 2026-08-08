@@ -487,10 +487,10 @@ function geocode(query, aroundLat, aroundLon, callback) {
             // entre los que están igual de lejos.
             if (conRef) {
                 results.sort(function(a, b) { return (a._km - b._km) || (a._n - b._n) })
-                // Al servidor se le piden 25 justo para poder elegir: si solo se
-                // le pidieran 6, ordenarlos no serviría de nada cuando los seis
-                // que manda están todos al otro lado del país.
-                results = results.slice(0, 6)
+                // No se recortan a los 6 de Photon: sin conexión, tener los 25
+                // ordenados por cercanía da más margen para encontrar el sitio,
+                // sobre todo con los nombres parciales que devuelve el índice
+                // local (calles y POIs, nunca la entidad ciudad).
             }
             _logMsg("Resultados: " + results.length + " lugar(es) · offline")
             cb(null, results)
