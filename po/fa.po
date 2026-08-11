@@ -3551,3 +3551,11 @@ msgstr "متوجه شدم"
 
 #~ msgid "Rev ON"
 #~ msgstr "معکوس روشن"
+
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "دوربین سرعت  ·  %1 متر"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "دوربین سرعت در %1 متری"

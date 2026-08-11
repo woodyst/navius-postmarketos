@@ -3576,3 +3576,11 @@ msgstr "Entendido"
 
 #~ msgid "Rev ON"
 #~ msgstr "Rev ON"
+
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "Radar de velocidade  ·  %1 m"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "Radar de velocidade em %1 metros"

@@ -3590,3 +3590,11 @@ msgstr "Ulertuta"
 
 #~ msgid "Rev ON"
 #~ msgstr "Atz. AK"
+
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "Abiadura-radarra  ·  %1 m"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "Abiadura-radarra %1 metrora"

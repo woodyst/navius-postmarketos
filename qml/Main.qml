@@ -700,6 +700,9 @@ ApplicationWindow {
     property int    _tramoAlertMaxspeed: 0
     property bool   _fijoAlertActive:    false
     property string _fijoAlertMsg:       ""
+    // Descripción larga de OSM. Va aparte del mensaje para poder pintarla en una
+    // segunda línea más pequeña: metida en la principal tapaba tipo y distancia.
+    property string _fijoAlertDescr:     ""
     property int    _fijoAlertMaxspeed:  0
     property bool   _fijoContrario:      false
     property bool   _commAlertActive:   false
@@ -958,7 +961,7 @@ ApplicationWindow {
         _nextFijo    = null; _nextFijoDist = 1e9
         _radarAlert  = false; _radarAlertMsg = ""; _radarAlertMaxspeed = 0; _radarApproachingTramo = false; _radarContrario = false
         _tramoAlertActive = false; _tramoAlertMsg = ""; _tramoAlertMaxspeed = 0
-        _fijoAlertActive = false; _fijoAlertMsg = ""; _fijoAlertMaxspeed = 0; _fijoContrario = false
+        _fijoAlertActive = false; _fijoAlertMsg = ""; _fijoAlertDescr = ""; _fijoAlertMaxspeed = 0; _fijoContrario = false
         _commAlertActive = false; _commAlertMsg = ""; _commAlertId = -1; _commAlertSpeed = 0
         _commSpeedLimit = 0; _commSpeedLimitId = -1; _commLimites = []; _lastNavStep = -1
         _tramoSpeedAlertMs = 0
@@ -1170,7 +1173,7 @@ ApplicationWindow {
         }
 
         // Alerta de fijo — independiente del tramo
-        var fijoAlerting = false; var fijoMsg = ""; var fijoTtsMsg = ""; var fijoMaxspeed = 0; var fijoContrario = false
+        var fijoAlerting = false; var fijoMsg = ""; var fijoTtsMsg = ""; var fijoMaxspeed = 0; var fijoContrario = false; var fijoDescr = ""
         if (_nextFijo) {
             fijoAlerting = true
             if (_nextFijoIsContrario) {
@@ -1181,16 +1184,16 @@ ApplicationWindow {
                                                : i18n.tr("Radar sentido contrario  ·  %1 m").arg(_cD)
                 fijoTtsMsg = _nextFijoOffRoute ? i18n.tr("Radar próximo en %1 metros").arg(_cD)
                                                : i18n.tr("Radar sentido contrario en %1 metros").arg(_cD)
-                var _cDes = _nextFijo.descr || ""
-                if (_cDes) {
-                    fijoMsg    += "  ·  " + _cDes
-                    fijoTtsMsg += ", " + _cDes
-                }
+                // La descripción va aparte: en la línea de abajo del banner, y no
+                // se dice en voz alta — algunas ocupan varios renglones y leerlas
+                // conduciendo estorba más que ayuda.
+                fijoDescr = _nextFijo.descr || ""
                 fijoContrario = true
             } else {
                 var fijoDispDist = (_nextFijoArcDist > 0) ? _nextFijoArcDist : _nextFijoDist
-                fijoMsg = i18n.tr("Radar  ·  %1 m").arg(Math.round(fijoDispDist))
-                fijoTtsMsg = i18n.tr("Radar en %1 metros").arg(Math.round(fijoDispDist))
+                fijoMsg = i18n.tr("Radar de velocidad  ·  %1 m").arg(Math.round(fijoDispDist))
+                fijoTtsMsg = i18n.tr("Radar de velocidad en %1 metros").arg(Math.round(fijoDispDist))
+                fijoDescr = _nextFijo.descr || ""
                 if (_nextFijo.maxspeed > 0) {
                     fijoMsg += i18n.tr("  ·  %1 km/h").arg(_nextFijo.maxspeed)
                     fijoTtsMsg += i18n.tr(", límite %1 kilómetros por hora").arg(_nextFijo.maxspeed)
@@ -1218,6 +1221,7 @@ ApplicationWindow {
         _tramoAlertMaxspeed = tramoMaxspeed
         _fijoAlertActive    = fijoAlerting
         _fijoAlertMsg       = fijoMsg
+        _fijoAlertDescr     = fijoDescr
         _fijoAlertMaxspeed  = fijoMaxspeed
         _fijoContrario      = fijoContrario
         _radarAlert         = tramoAlerting || fijoAlerting
@@ -7565,9 +7569,10 @@ ApplicationWindow {
     Item {
         id: fijoAlertBanner
         anchors { left: parent.left; right: parent.right; top: radarAlertBanner.bottom }
+        // Crece cuando hay descripción, que va en una segunda línea.
         height: root._fijoAlertActive && root._navActive
                 && !prefsPanel.visible && !searchPanel.visible && !satPanel.visible
-                ? units.gu(5.5) : 0
+                ? (root._fijoAlertDescr !== "" ? units.gu(7.5) : units.gu(5.5)) : 0
         clip: true; z: 12
         Behavior on height { NumberAnimation { duration: 180 } }
 
@@ -7590,11 +7595,24 @@ ApplicationWindow {
                     text: "📷"
                     font.pixelSize: units.gu(2.8 * appSettings.textScale)
                 }
-                Label {
+                Column {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: root._fijoAlertMsg
-                    color: "white"
-                    font.pixelSize: units.gu(1.9 * appSettings.textScale); font.bold: true
+                    spacing: units.gu(0.2)
+                    Label {
+                        text: root._fijoAlertMsg
+                        color: "white"
+                        font.pixelSize: units.gu(1.9 * appSettings.textScale); font.bold: true
+                    }
+                    // Descripción de OSM: secundaria, y de una sola línea — las hay
+                    // de varios renglones y no pueden empujar al resto del aviso.
+                    Label {
+                        visible: root._fijoAlertDescr !== ""
+                        text: root._fijoAlertDescr
+                        color: "#DDFFFFFF"
+                        font.pixelSize: units.gu(1.4 * appSettings.textScale)
+                        width: Math.min(implicitWidth, fijoAlertBanner.width * 0.75)
+                        elide: Text.ElideRight
+                    }
                 }
             }
         }

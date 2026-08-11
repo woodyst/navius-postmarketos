@@ -3555,3 +3555,11 @@ msgstr "Got it"
 
 #~ msgid "Rev ON"
 #~ msgstr "Rev ON"
+
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "Speed camera  ·  %1 m"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "Speed camera in %1 meters"

@@ -3631,3 +3631,11 @@ msgstr "Compris"
 
 #~ msgid "Rev ON"
 #~ msgstr "Rev ON"
+
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "Radar de vitesse  ·  %1 m"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "Radar de vitesse dans %1 mètres"

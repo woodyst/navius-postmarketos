@@ -1900,17 +1900,35 @@ function setRadarDb(db) {
                 'maxspeed INTEGER, direction INTEGER, updated_at INTEGER)')
             tx.executeSql('CREATE TABLE IF NOT EXISTS radares_meta (key TEXT PRIMARY KEY, value TEXT)')
         })
-        // Columna añadida después: en bases ya creadas el CREATE de arriba no la añade.
-        // Falla si ya existe, que es el caso normal, así que se ignora el error.
+        // Columnas añadidas después: en bases ya creadas el CREATE de arriba no las
+        // añade. Falla si ya existen, que es el caso normal, así que se ignora.
         try {
             _radarDbRef.transaction(function(tx) {
                 tx.executeSql('ALTER TABLE radares ADD COLUMN descr TEXT')
             })
         } catch(e2) { /* la columna ya existía */ }
+        try {
+            _radarDbRef.transaction(function(tx) {
+                tx.executeSql('ALTER TABLE radares ADD COLUMN shape TEXT')
+            })
+        } catch(e3) { /* la columna ya existía */ }
     } catch(e) { _logMsg("✗ Radar DB init: " + e); _radarDbRef = null }
 }
 
 function _radarDb() { return _radarDbRef }
+
+// Longitud en metros de una polilínea [[lon,lat],...]. Se recalcula al leer de
+// la caché porque lengthM no se guarda: se deriva del shape sin ambigüedad.
+function _shapeLengthM(shape) {
+    var len = 0
+    for (var i = 1; i < shape.length; i++) {
+        var cosLat = Math.cos(shape[i][1] * Math.PI / 180)
+        var dla = (shape[i][1] - shape[i-1][1]) * 111319
+        var dlo = (shape[i][0] - shape[i-1][0]) * 111319 * cosLat
+        len += Math.sqrt(dla * dla + dlo * dlo)
+    }
+    return Math.round(len)
+}
 
 function _saveRadarsToDb(fijos, tramos) {
     var db = _radarDb(); if (!db) return
@@ -1928,8 +1946,14 @@ function _saveRadarsToDb(fijos, tramos) {
                 if (!t.id) continue
                 var s0 = t.origShape ? t.origShape[0] : t.shape[0]
                 var sN = t.origShape ? t.origShape[1] : t.shape[t.shape.length - 1]
-                tx.executeSql('INSERT OR REPLACE INTO radares (id,kind,lat,lon,lat2,lon2,maxspeed,direction,updated_at) VALUES (?,?,?,?,?,?,?,?,?)',
-                    [t.id, 'tramo', s0[1], s0[0], sN[1], sN[0], t.maxspeed || 0, -1, now])
+                // La polilínea va en JSON: sin ella, al releer de la caché el shape
+                // se reconstruía como una recta entre los extremos y la lógica de
+                // tramos (distancia perpendicular, sentido, longitud) trabajaba
+                // sobre una cuerda en vez de sobre la carretera.
+                var shapeJson = ''
+                try { if (t.shape && t.shape.length > 1) shapeJson = JSON.stringify(t.shape) } catch(eS) {}
+                tx.executeSql('INSERT OR REPLACE INTO radares (id,kind,lat,lon,lat2,lon2,maxspeed,direction,updated_at,shape) VALUES (?,?,?,?,?,?,?,?,?,?)',
+                    [t.id, 'tramo', s0[1], s0[0], sN[1], sN[0], t.maxspeed || 0, -1, now, shapeJson])
             }
         })
     } catch(e) { _logMsg("✗ Radar DB save: " + e) }
@@ -1969,8 +1993,22 @@ function _queryRadarsDb(minLat, minLon, maxLat, maxLon) {
                     out.fijos.push({ id: r.id, lat: r.lat, lon: r.lon, maxspeed: r.maxspeed,
                                      direction: r.direction, descr: r.descr || "" })
                 } else {
-                    var shp = [[r.lon, r.lat], [r.lon2, r.lat2]]
-                    out.tramos.push({ id: r.id, shape: shp, origShape: shp, maxspeed: r.maxspeed, lengthM: 0 })
+                    // origShape son las dos cámaras; shape, la carretera entre ellas.
+                    // Las cachés anteriores no guardaban la polilínea: en ese caso
+                    // se cae a la recta entre extremos, que es como se comportaba
+                    // antes, y se recupera al siguiente refresco desde Overpass.
+                    var ends = [[r.lon, r.lat], [r.lon2, r.lat2]]
+                    var shp = ends, lenM = 0
+                    if (r.shape) {
+                        try {
+                            var parsed = JSON.parse(r.shape)
+                            if (parsed && parsed.length > 1) {
+                                shp = parsed
+                                lenM = _shapeLengthM(shp)
+                            }
+                        } catch(eP) { /* JSON corrupto: se usa la recta */ }
+                    }
+                    out.tramos.push({ id: r.id, shape: shp, origShape: ends, maxspeed: r.maxspeed, lengthM: lenM })
                 }
             }
         })

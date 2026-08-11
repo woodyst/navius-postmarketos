@@ -3489,3 +3489,11 @@ msgstr "知道了"
 
 #~ msgid "Rev ON"
 #~ msgstr "倒车 ON"
+
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "测速摄像头  ·  %1 米"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "%1 米后有测速摄像头"

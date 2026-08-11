@@ -3524,3 +3524,11 @@ msgstr "فهمت"
 
 #~ msgid "Rev ON"
 #~ msgstr "عكس مفعّل"
+
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "كاميرا سرعة  ·  %1 م"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "كاميرا سرعة على بعد %1 متر"
