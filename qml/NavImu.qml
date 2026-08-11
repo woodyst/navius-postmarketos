@@ -276,6 +276,44 @@ Item {
     property real _calibAy: 0.0
     property real _calibAz: 0.0
 
+    // ── Disponibilidad real de los sensores ──────────────────────────────────
+    // No basta con poner active:true. Si Qt no encuentra backend, el sensor no
+    // emite nada y antes nadie se enteraba: la calibración se quedaba colgada
+    // para siempre y el dead reckoning trabajaba con ceros.
+    //
+    // En postmarketOS (POCO X3, sm7150-mainline) NO hay IMU utilizable, y la
+    // causa no está en esta app — comprobado en el dispositivo el 2026-08-11:
+    //   · el plugin Qt de iio-sensor-proxy registra solo tres backends
+    //     (lightsensor, orientationsensor, compass): no existe backend de
+    //     acelerómetro ni de giroscopio, así que Accelerometer/Gyroscope nunca
+    //     pueden conectar.
+    //         strings /usr/lib/qt5/plugins/sensors/libqtsensors_iio-sensor-proxy.so \
+    //           | grep "iio-sensor-proxy\."
+    //   · aunque lo registrase, la API D-Bus de iio-sensor-proxy solo publica
+    //     AccelerometerOrientation y AccelerometerTilt (enumerados tipo
+    //     "face-down"), nunca los ejes en m/s²:
+    //         gdbus call --system --dest net.hadess.SensorProxy \
+    //           --object-path /net/hadess/SensorProxy \
+    //           --method org.freedesktop.DBus.Properties.GetAll net.hadess.SensorProxy
+    //   · el sensor físico cuelga del SSC por hexagonrpcd-adsp-sensorspd: no
+    //     aparece en /sys/bus/iio/devices (solo hay ADCs del PMIC) ni en
+    //     /proc/bus/input/devices, así que tampoco hay vía directa.
+    // Por eso la autorrotación de pantalla funciona (le basta el tilt) mientras
+    // el dead reckoning no: necesita m/s² y rad/s, que nadie expone.
+    //
+    // La detección se hace por tipo registrado y se confirma con la primera
+    // lectura recibida, para distinguir "no hay backend" de "hay backend pero
+    // no llegan datos" (p.ej. polkit: claim-sensor exige sesión activa).
+    property bool _accelBackend: false
+    property bool _gyroBackend:  false
+    property bool _accelSeen:    false   // ha llegado al menos una lectura
+    property bool _gyroSeen:     false
+
+    readonly property bool accelAvailable: _accelBackend
+    readonly property bool gyroAvailable:  _gyroBackend
+    // true si hay con qué hacer dead reckoning: el acelerómetro es el mínimo.
+    readonly property bool sensorsUsable:  _accelBackend
+
     // ── Sensores ─────────────────────────────────────────────────────────────
     Accelerometer {
         id: accelSensor
@@ -291,9 +329,36 @@ Item {
         onReadingChanged: root._onGyroReading(reading.x, reading.y, reading.z, reading.timestamp)
     }
 
+    Component.onCompleted: {
+        var types = QmlSensors.sensorTypes()
+        _accelBackend = (types.indexOf("QAccelerometer") >= 0) || accelSensor.connectedToBackend
+        _gyroBackend  = (types.indexOf("QGyroscope")     >= 0) || gyroSensor.connectedToBackend
+
+        console.log("[navius] IMU: backends de sensor disponibles: " + types.join(", "))
+        console.log("[navius] IMU: acelerómetro " + (_accelBackend
+                        ? "OK (" + accelSensor.identifier + ")" : "SIN BACKEND")
+                  + " · giroscopio " + (_gyroBackend
+                        ? "OK (" + gyroSensor.identifier + ")" : "SIN BACKEND"))
+        if (!_accelBackend)
+            console.log("[navius] IMU: sin acelerómetro no hay dead reckoning por inercia; " +
+                        "la posición en túnel se apoyará solo en el shape de la ruta")
+    }
+
+    // Si hay backend pero no llega ni una lectura en 5 s, el sensor está ahí y
+    // aun así no da datos (típicamente polkit: claim-sensor solo en sesión
+    // activa). Se avisa en el log para no confundirlo con "no hay sensor".
+    Timer {
+        interval: 5000
+        running:  root._accelBackend && (root.active || root.gpsActive)
+        onTriggered: if (!root._accelSeen)
+            console.log("[navius] IMU: hay backend de acelerómetro pero no llega " +
+                        "ninguna lectura (¿sesión no activa para polkit?)")
+    }
+
     // ── Callbacks de sensor ──────────────────────────────────────────────────
 
     function _onAccelReading(ax, ay, az, ts) {
+        if (!_accelSeen) { _accelSeen = true; _accelBackend = true }
         _lastAx = ax; _lastAy = ay; _lastAz = az
         accelMag = Math.sqrt(ax*ax + ay*ay + az*az)
         if (calibrated) {
@@ -314,6 +379,7 @@ Item {
     }
 
     function _onGyroReading(gxRaw, gyRaw, gzRaw, ts) {
+        if (!_gyroSeen) { _gyroSeen = true; _gyroBackend = true }
         rawGz = gzRaw   // exponer valor crudo para diagnóstico
 
         // ts en µs; convertir a ms para dt en segundos

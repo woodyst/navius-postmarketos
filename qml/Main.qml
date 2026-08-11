@@ -5386,16 +5386,25 @@ ApplicationWindow {
                           leftMargin: units.gu(0.6); rightMargin: units.gu(0.6) }
                 spacing: units.gu(0.2)
                 Label {
-                    text: navImu.calibrated
-                          ? "✓ Accel OK   |a|=" + navImu.accelMag.toFixed(2) + " m/s²"
-                          : "⏳ Calibrando accel  " + Math.round(navImu.calibProgress * 100) + "%"
-                    color: navImu.calibrated ? "#00E676" : "#FFB300"
+                    // Sin acelerómetro no se calibra nunca: antes se quedaba en
+                    // "Calibrando 0%" para siempre sin decir por qué.
+                    text: !navImu.accelAvailable
+                          ? "✕ Sin IMU: Qt no expone acelerómetro" + (navImu.gyroAvailable ? "" : " ni giroscopio")
+                          : !navImu._accelSeen
+                            ? "⚠ Acelerómetro sin lecturas"
+                            : navImu.calibrated
+                              ? "✓ Accel OK   |a|=" + navImu.accelMag.toFixed(2) + " m/s²"
+                                + (navImu.gyroAvailable ? "" : "   (sin giro)")
+                              : "⏳ Calibrando accel  " + Math.round(navImu.calibProgress * 100) + "%"
+                    color: !navImu.accelAvailable || !navImu._accelSeen ? "#FF7043"
+                           : navImu.calibrated ? "#00E676" : "#FFB300"
                     font.pixelSize: units.gu(1.1 * appSettings.textScale)
                     width: parent.width; elide: Text.ElideRight
                 }
                 // Barra de progreso
                 Rectangle {
-                    visible: !navImu.calibrated
+                    // sin acelerómetro la barra no avanzaría nunca: mejor no mostrarla
+                    visible: !navImu.calibrated && navImu.accelAvailable
                     width: parent.width; height: units.gu(0.5); radius: units.gu(0.25)
                     color: "#1A2A3A"
                     Rectangle {
@@ -7004,6 +7013,43 @@ ApplicationWindow {
                     root._menuOpen = false
                     tripSharePanel.active  = root._shareToken !== ""
                     tripSharePanel.visible = true
+                }
+            }
+        }
+
+        // Grabar ruta
+        //
+        // Estaba solo en Ajustes → Grabación de rutas, así que en la práctica no
+        // se encontraba. Aquí se enciende y se apaga la grabación de un toque, y
+        // se ve en rojo mientras graba; la lista de rutas grabadas, con simular y
+        // exportar a GPX, sigue en Ajustes.
+        Rectangle {
+            width: root._menuItemW; height: root._menuItemH
+            radius: units.gu(1)
+            color: root._uiBtnBg
+            border.color: navTracker.recording ? "#FF5252" : root._uiBorder
+            border.width: units.gu(0.15)
+            Row {
+                anchors.centerIn: parent; spacing: units.gu(1.2)
+                Label { text: navTracker.recording ? "⏺" : "⏵"
+                        color: navTracker.recording ? "#FF5252" : root._uiFg
+                        font.pixelSize: root._menuItemH * 0.50
+                        anchors.verticalCenter: parent.verticalCenter }
+                // Sin contador a propósito: get_point_count() es un método, y en
+                // un binding no se reevalúa solo — mostraría una cifra congelada.
+                // El número en vivo ya está en la insignia REC del mapa.
+                Label { text: navTracker.recording ? i18n.tr("Grabando") : i18n.tr("Grabar ruta")
+                        color: navTracker.recording ? "#FF5252" : root._uiFg
+                        font.pixelSize: root._menuItemH * 0.375
+                        anchors.verticalCenter: parent.verticalCenter }
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    // Se conmuta el ajuste, no el grabador: onGpsTrackingChanged
+                    // es quien arranca y para, y así el estado queda guardado.
+                    appSettings.gpsTracking = !appSettings.gpsTracking
+                    root._menuOpen = false
                 }
             }
         }

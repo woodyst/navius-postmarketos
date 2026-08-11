@@ -3607,3 +3607,7 @@ msgstr "Autovelox  ·  %1 m"
 #: qml/Main.qml
 msgid "Radar de velocidad en %1 metros"
 msgstr "Autovelox tra %1 metri"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "Registra percorso"

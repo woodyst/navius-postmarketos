@@ -3611,3 +3611,7 @@ msgstr "Камера скорости  ·  %1 м"
 #: qml/Main.qml
 msgid "Radar de velocidad en %1 metros"
 msgstr "Камера скорости через %1 метров"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "Запись трека"

@@ -3559,3 +3559,7 @@ msgstr "دوربین سرعت  ·  %1 متر"
 #: qml/Main.qml
 msgid "Radar de velocidad en %1 metros"
 msgstr "دوربین سرعت در %1 متری"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "ضبط مسیر"

@@ -3626,3 +3626,7 @@ msgstr "Blitzer  ·  %1 m"
 #: qml/Main.qml
 msgid "Radar de velocidad en %1 metros"
 msgstr "Blitzer in %1 Metern"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "Route aufzeichnen"

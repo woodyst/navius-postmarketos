@@ -3584,3 +3584,7 @@ msgstr "Radar de velocidade  ·  %1 m"
 #: qml/Main.qml
 msgid "Radar de velocidad en %1 metros"
 msgstr "Radar de velocidade em %1 metros"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "Gravar rota"

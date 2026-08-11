@@ -3497,3 +3497,7 @@ msgstr "测速摄像头  ·  %1 米"
 #: qml/Main.qml
 msgid "Radar de velocidad en %1 metros"
 msgstr "%1 米后有测速摄像头"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "记录轨迹"
