@@ -194,6 +194,27 @@ class SatelliteSource {
         });
     }
 
+    // Origen de POSICIÓN pidiendo el plugin por nombre, no por prioridad.
+    //
+    // createDefaultSource() elige por prioridad de plugin y puede quedarse con
+    // "geoclue" (geoclue 1.x), cuyo servicio D-Bus ya no existe: de ahí el
+    // "Failed to set Geoclue positioning requirements ... InvalidObjectPath" en
+    // cada arranque, y que hubiera que apartar libqtposition_geoclue.so a mano
+    // del sistema para que funcionara. Pidiendo geoclue2 explícitamente, el
+    // plugin viejo puede seguir instalado sin molestar.
+    static QGeoPositionInfoSource* create_best_position(QObject *parent) {
+        for (const QString &name : {QStringLiteral("geoclue2")}) {
+            auto *src = QGeoPositionInfoSource::createSource(name, parent);
+            if (src) {
+                NAVIUS_TRACE("[navius] pos_src: plugin '%s' pedido por nombre\n",
+                        name.toUtf8().constData());
+                return src;
+            }
+        }
+        NAVIUS_TRACE("[navius] pos_src: geoclue2 no disponible, usando el plugin por defecto\n");
+        return QGeoPositionInfoSource::createDefaultSource(parent);
+    }
+
     // Try providers in order; geoclue2 first (Ubuntu 24.04), then default.
     static QGeoSatelliteInfoSource* create_best_satellite(QObject *parent) {
         for (const QString &name : {QStringLiteral("geoclue2"),
@@ -210,7 +231,7 @@ class SatelliteSource {
     void init_pos_and_session() {
         NAVIUS_TRACE("[navius] pos_src: starting background creation...\n");
         auto *posThread = QThread::create([this, alive = m_alive]() {
-            auto *src = QGeoPositionInfoSource::createDefaultSource(nullptr);
+            auto *src = create_best_position(nullptr);
             NAVIUS_TRACE("[navius] pos_src plugin: %s\n",
                     src ? src->sourceName().toUtf8().constData() : "NULL");
             // Grab last cached position (fast, no event loop needed in background thread).
