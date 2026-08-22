@@ -131,6 +131,12 @@
   </screenshots>
 
   <releases>
+    <release version="1.0.12" date="2026-08-22">
+      <description>
+        <p>Routes no longer fall back to walking mode when the active vehicle id is stale (wrong-way "shortcuts"); Google Maps search is back as a separate Qt6 viewer; auto-zoom now accounts for the alert banners so the configured seconds of road stay visible; pinch gestures rotate the map again.</p>
+        <p xml:lang="es">Las rutas ya no caen al modo peatón cuando el id del vehículo activo está desfasado ("atajos" en dirección prohibida); vuelve la búsqueda en Google Maps como visor Qt6 aparte; el auto-zoom descuenta los banners de alerta para que se vean los segundos de carretera configurados; el pinch vuelve a rotar el mapa.</p>
+      </description>
+    </release>
     <release version="1.0.11" date="2026-08-07">
       <description>
         <p>The app now tells the server its version and platform, so update notices only reach installs that are actually out of date. Internal server signals are no longer shown as empty messages.</p>
