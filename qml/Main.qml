@@ -37,6 +37,7 @@ ApplicationWindow {
 
     SatelliteModel { id: satModel }
     NavHttp        { id: navHttp  }
+    NavProc        { id: navProc  }   // visor Google Maps (Qt6, proceso aparte; ver src/nav_proc.rs)
     NavTts         { id: navTts  }
     // Modo silencio = mute total: ningún sonido (voz ni pitidos) pase lo que pase.
     Binding { target: navTts; property: "muted"; value: root._soundCap === "silencio" }
@@ -366,6 +367,9 @@ ApplicationWindow {
     property var    _telemBuf:     []             // buffer de puntos GPS para telemetría batch
     property int    _telemRealCount: 0            // ticks reales acumulados en el buffer
     property string _startupMsg:    ""      // mensaje temporal en barra de estado al arrancar
+    // Búsqueda en Google Maps: en este port el visor es un proceso Qt6 aparte
+    // (qmlscene + QtWebEngine). Sin ellos instalados, el botón no aparece.
+    readonly property bool _gmapsAvailable: navProc.gmaps_available()
     property bool   _radarFetchWarned: false // ya se avisó de fallo de radares; evita repetir en cada bbox
 
     property var    _statusQueue:   []      // cola de mensajes de error {text, color}
@@ -738,6 +742,16 @@ ApplicationWindow {
     readonly property bool _searchingGps: !appSettings.simMode && !appSettings.manualPosActive && !satModel.pos_has_fix
     // Altura que NavBar ocupa en la parte superior del MAPA (0 en landscape)
     readonly property real _navBarScreenHeight: _isLandscape ? 0 : (navBar.height + adPanel.height)
+    // Todo lo que tapa el mapa por ARRIBA en navegación: navbar, anuncio y los
+    // banners de alerta (radar de tramo, radar fijo, progreso de tramo, alerta
+    // comunitaria), que cuelgan bajo el anuncio. El autoZoom mide los segundos
+    // configurados desde el marcador hasta el borde inferior de todo esto; antes
+    // solo restaba navbar+anuncio y los banners se comían la parte más lejana
+    // (en 3D, las filas de arriba concentran casi toda la distancia) → se veía
+    // menos carretera de la configurada. En esta UI (gu 1.7× respecto a UT) los
+    // banners son proporcionalmente mucho más altos, por eso se notaba más aquí.
+    readonly property real _mapTopOccludedPx: _navBarScreenHeight
+        + radarAlertBanner.height + fijoAlertBanner.height + tramoBar.height + commAlertBanner.height
     // Altura adicional de banners de alerta (radar/tramo/comunitario) — solo para menuBtn/mapLockBtn
     readonly property real _alertBannerHeight: _isLandscape ? 0
         : (radarAlertBanner.height + fijoAlertBanner.height
@@ -1483,6 +1497,9 @@ ApplicationWindow {
         root._settingsSyncBlocked = true
         NavSettings.applySnapshot(appSettings, data)
         root._settingsSyncBlocked = false
+        // vehiclesJson viene en el snapshot (ids de otro dispositivo, quizá):
+        // que el vehículo activo siga siendo válido y no caiga en "A pie".
+        vehicleManager.ensureActiveValid()
         mainAuthSettings.settingsChangedSinceSync = false
         mainAuthSettings.settingsLastSyncAt = new Date().toISOString()
     }
@@ -2352,7 +2369,32 @@ ApplicationWindow {
             var arr = allVehicles()
             for (var i = 0; i < arr.length; i++)
                 if (arr[i].id === appSettings.activeVehicleId) return arr[i]
+            // activeVehicleId no está en la lista (p.ej. vehiclesJson llegó
+            // sincronizado desde el servidor con los ids de otro dispositivo,
+            // mientras activeVehicleId es local). Antes se caía en arr[0], que
+            // es SIEMPRE "A pie" (ensurePedestrian lo pone el primero) → las
+            // rutas salían con costing pedestrian: atajos por calles en
+            // dirección prohibida, pasajes, etc. Preferir el primer vehículo
+            // que no sea peatón.
+            for (var j = 0; j < arr.length; j++)
+                if (arr[j].costing !== "pedestrian") return arr[j]
             return arr.length > 0 ? arr[0] : null
+        }
+        // Si activeVehicleId no apunta a ningún vehículo de la lista, lo
+        // repara (primer vehículo no peatón) y actualiza el costing de rutas.
+        function ensureActiveValid() {
+            var arr = allVehicles()
+            for (var i = 0; i < arr.length; i++)
+                if (arr[i].id === appSettings.activeVehicleId) {
+                    NavSearch.setActiveCosting(activeCosting()); return
+                }
+            var v = activeVehicle()
+            if (v && v.id !== appSettings.activeVehicleId) {
+                satModel.log_to_file("Vehículos: activeVehicleId=" + appSettings.activeVehicleId
+                                     + " no existe → activo " + v.alias + " (" + v.costing + ")")
+                appSettings.activeVehicleId = v.id
+            }
+            NavSearch.setActiveCosting(activeCosting())
         }
         function activeCosting() {
             var v = activeVehicle(); return v ? v.costing : "auto"
@@ -2660,8 +2702,10 @@ ApplicationWindow {
         if (_nonPed.length === 0) {
             Qt.callLater(function() { vehicleSetupDialog.openDialog(true) })
         } else {
-            // Asegurar activeVehicleId apunta a un vehículo válido
+            // Asegurar activeVehicleId apunta a un vehículo válido (vacío o
+            // un id que ya no está en la lista → primer vehículo no peatón)
             if (appSettings.activeVehicleId === "") vehicleManager.setActive(_nonPed[0].id)
+            else vehicleManager.ensureActiveValid()
             NavSearch.setActiveCosting(vehicleManager.activeCosting())
             // Mostrar dialog de aparcamiento si hay parking guardado
             var _avPark = vehicleManager.activeVehicle()
@@ -3639,7 +3683,7 @@ ApplicationWindow {
                 var cosP   = Math.cos(P); var sinP = Math.sin(P)
                 var fPx    = mapView.height / (2 * Math.tan(mapView._fovAngle * Math.PI / 180))
                 var pxAbv  = posOverlayRoot._cy - mapView.height / 2
-                var yDelta = mapView.height / 2 - root._navBarScreenHeight
+                var yDelta = mapView.height / 2 - root._mapTopOccludedPx
                 var kEff   = (sinP > 0.001)
                     ? yDelta * fPx / (fPx * cosP - yDelta * sinP) + pxAbv / (cosP + pxAbv * sinP / fPx)
                     : pxAbv + yDelta
@@ -3961,7 +4005,7 @@ ApplicationWindow {
             _smoothApplyPos(lat, lon)
         }
 
-        MapboxMapGestureArea {
+        NavMapGestureArea {
             id: gestureArea; map: mapView
             enabled: !root._mapLocked
             activePressAndHoldGeo: true
@@ -7471,6 +7515,7 @@ ApplicationWindow {
     SearchPanel {
         id: searchPanel
         isLandscape: root._isLandscape
+        googleMapsAvailable: root._gmapsAvailable
         textScale: appSettings.textScale
         gpsLat:      activeModel.pos_has_fix ? activeModel.pos_lat : appSettings.lastLat
         gpsLon:      activeModel.pos_has_fix ? activeModel.pos_lon : appSettings.lastLon
@@ -7515,10 +7560,8 @@ ApplicationWindow {
             root.drawRoutesPreview(routes, selIdx)
         }
         onGoogleMapsRequested: {
-            // GoogleMapsPanel (QtWebEngine) no está disponible en postmarketOS:
-            // solo existe QtWebEngine para Qt6 en los repos, y esta app es Qt5.
-            // Sin sustituto por ahora — no-op.
             Qt.inputMethod.hide()
+            root._openGoogleMaps()
         }
         onServerFallbackNeeded: function(service, message, retryFn) {
             Qt.inputMethod.hide()
@@ -8258,6 +8301,7 @@ ApplicationWindow {
     PreferencesPanel {
         id: prefsPanel
         textScale: appSettings.textScale
+        googleMapsAvailable: root._gmapsAvailable
         anchors.fill: parent; visible: false; z: 300
         cfg:             appSettings
         ttsRef:          navTts
@@ -8387,7 +8431,8 @@ ApplicationWindow {
             startupMsgTimer.restart()
         }
         onGoogleMapsCacheClearRequested: {
-            // GoogleMapsPanel no existe en este port (ver onGoogleMapsRequested) — no-op.
+            // Borra el perfil WebEngine del visor externo (~/.cache/navius/gmaps).
+            navProc.gmaps_clear_cache()
         }
         onAllTracksClearRequested: {
             if (navTracker) navTracker.delete_all_tracks()
@@ -9545,6 +9590,7 @@ ApplicationWindow {
     //   echo "dbg"           > $D/navius_cmd   → toggle debug overlay
     //   echo "poi"           > $D/navius_cmd   → toggle GPS/centre dots + cardinal POIs
     //   echo "shot"          > $D/navius_cmd   → save screenshot to navius_shot.png
+    //   echo "gmaps"         > $D/navius_cmd   → open the external Google Maps viewer
     //   echo "pos40.32,−3.51"> $D/navius_cmd   → set manual position (lat,lon)
     //   echo "posoff"        > $D/navius_cmd   → release manual position
     // Fine control (repeat with timestamp suffix to re-send):
@@ -9786,6 +9832,7 @@ ApplicationWindow {
             var sbVal = parseInt(cmd.substring(7))
             if (!isNaN(sbVal)) root.simSpeedBias = Math.max(-90, Math.min(500, sbVal))
         }
+        else if (cmd === "gmaps")    { root._openGoogleMaps() }   // abre el visor Google Maps (Qt6)
         else if (cmd === "routeview") {
             if (routeViewPanel.visible) routeViewPanel.close()
             else                        routeViewPanel.open()
@@ -10127,9 +10174,54 @@ ApplicationWindow {
         onRouteRejected: root._clearTrafficComparison()
     }
 
-    // GoogleMapsPanel (búsqueda vía Google Maps embebido) no se porta: usa
-    // QtWebEngine, que en postmarketOS solo existe para Qt6 (esta app es Qt5).
-    // Ver onGoogleMapsRequested/onGoogleMapsCacheClearRequested más arriba.
+    // ── Google Maps: visor en proceso aparte (Qt6) ───────────────────────────
+    // GoogleMapsPanel.qml (UT) embebe QtWebEngine 5 dentro de la app; en
+    // postmarketOS solo existe qt6-qtwebengine, así que el mismo panel va en
+    // extras/gmaps/navius-gmaps.qml ejecutado con el qmlscene de Qt6 (ver
+    // src/nav_proc.rs). Phosh lo pone encima; al elegir destino (o cerrarlo)
+    // termina y volvemos aquí. Mientras vive, gmapsPollTimer recoge el
+    // resultado: "lat\tlon\tnombre" → mismo diálogo que una ubicación
+    // compartida (geo:).
+    function _openGoogleMaps() {
+        if (!root._gmapsAvailable) {
+            root._startupMsg = i18n.tr("Google Maps no disponible: faltan qt6-qtdeclarative y qt6-qtwebengine")
+            startupMsgTimer.restart()
+            return
+        }
+        var args = {
+            ua: "",
+            cache: String(navProc.gmaps_cache_dir()),
+            lat: mapView._hasPos ? mapView._lastLat : (mapView._centerLat || 0),
+            lon: mapView._hasPos ? mapView._lastLon : (mapView._centerLon || 0),
+            strings: {
+                title:     "Google Maps",
+                hint:      i18n.tr("Busca un lugar en el mapa"),
+                detecting: i18n.tr("Detectando coordenadas…"),
+                use:       i18n.tr("Usar este destino"),
+                close:     i18n.tr("Cerrar")
+            }
+        }
+        if (navProc.gmaps_start(JSON.stringify(args))) {
+            gmapsPollTimer.start()
+        } else {
+            root._startupMsg = i18n.tr("No se pudo abrir el visor de Google Maps")
+            startupMsgTimer.restart()
+        }
+    }
+    Timer {
+        id: gmapsPollTimer
+        interval: 400; repeat: true
+        onTriggered: {
+            var r = String(navProc.gmaps_poll())
+            if (r === "") return
+            stop()
+            if (r === "EXIT") return
+            var p = r.split("\t")
+            var lat = parseFloat(p[0]), lon = parseFloat(p[1])
+            if (isNaN(lat) || isNaN(lon)) return
+            root._showSharedLocation(lat, lon, p.length > 2 ? p[2] : "")
+        }
+    }
 
     WhatsNewDialog {
         id: whatsNewDialog

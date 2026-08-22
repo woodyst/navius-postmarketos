@@ -80,8 +80,10 @@ synced from the Ubuntu Touch repository before building. The APKBUILD's
   session environment variable. Adjustable under Settings → Interface scale, or
   forced with `GRID_UNIT_PX`.
 - **Map**: the system `mapbox-gl-qml` package, not a vendored library.
-- **Embedded Google Maps**: removed. It used QtWebEngine, which on postmarketOS
-  exists for Qt6 only and this application is Qt5.
+- **Google Maps**: not embedded (QtWebEngine exists for Qt6 only on postmarketOS
+  and this application is Qt5). The same viewer (`extras/gmaps/navius-gmaps.qml`)
+  runs as a separate process under Qt6's `qmlscene`; it needs `qt6-qtdeclarative`
+  and `qt6-qtwebengine` (package dependencies). Without them the button is hidden.
 - **On-screen keyboard**: Phosh's own D-Bus API (`sm.puri.OSK0`), since Qt5 has
   no integration with it.
 - **Satellites**: NMEA through ModemManager. Qt's `geoclue2` plugin only exposes

@@ -72,6 +72,7 @@ Rectangle {
     signal clearLiveCacheRequested()
     signal mapCacheClearRequested()
     signal googleMapsCacheClearRequested()
+    property bool googleMapsAvailable: false   // hay visor Google Maps (Qt6) instalado
     signal allTracksClearRequested()
     signal osmScoutDetectRequested()
 
@@ -1327,9 +1328,8 @@ Rectangle {
 
                         Rectangle {
                             id: gmapsCacheBtn
-                            // GoogleMapsPanel no existe en este port (QtWebEngine5
-                            // no disponible en postmarketOS) — no hay caché que limpiar.
-                            visible: false
+                            // Caché del visor Google Maps externo (~/.cache/navius/gmaps)
+                            visible: panel.googleMapsAvailable
                             width: parent.width; height: units.gu(4.5); radius: units.gu(0.8)
                             color: _confirm ? "#4A1010" : pal.bgInput
                             property bool _confirm: false

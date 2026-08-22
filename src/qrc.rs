@@ -2,6 +2,7 @@ qrc!(qml_resources,
     "/" {
         "qml/Main.qml",
         "qml/NavTextInput.qml",
+        "qml/NavMapGestureArea.qml",
         "qml/CompassWidget.qml",
         "qml/PreferencesPanel.qml",
         "qml/PrefListItem.qml",

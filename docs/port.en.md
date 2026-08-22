@@ -81,8 +81,11 @@ by NMEA 0183 v4.10.
 - **On-screen keyboard**: Phosh's own D-Bus API (`sm.puri.OSK0`), since Qt5 has
   no integration with it. `qml/NavTextInput.qml` shadows QtQuick's `TextInput`
   across the project to hook it up.
-- **Embedded Google Maps**: removed. It was the only user of QtWebEngine, which
-  on postmarketOS exists for Qt6 only and this application is Qt5.
+- **Google Maps**: it was the only user of QtWebEngine, which on postmarketOS
+  exists for Qt6 only and this application is Qt5. It survives as a separate
+  process: `extras/gmaps/navius-gmaps.qml` (Qt6) launched with `qmlscene` from
+  `src/nav_proc.rs`; the chosen destination comes back over stderr and Navius
+  handles it like a shared location.
 - **Content-Hub**: replaced by the `geo:` scheme for incoming shared locations
   and a native FileDialog for importing music.
 - **Map**: the system `mapbox-gl-qml` package instead of a vendored library. The

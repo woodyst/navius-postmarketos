@@ -1,7 +1,7 @@
 # Maintainer: Eduardo García-Mádico Portabella <woodyst@gmail.com>
 pkgname=navius
 pkgver=1.0.11
-pkgrel=0
+pkgrel=1
 pkgdesc="GPS navigator (offline, OSM-based)"
 url="https://github.com/woodyst/navius-postmarketos"
 arch="aarch64"
@@ -21,7 +21,14 @@ depends="
 	sqlite-libs
 	gettext
 	geoclue
+	qt6-qtdeclarative
+	qt6-qtwebengine
+	qt6-qtbase-wayland
 	"
+# qt6-*: SOLO para el visor de Google Maps (extras/gmaps/navius-gmaps.qml),
+# que corre como proceso aparte con el qmlscene de Qt6 porque en Alpine no hay
+# QtWebEngine para Qt5 (ver src/nav_proc.rs). Sin ellos la app funciona igual,
+# solo que no aparece el botón "Buscar en Google Maps".
 # piper-tts es rhasspy/piper (motor TTS neural) compilado nativo para musl
 # contra onnxruntime/espeak-ng/fmt/spdlog del sistema — ya no gcompat ni
 # binario glibc vendorizado. Se llama así y no "piper" porque en Alpine ese
@@ -189,6 +196,10 @@ package() {
 
 	install -Dm755 "$builddir"/libpcaudio.so.0    "$navlib"/libpcaudio.so.0
 	install -Dm755 "$builddir"/libpiper_limit.so  "$navlib"/libpiper_limit.so
+
+	# Visor de Google Maps (QML de Qt6, lo ejecuta nav_proc.rs con qmlscene)
+	install -Dm644 "$builddir"/extras/gmaps/navius-gmaps.qml \
+		"$pkgdir"/usr/share/navius/navius-gmaps.qml
 
 	# piper ya no se instala aquí (Fase 8): viene del paquete "piper" propio
 	# (depends=, /usr/bin/piper + /usr/lib/libpiper_phonemize.so*).

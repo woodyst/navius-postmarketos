@@ -77,8 +77,10 @@ sincroniza desde el repo de la versión de Ubuntu Touch antes de compilar. El
   variable de entorno de la sesión. Ajustable en Preferencias → Escala de interfaz,
   o forzable con `GRID_UNIT_PX`.
 - **Mapa**: paquete del sistema `mapbox-gl-qml`, no una librería vendorizada.
-- **Google Maps embebido**: eliminado. Usaba QtWebEngine, que en postmarketOS solo
-  existe para Qt6 y esta app es Qt5.
+- **Google Maps**: no va embebido (QtWebEngine solo existe para Qt6 en postmarketOS
+  y esta app es Qt5). El mismo visor (`extras/gmaps/navius-gmaps.qml`) corre como
+  proceso aparte con el `qmlscene` de Qt6; requiere `qt6-qtdeclarative` y
+  `qt6-qtwebengine` (dependencias del paquete). Sin ellos el botón no aparece.
 - **Teclado en pantalla**: API D-Bus propia de Phosh (`sm.puri.OSK0`), porque Qt5
   no trae integración nativa con ella.
 - **Satélites**: NMEA vía ModemManager. El plugin `geoclue2` de Qt solo expone la

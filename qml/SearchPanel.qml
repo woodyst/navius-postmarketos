@@ -43,6 +43,8 @@ Rectangle {
     signal navigationStarted(var routeData)
     signal previewRequested(var routes, int selIdx)
     signal googleMapsRequested()
+    // Botón "Buscar en Google Maps" solo si hay visor (Main: navProc.gmaps_available())
+    property bool googleMapsAvailable: false
     signal serverFallbackNeeded(string service, string message, var retryFn)
 
     onVisibleChanged: {
@@ -881,9 +883,9 @@ Rectangle {
             }
 
             Rectangle {
-                // GoogleMapsPanel no existe en este port (QtWebEngine5 no
-                // disponible en postmarketOS) — botón oculto, sin sustituto.
-                visible: false && panel._st === "idle"
+                // Visor Google Maps externo (Qt6 qmlscene + QtWebEngine); oculto
+                // si el sistema no tiene esos paquetes.
+                visible: panel.googleMapsAvailable && panel._st === "idle"
                 width: parent.width - parent.leftPadding - parent.rightPadding
                 height: units.gu(5.5); radius: units.gu(0.8)
                 color: gmapsArea.pressed ? "#1A2A1A" : "#1C2C1C"

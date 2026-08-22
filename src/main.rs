@@ -34,6 +34,7 @@ mod nav_http;
 mod nav_music;
 mod nav_osk;
 mod nav_power;
+mod nav_proc;
 mod nav_tile_cache;
 mod nav_tracker;
 mod nav_tts;
@@ -44,6 +45,7 @@ use i18n_units::{NavI18n, NavUnits};
 use nav_http::NavHttp;
 use nav_osk::NavOsk;
 use nav_power::NavPower;
+use nav_proc::NavProc;
 use nav_tile_cache::NavTileCache;
 use nav_tracker::NavTracker;
 use nav_tts::NavTts;
@@ -108,6 +110,12 @@ fn main() {
         cstr!("Navius"),
         1, 0,
         cstr!("NavPower"),
+    );
+    // Procesos auxiliares (visor Google Maps en Qt6, ver src/nav_proc.rs)
+    qml_register_type::<NavProc>(
+        cstr!("Navius"),
+        1, 0,
+        cstr!("NavProc"),
     );
 
     let mut engine = QmlEngine::new();
