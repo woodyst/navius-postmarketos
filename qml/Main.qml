@@ -986,12 +986,90 @@ ApplicationWindow {
         alertCanvas.requestPaint()
     }
 
+    // Overpass devuelve los DOS sentidos de la misma via como relaciones
+    // distintas (un par from/to invertido: p.ej. 1019388 y 10967446 en la M-30).
+    // La deteccion ya descarta el contrario por rumbo, pero el dibujo los
+    // pintaba los dos: sobre calzadas separadas aparecia una segunda linea
+    // naranja por la calzada de enfrente que, donde las calzadas divergen, se
+    // sale visiblemente de la ruta.
+    //
+    // Sin ruta activa no hay con que comparar el sentido, asi que se pintan
+    // todos: mejor de mas que de menos cuando no se sabe por donde vas.
+    function _tramoSigueLaRuta(shape) {
+        if (!root._navActive || !root._navData || !root._navData.shape) return true
+        var rs = root._navData.shape
+        if (rs.length < 2 || !shape || shape.length < 2) return true
+        var mi   = Math.max(0, Math.floor(shape.length / 2) - 1)
+        var tLat = shape[mi][1], tLon = shape[mi][0]
+        var tBrg = geoHeading(shape[mi][1], shape[mi][0], shape[mi+1][1], shape[mi+1][0])
+        var cosL = Math.cos(tLat * Math.PI / 180), mPerLL = 111319
+        var best = 1e9, bi = -1
+        for (var i = 0; i < rs.length - 1; i++) {
+            var dx = (rs[i][0] - tLon) * mPerLL * cosL
+            var dy = (rs[i][1] - tLat) * mPerLL
+            var d  = Math.sqrt(dx*dx + dy*dy)
+            if (d < best) { best = d; bi = i }
+        }
+        // Lejos de la ruta: no es un tramo por el que vayamos a pasar.
+        if (bi < 0 || best > 150) return false
+        var rBrg = geoHeading(rs[bi][1], rs[bi][0], rs[bi+1][1], rs[bi+1][0])
+        var dh = Math.abs(tBrg - rBrg)
+        if (dh > Math.PI) dh = 2 * Math.PI - dh
+        return dh < Math.PI / 2
+    }
+
+    // Devuelve el trozo de la RUTA que cubre el tramo, para dibujarlo encima de
+    // la carretera por la que se circula. El shape de OSM viene de las vias de
+    // la relacion, que no son exactamente por donde te lleva la ruta: en calzada
+    // separada la linea naranja quedaba desplazada al lado y no sobre el asfalto.
+    //
+    // Solo se sustituye si los DOS extremos caen cerca de la ruta. Si el tramo
+    // se sale (te desvias a mitad), se deja el shape original: recortarlo
+    // mentiria sobre donde acaba el control.
+    //
+    // Es solo para pintar. No toca _radarTramos, que es lo que usan la deteccion
+    // y los metros restantes.
+    function _tramoSobreLaRuta(shape) {
+        if (!root._navActive || !root._navData || !root._navData.shape) return null
+        var rs = root._navData.shape
+        if (rs.length < 2 || !shape || shape.length < 2) return null
+        var aLat = shape[0][1], aLon = shape[0][0]
+        var bLat = shape[shape.length-1][1], bLon = shape[shape.length-1][0]
+        var cosL = Math.cos(aLat * Math.PI / 180), m = 111319
+        var iA = -1, dA = 1e9, iB = -1, dB = 1e9
+        for (var i = 0; i < rs.length; i++) {
+            var xa = (rs[i][0] - aLon) * m * cosL, ya = (rs[i][1] - aLat) * m
+            var da = Math.sqrt(xa*xa + ya*ya)
+            if (da < dA) { dA = da; iA = i }
+            var xb = (rs[i][0] - bLon) * m * cosL, yb = (rs[i][1] - bLat) * m
+            var db = Math.sqrt(xb*xb + yb*yb)
+            if (db < dB) { dB = db; iB = i }
+        }
+        if (iA < 0 || iB < 0 || dA > 60 || dB > 60) return null
+        var lo = Math.min(iA, iB), hi = Math.max(iA, iB)
+        if (hi - lo < 1) return null
+        var sub = []
+        for (var k = lo; k <= hi; k++) sub.push(rs[k])
+        return sub
+    }
+
     function _updateRadarLayers() {
         if (!mapView._layersInit) return
         for (var i = 0; i < _maxTramoLayers; i++) {
+            // Con ruta activa se dibuja SOLO lo que se puede situar sobre ella.
+            // Overpass trae todos los tramos del entorno —los dos sentidos de tu
+            // via y los de calles paralelas—, y pintarlos con su geometria cruda
+            // llenaba el mapa de lineas naranjas que no son por donde vas.
+            // Sin ruta no hay con que comparar, asi que se pintan tal cual.
+            var s = null
             if (i < _radarTramos.length && appSettings.showRadarTramo) {
+                s = (root._navActive && root._navData && root._navData.shape)
+                    ? _tramoSobreLaRuta(_radarTramos[i].shape)
+                    : _radarTramos[i].shape
+                if (s && !_tramoSigueLaRuta(_radarTramos[i].shape)) s = null
+            }
+            if (s && s.length >= 2) {
                 var coords = []
-                var s = _radarTramos[i].shape
                 for (var j = 0; j < s.length; j++)
                     coords.push(QtPositioning.coordinate(s[j][1], s[j][0]))
                 mapView.updateSourceLine("radar-tramo-" + i, coords)
@@ -4124,6 +4202,10 @@ ApplicationWindow {
             if (appSettings.showRadarTramo) {
                 for (var ti = 0; ti < root._radarTramos.length; ti++) {
                     var trm = root._radarTramos[ti]
+                    // Mismo filtro que la capa de linea: nada de pintar los
+                    // iconos del tramo de la calzada contraria ni los de calles
+                    // paralelas que Overpass devuelve por estar en el bbox.
+                    if (!root._tramoSigueLaRuta(trm.shape)) continue
                     var tSz = units.gu(2.4)
                     // Posiciones reales de las cámaras (origShape si disponible, si no shape[0/last])
                     var orig0 = trm.origShape ? trm.origShape[0] : trm.shape[0]
@@ -4133,15 +4215,12 @@ ApplicationWindow {
                     var p0 = root._geoToScreen(startLat, startLon)
                     var pN = root._geoToScreen(endLat, endLon)
 
-                    // Línea de puntos entre las dos cámaras reales
-                    if (trm.origShape) {
-                        ctx.save()
-                        ctx.setLineDash([units.gu(0.6), units.gu(0.5)])
-                        ctx.strokeStyle = "#FF6F00"; ctx.lineWidth = units.gu(0.35)
-                        ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(pN.x, pN.y)
-                        ctx.stroke()
-                        ctx.restore()
-                    }
+                    // Aqui habia una linea de puntos entre las dos camaras. Era
+                    // una RECTA de p0 a pN, asi que no seguia la carretera: en
+                    // cuanto la via curvaba se despegaba del asfalto y cruzaba
+                    // por encima de manzanas y de otras calles. El recorrido
+                    // vigilado ya lo pinta la capa radar-tramo-* siguiendo la
+                    // ruta; esta recta solo anadia ruido.
 
                     // Icono inicio (círculo sólido naranja con límite)
                     if (p0.x > -tSz && p0.x < iW+tSz && p0.y >= topClip && p0.y < iH+tSz) {
