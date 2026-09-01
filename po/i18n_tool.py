@@ -507,6 +507,22 @@ def cmd_check(args) -> int:
             continue
         po = polib.pofile(str(path))
         probs = []
+
+        # Obsoletas marcadas fuzzy: una conjetura de msgmerge que nadie valido
+        # y que ya nada usa. No son inofensivas — msgmerge las empareja por
+        # PARECIDO del texto original, asi que la traduccion suele ser la de
+        # OTRA cadena. Paso de verdad en ru.po de UBports: "Servidor de mapas
+        # con problemas" se quedo con la traduccion de "Servidor de POIs y
+        # radares" (comparten el prefijo). Si el texto vuelve al codigo,
+        # msgmerge resucita la entrada con esa traduccion equivocada.
+        #
+        # Las obsoletas NO fuzzy si valen: son traducciones reales que se
+        # recuperan si la cadena vuelve. Esas se conservan.
+        for e in po.obsolete_entries():
+            if "fuzzy" in e.flags:
+                probs.append(f"obsoleta fuzzy (traduccion prestada, borrar): "
+                             f"{e.msgid!r} → {e.msgstr!r}")
+
         for e in po:
             if e.obsolete or not e.msgstr:
                 continue
