@@ -162,6 +162,10 @@ build() {
 	# quitarlo evita que cargo falle nada más arrancar. Fuera de pmbootstrap
 	# la variable no existe y esto no hace nada.
 	unset RUSTC_WRAPPER
+	# La versión que muestra la app sale de aquí (pkgver), no de Cargo.toml:
+	# main.rs la lee con option_env!("NAVIUS_VERSION"). Así el número solo se
+	# mantiene en un sitio, el del paquete.
+	export NAVIUS_VERSION="$pkgver"
 	cargo build --release --locked
 }
 

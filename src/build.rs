@@ -149,6 +149,10 @@ fn find_moc(qt_bin_path: &str) -> String {
 }
 
 fn main() {
+    // La versión que muestra la app sale de NAVIUS_VERSION (el APKBUILD la fija
+    // a $pkgver), no de Cargo.toml — así el número solo se toca en un sitio, el
+    // del paquete. Recompilar main.rs si cambia, para que option_env! la recoja.
+    println!("cargo:rerun-if-env-changed=NAVIUS_VERSION");
     // Rerun build.rs when any C++ header or source changes.
     println!("cargo:rerun-if-changed=src/main.rs");
     println!("cargo:rerun-if-changed=src/nav_tts.rs");

@@ -127,7 +127,11 @@ fn main() {
         return;
     }
 
-    engine.set_property("appVersion".into(), QString::from(env!("CARGO_PKG_VERSION")).into());
+    // Versión mostrada: sale del paquete. El APKBUILD exporta NAVIUS_VERSION=$pkgver
+    // al compilar, así el número solo se mantiene en un sitio (pkgver). En un
+    // `cargo build` suelto, sin el APKBUILD, cae a la versión de Cargo.toml.
+    let app_version = option_env!("NAVIUS_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"));
+    engine.set_property("appVersion".into(), QString::from(app_version).into());
     // Plataforma del build, para que el servidor pueda dirigir un mensaje solo a las que
     // toque (ver migración 0021 de navius_server). Cada port es un binario distinto:
     // "pmos" aquí, "ut" y "android" en los suyos. Se puede forzar con NAVIUS_PLATFORM.
