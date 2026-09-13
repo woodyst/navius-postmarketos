@@ -131,6 +131,12 @@
   </screenshots>
 
   <releases>
+    <release version="1.0.13" date="2026-09-13">
+      <description>
+        <p>Voice guidance and beeps play again on postmarketOS edge (the default-sink audio path timed out); route search no longer hangs when the local OSM Scout server is up but has no routing data (it falls back to the online server); pinch rotates the map. Adds the qt5-qtbase-sqlite and pulseaudio-utils dependencies.</p>
+        <p xml:lang="es">La voz y los pitidos vuelven a sonar en postmarketOS edge (el audio contra el sink por defecto se colgaba); la búsqueda de ruta ya no se cuelga cuando el OSM Scout local está vivo pero sin datos de rutas (cae al servidor online); el pinch rota el mapa. Añade las dependencias qt5-qtbase-sqlite y pulseaudio-utils.</p>
+      </description>
+    </release>
     <release version="1.0.12" date="2026-08-22">
       <description>
         <p>Routes no longer fall back to walking mode when the active vehicle id is stale (wrong-way "shortcuts"); Google Maps search is back as a separate Qt6 viewer; auto-zoom now accounts for the alert banners so the configured seconds of road stay visible; pinch gestures rotate the map again.</p>

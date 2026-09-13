@@ -1062,11 +1062,42 @@ cpp! {{
         return 0;
     }
 
+    // Nombre del sink por defecto, resuelto en runtime y pasado como `dev` a
+    // pa_simple_new. En el pipewire-pulse de postmarketOS edge (epo2), abrir un
+    // stream de la API SIMPLE contra el sink por defecto (dev=NULL) se cuelga
+    // con Timeout (err=8) aunque `pactl`/`paplay` funcionen: el enrutado "por
+    // defecto" del servidor no llega a arrancar el stream bloqueante. Nombrando
+    // el sink explícitamente conecta al instante. En v26.06 (epo) dev=NULL ya
+    // funcionaba, y nombrar el sink explícito también, así que sirve para ambos.
+    static std::string g_sink_name;
+
+    static void refresh_default_sink() {
+        g_sink_name.clear();
+        FILE* p = popen("pactl get-default-sink 2>/dev/null", "r");
+        if (!p) return;
+        char buf[256];
+        if (fgets(buf, sizeof(buf), p)) {
+            std::string s(buf);
+            while (!s.empty() && (s.back() == '\n' || s.back() == '\r' || s.back() == ' '))
+                s.pop_back();
+            // Algunas versiones devuelven el alias literal @DEFAULT_SINK@, que no
+            // resuelve el cuelgue: lo tratamos como "sin dato" (dev=NULL).
+            if (!s.empty() && s != "@DEFAULT_SINK@") g_sink_name = s;
+        }
+        pclose(p);
+    }
+    static const char* sink_dev() { return g_sink_name.empty() ? nullptr : g_sink_name.c_str(); }
+
     static void pa_stream_open() {
         if (g_pa_stream) { g_pa_drain(g_pa_stream, nullptr); g_pa_free(g_pa_stream); g_pa_stream = nullptr; }
         pa_sample_spec ss; ss.format = PA_SAMPLE_S16LE; ss.rate = g_sample_rate; ss.channels = 1;
         int err = 0;
-        g_pa_stream = g_pa_new(nullptr, "navius", PA_STREAM_PLAYBACK, nullptr, "tts", &ss, nullptr, nullptr, &err);
+        g_pa_stream = g_pa_new(nullptr, "navius", PA_STREAM_PLAYBACK, sink_dev(), "tts", &ss, nullptr, nullptr, &err);
+        if (!g_pa_stream && sink_dev()) {
+            // El sink cacheado ya no vale (cambió de salida): re-resolver y reintentar.
+            refresh_default_sink();
+            g_pa_stream = g_pa_new(nullptr, "navius", PA_STREAM_PLAYBACK, sink_dev(), "tts", &ss, nullptr, nullptr, &err);
+        }
     }
 
     static const char* pa_init() {
@@ -1079,6 +1110,7 @@ cpp! {{
         g_pa_free  = (pa_simple_free_fn) dlsym(pa_lib, "pa_simple_free");
         if (!g_pa_new || !g_pa_write || !g_pa_drain || !g_pa_free) return "missing pa syms";
         g_pa_ok = true;
+        refresh_default_sink();
         pa_stream_open();
         return "ok";
     }
@@ -1166,7 +1198,13 @@ cpp! {{
                 ss.channels = (uint8_t)channels;
                 int err = 0;
                 pa_simple* ws = g_pa_new(nullptr, "navius", PA_STREAM_PLAYBACK,
-                                          nullptr, "tts_voice", &ss, nullptr, nullptr, &err);
+                                          sink_dev(), "tts_voice", &ss, nullptr, nullptr, &err);
+                if (!ws && sink_dev()) {
+                    // Sink cacheado inválido (cambió la salida): re-resolver y reintentar.
+                    refresh_default_sink();
+                    ws = g_pa_new(nullptr, "navius", PA_STREAM_PLAYBACK,
+                                  sink_dev(), "tts_voice", &ss, nullptr, nullptr, &err);
+                }
                 if (!ws) {
                     std::string m = std::string("navius_play_wav: pa_simple_new failed err=") + std::to_string(err);
                     wav_log(m.c_str());

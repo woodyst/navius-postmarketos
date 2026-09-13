@@ -762,9 +762,18 @@ ApplicationWindow {
     function _setEffectiveUrl(url) {
         NavSearch.setValhallaUrl(url)
         searchPanel.setNavUrl(url)
-        // fallback sólo si el usuario lo pide explícitamente (botón "Usar servidor público")
-        NavSearch.setFallbackUrl(null)
-        searchPanel.setFallbackNavUrl(null)
+        // Cuando el servidor de rutas es el OSM Scout local (preferOsmScout), su
+        // fallback automático es el Valhalla público configurado. Sin esto, si
+        // OSM Scout está "vivo" (responde a /v1/activate) pero su routing falla
+        // —maps sin cargar, mal configurado, o recién arrancado— route() se
+        // quedaba sin adónde caer (_fallbackUrl=null) y la ruta no salía nunca:
+        // "se queda buscando". El público solo se usa si el local falla de
+        // verdad, así que el modo offline se respeta cuando funciona.
+        var _isLocalOsmScout = url.indexOf("127.0.0.1:8553") >= 0 || url.indexOf("localhost:8553") >= 0
+        var _fb = (_isLocalOsmScout && appSettings.valhallaUrl && appSettings.valhallaUrl !== url)
+                  ? appSettings.valhallaUrl : null
+        NavSearch.setFallbackUrl(_fb)
+        searchPanel.setFallbackNavUrl(_fb)
     }
 
     function _saveMapViewState() {

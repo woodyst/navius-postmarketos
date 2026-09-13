@@ -54,16 +54,39 @@ pmbootstrap sideload --host <device> --user <user> navius
 
 ### Local maps
 
-Routing and maps without a connection need **OSM Scout Server**, which is in
-Alpine's `community` repository:
+Routing and maps without a connection need **OSM Scout Server**. On Alpine with
+per-region maps it lives in the `community` repository:
 
 ```sh
 sudo apk add osmscout-server
 ```
 
-You do not need to start it yourself: Navius launches it on demand. You do need
-to download the maps for your region from its own interface the first time. See
+On **postmarketOS edge**, if it is not in `community`, install it as a Flatpak:
+
+```sh
+flatpak install flathub io.github.rinigus.OSMScoutServer
+```
+
+You do not need to start it yourself: Navius launches it on demand (D-Bus
+activation). **The first time you must download the maps for your region from its
+own interface, with the Valhalla routing engine enabled** — a fresh install ships
+no maps, and if you download a region without the Valhalla part search works but
+route computation does not (the `valhalla/` routing-tiles subfolder is missing). If
+the local server has no routes, Navius falls back to the online routing server. See
 [Installing on postmarketOS](docs/install.en.md).
+
+### Dependencies worth knowing about
+
+The `.apk` declares everything it needs, so `apk add` pulls it in. Two matter when
+installing by hand on a very trimmed-down postmarketOS:
+
+- **`qt5-qtbase-sqlite`** — Qt's SQLite driver. Without it the map tile cache and
+  local storage fail with `SQLite driver not found`.
+- **`pulseaudio-utils`** — provides `pactl`, which Navius uses to resolve the
+  default speaker. On **postmarketOS edge** (recent PipeWire), opening audio against
+  the "default sink" without naming it hangs (`pa_simple_new` → `Timeout`) even
+  though `pactl`/`paplay` work; Navius looks up the speaker name and passes it
+  explicitly. Not needed on v26.06, but the fix works on both.
 
 ### Third-party sources not versioned here
 

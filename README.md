@@ -51,16 +51,39 @@ pmbootstrap sideload --host <dispositivo> --user <usuario> navius
 
 ### Mapas en local
 
-Para rutas y mapas sin conexión hace falta **OSM Scout Server**, que está en el
-repositorio `community` de Alpine:
+Para rutas y mapas sin conexión hace falta **OSM Scout Server**. En Alpine con
+mapas por región está en el repositorio `community`:
 
 ```sh
 sudo apk add osmscout-server
 ```
 
-No hay que arrancarlo a mano: Navius lo lanza cuando lo necesita. Sí hay que
-descargar los mapas de tu región desde su propia interfaz la primera vez. Ver
-[Instalación en postmarketOS](docs/instalacion.es.md).
+En **postmarketOS edge**, si no está en `community`, se instala como Flatpak:
+
+```sh
+flatpak install flathub io.github.rinigus.OSMScoutServer
+```
+
+No hay que arrancarlo a mano: Navius lo lanza cuando lo necesita (activación
+D-Bus). **La primera vez hay que descargar los mapas de tu región desde su propia
+interfaz, y con el motor de rutas Valhalla activado** — recién instalado no trae
+mapas, y si descargas la región sin la parte de Valhalla el buscador funciona pero
+el cálculo de ruta no (falta la subcarpeta `valhalla/` con las teselas de
+enrutado). Si el servidor local no da rutas, Navius cae al servidor de rutas online
+como respaldo. Ver [Instalación en postmarketOS](docs/instalacion.es.md).
+
+### Dependencias que conviene conocer
+
+El `.apk` declara todo lo que necesita, así que `apk add` lo resuelve solo. Dos que
+importan al instalar a mano en un postmarketOS muy recortado:
+
+- **`qt5-qtbase-sqlite`** — controlador SQLite de Qt. Sin él fallan la caché de
+  tiles del mapa y el almacenamiento local (`SQLite driver not found`).
+- **`pulseaudio-utils`** — aporta `pactl`, que Navius usa para resolver el altavoz
+  por defecto. En **postmarketOS edge** (PipeWire reciente), abrir el audio contra
+  el «sink por defecto» sin nombrarlo se cuelga (`pa_simple_new` → `Timeout`) pese a
+  que `pactl`/`paplay` funcionen; Navius averigua el nombre del altavoz y lo pasa
+  explícito. En v26.06 no hacía falta, pero el arreglo vale para ambas versiones.
 
 ### Fuentes de terceros no versionadas aquí
 
