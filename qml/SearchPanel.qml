@@ -320,6 +320,24 @@ Rectangle {
         _writeFile(line)
     }
 
+    // Volver de la lista de resultados a la pantalla de destinos.
+    //
+    // Hasta ahora la unica salida era la ✕ del campo de busqueda, y esa solo
+    // aparece cuando hay texto escrito. Una busqueda de puntos de interes no
+    // deja texto ninguno, asi que entrando por ahi no habia forma de volver
+    // sin cerrar el panel de navegacion entero y empezar de cero.
+    function _backToIdle() {
+        // Invalida lo que haya en vuelo: si no, una respuesta tardia repoblaba
+        // la lista despues de haber vuelto.
+        _searchSeq++
+        Qt.inputMethod.hide()
+        searchField.text = ""
+        _results       = []
+        _searchErr     = ""
+        _st            = "idle"
+        _settingOrigin = false
+    }
+
     function _resetLog() {
         _logLines      = []
         _logVisible    = false
@@ -743,6 +761,16 @@ Rectangle {
             anchors.centerIn: parent
             text: i18n.tr("Navegación"); color: "white"
             font.pixelSize: units.gu(2.5); font.bold: true
+        }
+        // Solo en la lista de resultados: en la pantalla de destinos no hay
+        // adonde volver, y la ✕ de la derecha cierra el panel, que es otra cosa.
+        Rectangle {
+            visible: panel._st === "results"
+            anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: units.gu(2) }
+            width: units.gu(4); height: units.gu(4); radius: width/2
+            color: backArea.pressed ? "#3A3A52" : "#2A2A3E"
+            Label { anchors.centerIn: parent; text: "←"; color: "#90A4AE"; font.pixelSize: ts(1.8) }
+            MouseArea { id: backArea; anchors.fill: parent; onClicked: panel._backToIdle() }
         }
         Rectangle {
             anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: units.gu(2) }
