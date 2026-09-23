@@ -49,6 +49,21 @@ Rectangle {
 
     onHasFixChanged: { if (hasFix && _pendingCalc) { _pendingCalc = false; _calcRoute(true) } }
 
+    // Gestor de vehiculos, para el selector de abajo. Lo pasa Main.qml.
+    property var    vehicleMgr:     null
+    property var    _vehList:       []
+    property string _activeVehId:   ""
+    property bool   _recalculating: false
+
+    // Precargar el mapa de la ruta antes de salir. Lo lee Main.qml al iniciar
+    // navegacion. Se elige aqui, antes de pedir la ruta, porque es cuando se
+    // sabe si vas a tener cobertura donde vas.
+    //
+    // Se lee y se escribe DIRECTAMENTE en el ajuste, sin copia local: con copia
+    // hay dos sitios donde puede quedarse el valor bueno y basta olvidarse de
+    // uno para que deje de recordarse.
+    readonly property bool preCacheTiles: navSt.preCache
+
     signal closed()
     signal routeReady(var routes, int selIdx)
     signal navigationStarted(var routeData)
@@ -58,8 +73,38 @@ Rectangle {
     property bool googleMapsAvailable: false
     signal serverFallbackNeeded(string service, string message, var retryFn)
 
+    // La lista se relee al abrir el panel: el usuario puede haber anadido o
+    // quitado vehiculos en Opciones mientras tanto.
+    function _refreshVehicles() {
+        if (!vehicleMgr) return
+        _vehList = vehicleMgr.allVehicles()
+        var av = vehicleMgr.activeVehicle()
+        _activeVehId = av ? av.id : ""
+        // Al abrir el panel tambien, no solo al tocar el selector: arrancando la
+        // aplicacion con "A pie" activo, esta copia de NavSearch.js se quedaba
+        // en "auto" y la primera ruta salia de coche sin que nada lo dijera.
+        NavSearch.setActiveCosting(av ? av.costing : "auto")
+    }
+
+    // Cambiar de vehiculo cambia como se calcula la ruta, asi que si ya hay una
+    // calculada se rehace en el sitio. rerouteForVehicle emite routeReady, y de
+    // ahi cuelga todo lo demas —dibujo y recuento de radares— en Main.qml.
+    function _selectVehicle(id) {
+        if (!vehicleMgr || _recalculating || id === _activeVehId) return
+        _activeVehId = id
+        vehicleMgr.setActive(id)
+        NavSearch.setActiveCosting(vehicleMgr.activeCosting())
+        if (_routes.length === 0) return
+        _recalculating = true
+        _addLog(i18n.tr("Recalculando para el vehículo elegido…"))
+        rerouteForVehicle(function(err, routes) {
+            _recalculating = false
+            if (err) _addLog("✗ " + err)
+        })
+    }
+
     onVisibleChanged: {
-        if (visible) { _st = "idle" }
+        if (visible) { _st = "idle"; _refreshVehicles() }
         else { Qt.inputMethod.hide(); _pendingCalc = false }
     }
 
@@ -267,6 +312,9 @@ Rectangle {
         property bool   noFerry:   false
         property bool   noDirt:    false
         property bool   noHighway: false
+        // Apagado por defecto: precargar es medio minuto de espera y unos
+        // megas, y la mayoria de los viajes salen con cobertura.
+        property bool   preCache:  false
     }
     Settings { id: histSt;  category: "dest_history"; property string json: "" }
     Settings { id: favSt;   category: "favorites";    property string json: "" }
@@ -938,6 +986,77 @@ Rectangle {
                 visible: text.length > 0
                 text: ""; color: "#FF5252"; font.pixelSize: ts(1.4)
                 wrapMode: Text.WordWrap
+            }
+
+            // Selector de vehiculo, encima de las opciones de ruta.
+            //
+            // Estaba solo en la pantalla de rutas, o sea despues de calcular.
+            // Pero el vehiculo cambia COMO se calcula, asi que se elige aqui,
+            // donde se prepara el viaje, y no solo para corregirlo despues.
+            Item {
+                width: parent.width - parent.leftPadding - parent.rightPadding
+                height: Math.max(vehFlow.height, preBtn.height)
+                visible: panel._vehList.length > 0
+
+                // Precargar el mapa antes de salir. Va aqui, pegado a la derecha
+                // y fuera del grupo de vehiculos, porque no es una opcion de
+                // como calcular la ruta sino de que hacer antes de arrancar; y
+                // la fila de abajo ya va cargada de pildoras.
+                Rectangle {
+                    id: preBtn
+                    anchors { right: parent.right; top: parent.top }
+                    width: preLbl.implicitWidth + units.gu(2.5)
+                    height: Math.max(units.gu(4.5), preLbl.height + units.gu(1.6))
+                    radius: height / 2
+                    color: navSt.preCache ? "#1E3A5F" : "#2A2A3E"
+                    border.color: navSt.preCache ? "#29B6F6" : "transparent"
+                    border.width: units.gu(0.15)
+                    Label {
+                        id: preLbl
+                        anchors.centerIn: parent
+                        text: (navSt.preCache ? "⬇ " : "") + i18n.tr("Precargar mapa")
+                        color: navSt.preCache ? "#29B6F6" : "#78909C"
+                        font.pixelSize: ts(1.8)
+                    }
+                    MouseArea { anchors.fill: parent
+                        onClicked: navSt.preCache = !navSt.preCache }
+                }
+
+                // Flow y no una fila que se desplaza: con tres o cuatro vehiculos
+                // los de la derecha quedaban escondidos detras del borde y nada
+                // indicaba que hubiera mas. Asi parten a la linea siguiente.
+                Flow {
+                    id: vehFlow
+                    anchors { left: parent.left; top: parent.top
+                              right: preBtn.left; rightMargin: units.gu(1) }
+                    spacing: units.gu(0.8)
+                    Repeater {
+                        model: panel._vehList
+                        delegate: Rectangle {
+                            property bool _sel: panel._activeVehId === modelData.id
+                            // Alto del texto, no clavado: ver las pildoras de al lado.
+                            height: Math.max(units.gu(4.5), vehLbl.height + units.gu(1.6))
+                            width: Math.max(units.gu(9), vehLbl.implicitWidth + units.gu(2.6))
+                            radius: height / 2
+                            color:  _sel ? "#1E3A5F" : "#1C1C2E"
+                            border.color: _sel ? "#29B6F6" : "#37474F"
+                            border.width: units.gu(0.15)
+                            opacity: panel._recalculating ? 0.55 : 1.0
+                            Label {
+                                id: vehLbl
+                                anchors.centerIn: parent
+                                text: (_sel ? "✓ " : "") + modelData.alias
+                                color: _sel ? "#29B6F6" : "#90A4AE"
+                                font.pixelSize: ts(1.8); font.bold: _sel
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                enabled: !panel._recalculating && !_sel
+                                onClicked: panel._selectVehicle(modelData.id)
+                            }
+                        }
+                    }
+                }
             }
 
             // Las cuatro pildoras van SIEMPRE en una fila: si no caben se encogen

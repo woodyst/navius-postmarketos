@@ -7650,6 +7650,7 @@ ApplicationWindow {
         gpsLon:      activeModel.pos_has_fix ? activeModel.pos_lon : appSettings.lastLon
         hasFix:      activeModel.pos_has_fix
         simMode:     appSettings.simMode
+        vehicleMgr:  vehicleManager
         imperial:    appSettings.measureSystem === "imperial"
         fileLogger:  satModel
         navHttp:     navHttp
@@ -7670,7 +7671,7 @@ ApplicationWindow {
             }
         }
         onNavigationStarted: function(routeData) {
-            root._startNavigation(routeData)
+            root._startNavigationPreCaching(routeData)
         }
         onPreviewRequested: function(routes, selIdx) {
             Qt.inputMethod.hide()
@@ -9106,6 +9107,9 @@ ApplicationWindow {
     property int _preCacheSweepI:    0
     property int _preCacheSweepStep: 1
     property int _preCachePhase:     0   // 0 = wide (z11, buffer 5km+)  1 = detail (z15)
+    // El porcentaje tiene que ser una propiedad: _preCacheProgress() es una
+    // funcion y en un binding no se reevalua sola —se quedaria congelada—.
+    property string _preCachePct:    ""  
 
     // Devuelve el texto localizado de un billboard/anuncio.
     // Si el anunciante no proporcionó traducción para el locale actual, usa el campo base.
@@ -9117,6 +9121,36 @@ ApplicationWindow {
         return bb[field] || ""
     }
 
+    // Arranca la navegacion precargando antes los tiles de la ruta.
+    //
+    // Se usa en los dos sitios desde los que el USUARIO inicia un viaje: el
+    // boton de la previsualizacion y el del buscador. Antes solo lo hacia la
+    // previsualizacion, asi que arrancando desde el buscador se salia a la
+    // carretera sin mapa descargado y sin que nada lo advirtiera.
+    //
+    // NO se usa en los recalculos sobre la marcha ni al restaurar al arrancar:
+    // ahi ya se esta conduciendo, y un barrido de medio minuto por toda la ruta
+    // deja al conductor sin mapa justo cuando lo necesita.
+    function _startNavigationPreCaching(rd) {
+        if (mapView._usingOsmScoutMaps || !rd || !rd.shape || rd.shape.length <= 1
+                || !searchPanel.preCacheTiles) {
+            // Mapas locales: no hay nada que bajar. Y si el usuario ha apagado
+            // "Precargar mapa" en la pantalla de destinos, se sale sin mas: sabra
+            // el por que —tener cobertura donde va, o no querer gastar datos—.
+            root._startNavigation(rd)
+            return
+        }
+        mapView.followMode = false
+        root._preCacheRouteDat  = rd
+        root._preCachePhase     = 0
+        root._preCacheSweepStep = Math.max(1, Math.floor(rd.shape.length / 25))
+        root._preCacheSweepI    = 0
+        root._preCachePct       = "0%"
+        preCacheSweepTimer.restart()
+        root._startupMsg = i18n.tr("Cacheando mapa… 0%")
+        startupMsgTimer.restart()
+    }
+
     function _preCacheProgress() {
         var shape = _preCacheRouteDat ? _preCacheRouteDat.shape : null
         if (!shape) return ""
@@ -9126,6 +9160,68 @@ ApplicationWindow {
             : Math.ceil(shape.length / _preCacheSweepStep)
               + Math.floor(_preCacheSweepI / _preCacheSweepStep)
         return Math.min(100, Math.round(done * 100 / Math.max(1, total))) + "%"
+    }
+
+    // Tapadera del barrido de pre-cache.
+    //
+    // El barrido mueve la camara del mapa por toda la ruta cada 70 ms: asi es
+    // como se fuerza la descarga de los tiles, no hay otra forma de pedirlos.
+    // Pero verlo desde fuera es un viaje relampago por toda la ruta y parece
+    // que la aplicacion se haya vuelto loca. Se tapa el mapa y se deja a la
+    // vista el progreso; por debajo el mapa sigue dibujando, que es justo lo
+    // que descarga, asi que tapar no rompe la pre-cache.
+    Rectangle {
+        id: preCacheCover
+        anchors.fill: parent
+        visible: preCacheSweepTimer.running
+        color: root._mapIsLight ? "#F5F7FA" : "#07111E"
+        z: 400
+
+        Column {
+            anchors.centerIn: parent
+            spacing: units.gu(2)
+            Label {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "🗺"; font.pixelSize: units.gu(6 * appSettings.textScale)
+            }
+            Label {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: i18n.tr("Preparando la ruta…")
+                color: root._uiFg; font.bold: true
+                font.pixelSize: units.gu(2.4 * appSettings.textScale)
+            }
+            Label {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: root._preCachePhase === 0
+                      ? i18n.tr("Descargando el mapa de la ruta")
+                      : i18n.tr("Descargando el detalle")
+                color: root._uiFg; opacity: 0.7
+                font.pixelSize: units.gu(1.8 * appSettings.textScale)
+            }
+            // Barra de progreso: el porcentaje solo, sobre fondo liso, se queda
+            // corto para saber si aquello avanza o se ha colgado.
+            Rectangle {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: Math.min(preCacheCover.width * 0.7, units.gu(40))
+                height: units.gu(1.2); radius: height / 2
+                color: root._mapIsLight ? "#DDE3EA" : "#1C2C3A"
+                Rectangle {
+                    anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
+                    width: parent.width * Math.max(0, Math.min(1,
+                           parseInt(root._preCachePct) / 100)) || 0
+                    radius: height / 2; color: "#29B6F6"
+                }
+            }
+            Label {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: root._preCachePct
+                color: "#29B6F6"
+                font.pixelSize: units.gu(1.8 * appSettings.textScale)
+            }
+        }
+
+        // Que ningun toque llegue al mapa de debajo mientras barre.
+        MouseArea { anchors.fill: parent }
     }
 
     Timer {
@@ -9156,10 +9252,10 @@ ApplicationWindow {
             mapView._gpsUpdating = false
             mapView.zoomLevel = root._preCachePhase === 0 ? 11 : 15
             root._preCacheSweepI += root._preCacheSweepStep
+            root._preCachePct = root._preCacheProgress()
             // Actualizar progreso en status bar cada 10 pasos
             if (root._preCacheSweepI % (root._preCacheSweepStep * 10) < root._preCacheSweepStep) {
-                var pct = root._preCacheProgress()
-                root._startupMsg = i18n.tr("Cacheando mapa… ") + pct
+                root._startupMsg = i18n.tr("Cacheando mapa… ") + root._preCachePct
                 startupMsgTimer.restart()
             }
         }
@@ -9407,18 +9503,7 @@ ApplicationWindow {
             root._previewShape = []
             routeViewPanel.close()
             var rd = routeSelectPanel.routes[idx]
-            if (!mapView._usingOsmScoutMaps && rd && rd.shape && rd.shape.length > 1) {
-                mapView.followMode = false
-                root._preCacheRouteDat = rd
-                root._preCachePhase = 0
-                root._preCacheSweepStep = Math.max(1, Math.floor(rd.shape.length / 25))
-                root._preCacheSweepI = 0
-                preCacheSweepTimer.restart()
-                root._startupMsg = i18n.tr("Cacheando mapa… 0%")
-                startupMsgTimer.restart()
-            } else {
-                root._startNavigation(rd)
-            }
+            root._startNavigationPreCaching(rd)
         }
         onVehicleChangeRequested: function(vehicleId) {
             vehicleManager.setActive(vehicleId)
