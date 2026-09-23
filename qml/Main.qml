@@ -9418,6 +9418,10 @@ ApplicationWindow {
         onVehicleChangeRequested: function(vehicleId) {
             vehicleManager.setActive(vehicleId)
             NavSearch.setActiveCosting(vehicleManager.activeCosting())
+            // Y a la copia del buscador, que es quien pide la ruta: NavSearch.js
+            // no es .pragma library y cada componente tiene la suya. Sin esta
+            // linea se recalculaba con el vehiculo anterior.
+            searchPanel.setActiveCosting(vehicleManager.activeCosting())
             searchPanel.rerouteForVehicle(function(err, routes) {
                 routeSelectPanel._recalculating = false
                 if (err || !routes || routes.length === 0) return
@@ -9429,6 +9433,12 @@ ApplicationWindow {
                     combined = combined.concat(routes[i].shape)
                 root._previewShape = combined
                 root.drawRoutesPreview(routes, 0)
+                // Y reencuadrar. La ruta nueva puede ir por otro sitio —de coche
+                // a pie cambian hasta los kilometros—, asi que dejando la camara
+                // donde estaba se repintaba la ruta fuera de la pantalla y
+                // parecia que no se hubiera recalculado nada. open() recalcula
+                // el encuadre y esta hecho para llamarse mas de una vez.
+                routeViewPanel.open()
             })
         }
     }

@@ -136,6 +136,12 @@ Rectangle {
     // servidor estuviera detectado.
     function setOsmScoutSearch(ok)       { NavSearch.setOsmScoutSearch(ok) }
     function setOffline(v)               { NavSearch.setOffline(v) }
+    // Y el vehiculo, por lo mismo: la ruta se pide desde ESTA copia, asi que si
+    // el costing solo se pone en la de Main.qml se recalcula con el de antes.
+    // Se notaba poco porque el resultado parece una ruta valida: cambiabas a
+    // "A pie", se pedia ruta nueva y volvian los mismos kilometros y las mismas
+    // maniobras del coche.
+    function setActiveCosting(c)         { NavSearch.setActiveCosting(c) }
     function setFallbackNavUrl(url)      { NavSearch.setFallbackUrl(url) }
     function setRouteBlocked(v)          { NavSearch.setRouteBlocked(v) }
     function setNaviusOverpassServer(en) { NavSearch.setNaviusServer(en) }
