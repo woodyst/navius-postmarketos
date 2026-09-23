@@ -405,7 +405,12 @@ ApplicationWindow {
     }
     readonly property color _uiBorder: _mapIsLight ? "#CC666666" : "#99FFFFFF"  // contornos/bordes
     readonly property color _uiFg:     _mapIsLight ? "#DD333333" : "#FFFFFFFF"  // texto e iconos
-    readonly property color _uiBtnBg:  _mapIsLight ? "#4DFFFFFF" : "#4D12122A" // fondo botones menú 30% alfa
+    // Fondo de los botones del MENÚ. Era un 30% de alfa, con el argumento de que
+    // van sobre el panel del menú, que ya oscurece el mapa. Pero ese panel no
+    // existe: el menú es una columna de botones sobre el mapa desnudo, igual que
+    // los de la pantalla principal, y con ese 30% el mapa se transparentaba por
+    // debajo del texto. Mismo fondo que aquellos, que es lo que son.
+    readonly property color _uiBtnBg: _mapIsLight ? "#B3FFFFFF" : "#B3101828"
 
     function _pushStatus(text, color) {
         var clr = color || "#EF9A9A"

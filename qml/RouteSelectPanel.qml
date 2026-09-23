@@ -60,8 +60,17 @@ Item {
     // En landscape: 0 (panel lateral, no tapa el mapa). En portrait: fórmula directa (no layout-dependent).
     // IMPORTANTE: NO usar bottomSheet.height — se calcula en el pase de layout, demasiado tarde para
     // routeViewPanel.open() que lo lee en el mismo tick JS en que se setean las rutas.
+    // Es una ESTIMACION, solo para encuadrar el mapa. Quedarse corto o pasarse
+    // un poco solo sube o baja el trazado; el panel se mide aparte, abajo.
     property real sheetHeight: isLandscape ? 0
-                                           : Math.min(units.gu(18 + 8 * routes.length), parent.height * 0.62)
+                                           : Math.min(ts(13 + 7 * routes.length), parent.height * 0.75)
+
+    // Lo que pide de verdad el contenido, que es lo que mide el panel. Esto SI
+    // puede mirar el layout, porque solo lo usa el propio panel; sheetHeight no,
+    // que Main.qml la lee en el mismo tick en que asigna las rutas, antes de que
+    // haya pase de layout.
+    readonly property real _altoContenido:
+        sheetCol.implicitHeight + startBtn.height + units.gu(4)
 
     // ── Panel: landscape = lateral derecho; portrait = bottom sheet ──────────
     Rectangle {
@@ -75,7 +84,12 @@ Item {
             top:    rsp.isLandscape ? parent.top  : undefined
         }
         width:  rsp.isLandscape ? Math.round(parent.width * 0.42) : parent.width
-        height: rsp.isLandscape ? parent.height : rsp.sheetHeight
+        // El alto es el del contenido, ni mas ni menos: con la formula mandando
+        // sobraba hueco entre la ultima ruta y el boton. El tope del 75% deja
+        // que la lista se desplace cuando hay varias alternativas.
+        height: rsp.isLandscape
+                ? parent.height
+                : Math.min(rsp._altoContenido, parent.height * 0.75)
         color: "#EE07111E"
 
         Rectangle {
