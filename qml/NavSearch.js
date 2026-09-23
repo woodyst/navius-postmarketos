@@ -2119,8 +2119,22 @@ function _sweepRadarCells(cellIdx) {
 // Carga radares a lo largo de una ruta (filtra por proximidad al shape).
 // Responde primero con la caché local si hay algo (instantáneo/offline), y
 // otra vez con el resultado fusionado con Overpass en cuanto responde.
+// Generacion de las consultas de radares. La sube cancelRadars() y con ella se
+// tiran las respuestas que lleguen tarde.
+//
+// Importa porque lo caro no es la consulta sino lo que viene despues: filtrar
+// los radares contra TODA la forma de la ruta —miles de puntos en un viaje
+// largo— y dos pasadas de base de datos para guardarlos y podarlos, todo en el
+// hilo de interfaz. Con tres alternativas de 800 km son tres de esas. Si el
+// usuario borra la ruta mientras estan en vuelo, ese trabajo ya no sirve para
+// nada, pero se hacia igual: el mapa se quedaba trabado unos segundos justo
+// despues de borrar, que es cuando llegaban las respuestas.
+var _radarGen = 0
+function cancelRadars() { _radarGen++ }
+
 function fetchRadars(shape, callback) {
     if (!shape || shape.length < 2) { callback({fijos:[], tramos:[]}); return }
+    var _gen = _radarGen
     var minLat = shape[0][1], maxLat = shape[0][1], minLon = shape[0][0], maxLon = shape[0][0]
     for (var i = 1; i < shape.length; i++) {
         if (shape[i][1] < minLat) minLat = shape[i][1]
@@ -2136,11 +2150,14 @@ function fetchRadars(shape, callback) {
     if (local.fijos.length || local.tramos.length)
         callback({fijos: local.fijos, tramos: local.tramos, fromCache: true})
     _overpassPost(bbox, function(text, failed) {
+        // Lo que llega despues de cancelar no se parsea siquiera.
+        if (_gen !== _radarGen) { _logMsg("↯ radares descartados: la ruta ya no esta"); return }
         if (!text) {
             if (!local.fijos.length && !local.tramos.length) callback({fijos:[], tramos:[], error: !!failed})
             return
         }
         _parseRadarResponse(text, shape, function(remote) {
+            if (_gen !== _radarGen) return
             _saveRadarsToDb(remote.fijos, remote.tramos)
             _pruneRadarsDb(minLat, minLon, maxLat, maxLon, _radarKeepIds(remote))
             callback(_mergeRadarSets(remote, local))

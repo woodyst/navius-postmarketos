@@ -2319,6 +2319,10 @@ ApplicationWindow {
         appSettings.navWaypointsJson = ""
         appSettings.wasNavigating    = false
         _applyMapMode(appSettings.mapMode)
+        // Y que no siga llegando trabajo de la ruta que se acaba de borrar: las
+        // consultas de radares en vuelo se parsean contra la forma entera y
+        // trababan el mapa varios segundos despues de borrar.
+        NavSearch.cancelRadars()
         _clearRadarState()
         _clearTrafficComparison()
         _ttsClearCache()
