@@ -2201,7 +2201,7 @@ ApplicationWindow {
                 _updateRadarLayers()
                 alertCanvas.requestPaint()
                 prefsPanel.visible     = false
-                searchPanel._simOrigin = null
+                searchPanel._origin    = null
                 searchPanel.visible    = true
             }
         }
@@ -9386,6 +9386,7 @@ ApplicationWindow {
         vehicleMgr:   vehicleManager
         imperial:     appSettings.measureSystem === "imperial"
         radarCounts:  root._routeRadarCounts
+        departureMs:  searchPanel.departureMs
         onClosed: {
             routeSelectPanel.visible = false
             root._previewShape = []

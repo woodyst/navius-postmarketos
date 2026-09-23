@@ -1147,6 +1147,22 @@ function decodePolyline6(str) {
     return out
 }
 
+// Hora de llegada = salida + duracion del trayecto. depMs a 0 significa
+// «salir ahora». Si la llegada cae otro dia se marca con "+1d": sin eso, una
+// ruta de nueve horas saliendo a las 20:00 diria "llega 05:00" sin mas y se
+// leeria como que llegas antes de salir.
+function formatArrival(depMs, segundos) {
+    var base = depMs > 0 ? depMs : Date.now()
+    var b    = new Date(base)
+    var d    = new Date(base + segundos * 1000)
+    var p    = function(n) { return ("0" + n).slice(-2) }
+    var txt  = p(d.getHours()) + ":" + p(d.getMinutes())
+    var dias = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+                         - new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime()) / 86400000)
+    if (dias > 0) txt += " +" + dias + "d"
+    return txt
+}
+
 function formatDist(km, imperial) {
     if (!km || km <= 0) return ""
     if (imperial) {

@@ -40,7 +40,11 @@ Rectangle {
 
     onNavActiveChanged: { poiMode = navActive ? "en_ruta" : "cerca" }
 
-    property var  _simOrigin: null      // {lat, lon, name} — origen personalizado en modo sim
+    // Punto de partida elegido a mano. Antes solo se podia tocar en modo
+    // simulacion —se llamaba _origin—, pero planificar una ruta desde otro
+    // sitio no tiene nada que ver con simular: se pide para preparar un viaje
+    // que todavia no has empezado. Vacio significa «desde donde diga el GPS».
+    property var  _origin: null
     property bool _settingOrigin: false // true mientras buscamos el punto de inicio
 
     onHasFixChanged: { if (hasFix && _pendingCalc) { _pendingCalc = false; _calcRoute(true) } }
@@ -104,6 +108,16 @@ Rectangle {
 
     // Hora de salida (session-only, no se persiste)
     property bool _useDepTime:   false
+    // Hora de salida efectiva, en milisegundos desde la epoca; 0 es «ahora».
+    // Es lo que hace util poder elegirla: fijar la salida sin ver la llegada
+    // no dice nada, que era la pega.
+    readonly property double departureMs: {
+        if (!_useDepTime) return 0
+        var d = new Date()
+        d.setDate(d.getDate() + _depDayOffset)
+        d.setHours(_depHour, _depMin, 0, 0)
+        return d.getTime()
+    }
     property int  _depDayOffset: 0       // 0=hoy, 1=mañana, ...
     property int  _depHour:      8
     property int  _depMin:       0
@@ -132,8 +146,8 @@ Rectangle {
     function rerouteForVehicle(callback) {
         if (_dests.length === 0) { callback(i18n.tr("Sin destino"), []); return }
         var wps = []
-        if (panel.simMode && panel._simOrigin) {
-            wps.push(panel._simOrigin)
+        if (panel._origin) {
+            wps.push(panel._origin)
         } else if (panel.gpsLat !== 0 || panel.gpsLon !== 0) {
             wps.push({lat: panel.gpsLat, lon: panel.gpsLon})
         } else {
@@ -155,7 +169,7 @@ Rectangle {
     // Carga los endpoints de una ruta de demo, calcula la ruta e inicia la navegación.
     // Llamado desde Main.qml cuando el usuario selecciona una ruta de test.
     function loadDemoRoute(originLat, originLon, originName, destLat, destLon, destName) {
-        _simOrigin  = { lat: originLat, lon: originLon, name: originName }
+        _origin  = { lat: originLat, lon: originLon, name: originName }
         _dests      = [{ lat: destLat,  lon: destLon,  name: destName  }]
         _st         = "idle"
         _routes     = []
@@ -167,7 +181,7 @@ Rectangle {
     // Cambia el punto de inicio de la ruta en curso (sin tocar el destino).
     // Muestra el panel para que el usuario vea el nuevo origen y el cálculo.
     function setSimOrigin(lat, lon, name) {
-        _simOrigin = { lat: lat, lon: lon, name: name }
+        _origin = { lat: lat, lon: lon, name: name }
         _st        = "idle"
         _routes    = []
         _selRoute  = 0
@@ -656,7 +670,7 @@ Rectangle {
         focusDummy.forceActiveFocus()
         Qt.inputMethod.hide()
         if (_settingOrigin) {
-            _simOrigin = {
+            _origin = {
                 lat:  result.geometry.coordinates[1],
                 lon:  result.geometry.coordinates[0],
                 name: NavSearch.photonLabel(result)
@@ -687,8 +701,8 @@ Rectangle {
     function _calcRoute(autoStart) {
         if (_dests.length === 0) return
         var wps = []
-        if (panel.simMode && panel._simOrigin) {
-            wps.push(panel._simOrigin)
+        if (panel._origin) {
+            wps.push(panel._origin)
         } else if (panel.gpsLat !== 0 || panel.gpsLon !== 0) {
             wps.push({lat: panel.gpsLat, lon: panel.gpsLon})
         } else {
@@ -1359,39 +1373,49 @@ Rectangle {
                 Rectangle {
                     anchors { left: parent.left; right: parent.right; margins: units.gu(2) }
                     height: units.gu(5.5); color: "#1C1C2E"; radius: units.gu(0.8)
-                    Row {
-                        anchors { fill: parent; leftMargin: units.gu(1.5); rightMargin: units.gu(1) }
-                        spacing: units.gu(1)
+                    // Con anclas y no con un Row: el boton de la derecha se
+                    // pega al borde del recuadro y el nombre ocupa lo que queda
+                    // entre el punto verde y el. Con el Row habia que reservarle
+                    // al nombre un ancho a ojo, y de ahi salia que el ✎ se
+                    // montara sobre el borde o quedara flotando a media pulgada.
+                    Label {
+                        id: origenIcono
+                        anchors { left: parent.left; leftMargin: units.gu(1.5)
+                                  verticalCenter: parent.verticalCenter }
+                        text: "◉"; color: "#4CAF50"; font.pixelSize: ts(1.8)
+                    }
+                    Item {
+                        id: origenBoton
+                        anchors { right: parent.right; rightMargin: units.gu(1)
+                                  verticalCenter: parent.verticalCenter }
+                        width: units.gu(3.4); height: units.gu(3.4)
+                        // ✎ para elegir punto de inicio; ✕ para volver al GPS.
                         Label {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "◉"; color: "#4CAF50"; font.pixelSize: ts(1.8)
-                        }
-                        Label {
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: parent.width - units.gu(panel.simMode ? 9 : 4)
-                            text: (panel.simMode && panel._simOrigin) ? panel._simOrigin.name
-                                                                      : i18n.tr("Mi posición (GPS)")
-                            color: (panel.simMode && panel._simOrigin) ? "white" : "#78909C"
-                            font.pixelSize: ts(1.8); elide: Text.ElideRight
-                        }
-                        Label {
-                            visible: panel.simMode && !panel._simOrigin
-                            anchors.verticalCenter: parent.verticalCenter
+                            visible: !panel._origin
+                            anchors.centerIn: parent
                             text: "✎"; color: "#29B6F6"; font.pixelSize: ts(1.8)
                         }
                         Rectangle {
-                            visible: panel.simMode && panel._simOrigin !== null
-                            anchors.verticalCenter: parent.verticalCenter
+                            visible: panel._origin !== null
+                            anchors.centerIn: parent
                             width: units.gu(3.2); height: units.gu(3.2); radius: width/2; color: "#2A2A3E"
                             Label { anchors.centerIn: parent; text: "✕"; color: "#B0BEC5"; font.pixelSize: ts(1.3) }
-                            MouseArea { anchors.fill: parent; onClicked: panel._simOrigin = null }
+                            MouseArea { anchors.fill: parent; onClicked: panel._origin = null }
                         }
+                    }
+                    Label {
+                        anchors { left: origenIcono.right; leftMargin: units.gu(1)
+                                  right: origenBoton.left;  rightMargin: units.gu(1)
+                                  verticalCenter: parent.verticalCenter }
+                        text: panel._origin ? panel._origin.name
+                                            : i18n.tr("Mi posición (GPS)")
+                        color: panel._origin ? "white" : "#78909C"
+                        font.pixelSize: ts(1.8); elide: Text.ElideRight
                     }
                     MouseArea {
                         // No cubrir el botón ✕ cuando está visible (evita que el MA exterior lo tape)
                         anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
-                        width: parent.width - (panel.simMode && panel._simOrigin !== null ? units.gu(5) : 0)
-                        enabled: panel.simMode
+                        width: parent.width - (panel._origin !== null ? units.gu(5) : 0)
                         onClicked: {
                             panel._settingOrigin = true
                             searchField.forceActiveFocus()
@@ -1401,7 +1425,7 @@ Rectangle {
 
                 // Opción "mi posición actual" al buscar origen en modo sim
                 Rectangle {
-                    visible: panel._settingOrigin && panel.simMode
+                    visible: panel._settingOrigin
                     anchors { left: parent.left; right: parent.right; margins: units.gu(2) }
                     height: units.gu(6); radius: units.gu(0.8)
                     color: "#1E3A5F"
@@ -1423,7 +1447,7 @@ Rectangle {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            panel._simOrigin = null
+                            panel._origin = null
                             panel._settingOrigin = false
                             Qt.inputMethod.hide()
                         }
@@ -2050,7 +2074,7 @@ Rectangle {
                                     focusDummy.forceActiveFocus()
                                     Qt.inputMethod.hide()
                                     if (panel._settingOrigin) {
-                                        panel._simOrigin = {lat: modelData.lat, lon: modelData.lon, name: modelData.name}
+                                        panel._origin = {lat: modelData.lat, lon: modelData.lon, name: modelData.name}
                                         panel._settingOrigin = false
                                     } else {
                                         panel._addDest(modelData.lat, modelData.lon, modelData.name)
@@ -2135,7 +2159,7 @@ Rectangle {
                                     focusDummy.forceActiveFocus()
                                     Qt.inputMethod.hide()
                                     if (panel._settingOrigin) {
-                                        panel._simOrigin = {lat: modelData.lat, lon: modelData.lon, name: modelData.name}
+                                        panel._origin = {lat: modelData.lat, lon: modelData.lon, name: modelData.name}
                                         panel._settingOrigin = false
                                     } else {
                                         panel._addDest(modelData.lat, modelData.lon, modelData.name)
@@ -2171,7 +2195,10 @@ Rectangle {
                                     font.pixelSize: ts(1.8); font.bold: true
                                 }
                                 Label {
-                                    text: NavSearch.formatDist(modelData.length, panel.imperial) + "  ·  " + NavSearch.formatTime(modelData.time)
+                                    text: NavSearch.formatDist(modelData.length, panel.imperial)
+                                          + "  ·  " + NavSearch.formatTime(modelData.time)
+                                          + "  ·  " + i18n.tr("llega ")
+                                          + NavSearch.formatArrival(panel.departureMs, modelData.time)
                                     color: "#B0BEC5"; font.pixelSize: ts(1.8)
                                 }
                             }
