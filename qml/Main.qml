@@ -9447,7 +9447,11 @@ ApplicationWindow {
         id: routeViewPanel
         textScale: appSettings.textScale
         mapRef:       mapView
-        navBarHeight: root._navActive ? root._navBarScreenHeight : 0
+        // La barra de arriba tapa el mapa se este navegando o no, asi que el
+        // encuadre tiene que descontarla siempre. Pasandole 0 en previsualizacion
+        // creia disponer de toda la altura y la ruta se encajaba demasiado
+        // grande: el destino se subia por detras de la barra.
+        navBarHeight: root._navBarScreenHeight
         shape:        root._previewShape.length > 0
                       ? root._previewShape
                       : ((root._navActive && root._navData) ? root._navData.shape : [])
