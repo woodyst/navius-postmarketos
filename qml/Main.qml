@@ -7723,6 +7723,10 @@ ApplicationWindow {
             root._previewShape = combined
             routeSelectPanel.visible = true   // visible antes de open() para que bottomPanelHeight sea correcto
             routeViewPanel.open()
+            // Y otra vez en el siguiente tick, ya con el panel medido de verdad.
+            // En el primero su alto es todavia una estimacion, y si se queda
+            // corta —pasa con tres alternativas— la ruta se dibuja por detras.
+            Qt.callLater(routeViewPanel.open)
             root.drawRoutesPreview(routes, selIdx)
         }
         onGoogleMapsRequested: {

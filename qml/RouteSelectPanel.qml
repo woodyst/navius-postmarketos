@@ -5,7 +5,12 @@ import "NavSearch.js" as NavSearch
 Item {
     id: rsp
     property real textScale: 1.0
-    function ts(v) { return units.gu(v * textScale) }
+    // Mismo 1.5x que el buscador: esta pantalla se mira parado, para decidir
+    // por donde ir. De los nueve usos de ts() ocho son font.pixelSize; el otro
+    // es la estimacion del alto del panel, que precisamente tiene que crecer
+    // con el texto.
+    readonly property real textFactor: 1.5
+    function ts(v) { return units.gu(v * textScale * textFactor) }
     anchors.fill: parent
     visible: false
     z: 26
@@ -62,8 +67,17 @@ Item {
     // routeViewPanel.open() que lo lee en el mismo tick JS en que se setean las rutas.
     // Es una ESTIMACION, solo para encuadrar el mapa. Quedarse corto o pasarse
     // un poco solo sube o baja el trazado; el panel se mide aparte, abajo.
+    // Lo que Main.qml usa para encuadrar el mapa. Se prefiere el alto REAL del
+    // contenido; la formula solo vale para el primer tick, cuando todavia no ha
+    // habido pase de layout y _altoContenido no significa nada.
+    //
+    // Con la formula mandando, tres rutas alternativas daban un panel mas alto
+    // de lo estimado y la ruta se quedaba dibujada por detras.
+    readonly property real _estimado: ts(13 + 7 * routes.length)
     property real sheetHeight: isLandscape ? 0
-                                           : Math.min(ts(13 + 7 * routes.length), parent.height * 0.75)
+                                           : Math.min(_altoContenido > units.gu(10)
+                                                      ? _altoContenido : _estimado,
+                                                      parent.height * 0.75)
 
     // Lo que pide de verdad el contenido, que es lo que mide el panel. Esto SI
     // puede mirar el layout, porque solo lo usa el propio panel; sheetHeight no,
