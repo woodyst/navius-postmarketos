@@ -319,7 +319,8 @@ Rectangle {
     Settings { id: histSt;  category: "dest_history"; property string json: "" }
     Settings { id: favSt;   category: "favorites";    property string json: "" }
     Settings { id: planSt;  category: "saved_plans";  property string json: "" }
-    Settings { id: uiSt;    category: "search_ui";    property bool favsExpanded: true; property bool histExpanded: true }
+    Settings { id: uiSt;    category: "search_ui";    property bool favsExpanded: true; property bool histExpanded: true
+                                                      property bool logCollapsed: false }
 
     TextInput { id: focusDummy; readOnly: true; width: 0; height: 0; visible: true }
 
@@ -338,6 +339,7 @@ Rectangle {
         }
         TodoDB.init()
         _favsExpanded = uiSt.favsExpanded
+        _logCollapsed = uiSt.logCollapsed
         _histExpanded = uiSt.histExpanded
         _noTolls   = navSt.noTolls
         _noFerry   = navSt.noFerry
@@ -409,7 +411,9 @@ Rectangle {
     function _resetLog() {
         _logLines      = []
         _logVisible    = false
-        _logCollapsed  = false
+        // Contraido/desplegado NO se toca aqui: es cosa del usuario y vive en
+        // uiSt. Reiniciandolo, cada busqueda nueva volvia a desplegar el log
+        // por encima de haberlo contraido a mano.
     }
 
     function _saveWaypoints() {
@@ -895,7 +899,10 @@ Rectangle {
                 width: units.gu(3.5); height: units.gu(3.5); radius: width/2; color: "#1C2C3A"
                 border.color: "#37474F"; border.width: units.gu(0.1)
                 Label { anchors.centerIn: parent; text: panel._logCollapsed ? "▼" : "▲"; color: "#4DB6AC"; font.pixelSize: ts(1.4) }
-                MouseArea { anchors.fill: parent; onClicked: panel._logCollapsed = !panel._logCollapsed }
+                MouseArea { anchors.fill: parent; onClicked: {
+                    panel._logCollapsed = !panel._logCollapsed
+                    uiSt.logCollapsed = panel._logCollapsed
+                } }
             }
         }
     }
