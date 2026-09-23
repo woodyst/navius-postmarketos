@@ -263,11 +263,22 @@ function _mineturPriceFromDb(elLat, elLon) {
                 if (d < bestD) { bestD = d; best = s }
             }
             if (best) {
+                // Un precio por linea, no separados por puntos.
+                //
+                // Puestos en una sola linea no caben y se recortaban con elipsis,
+                // y este dato no se puede consultar en ningun otro sitio de la
+                // aplicacion. Probado tambien con espacio duro (\u00a0) delante
+                // del simbolo para que el € no se quedara suelto, y no sirve: Qt
+                // corta ahi igual, porque para decidir donde partir lo trata como
+                // un espacio mas.
+                //
+                // Este texto solo lo pinta la lista de resultados del buscador
+                // (SearchPanel, _detail), que ya crece con su contenido.
                 var parts = []
                 if (best.g95)    parts.push("G95 "    + best.g95    + " €")
                 if (best.diesel) parts.push("Diésel "  + best.diesel + " €")
                 if (best.g98)    parts.push("G98 "    + best.g98    + " €")
-                result = parts.join(" · ")
+                result = parts.join("\n")
             }
         })
     } catch(e) {}

@@ -1189,7 +1189,11 @@ Rectangle {
                     id: resultDelegate
                     property string _detail: (modelData.properties && modelData.properties.detail) ? modelData.properties.detail : ""
                     width: parent.width
-                    height: _detail.length > 0 ? units.gu(12) : units.gu(10)
+                    // El alto sale del contenido: el detalle de las gasolineras
+                    // son varios precios y ocupa mas de una linea. Con gu(12)
+                    // fijo no cabia. El minimo deja hueco para la estrella de
+                    // favorito, que mide gu(7.5).
+                    height: Math.max(units.gu(10), infoCol.height + units.gu(2))
                     color: rm.pressed ? "#1E3A5F" : "transparent"
                     Rectangle { width: parent.width; height: units.gu(0.06); anchors.bottom: parent.bottom; color: "#1C1C2E" }
 
@@ -1197,6 +1201,7 @@ Rectangle {
                     property real _rLon: modelData.geometry.coordinates[0]
 
                     Column {
+                        id: infoCol
                         anchors { left: parent.left; right: favStarBtn.left; verticalCenter: parent.verticalCenter
                                   leftMargin: units.gu(2); rightMargin: units.gu(1) }
                         spacing: units.gu(0.3)
@@ -1214,7 +1219,10 @@ Rectangle {
                             width: parent.width
                             visible: resultDelegate._detail.length > 0
                             text: resultDelegate._detail
-                            color: "#29B6F6"; font.pixelSize: ts(1.6); elide: Text.ElideRight
+                            // Parte lineas en vez de recortar: aqui es donde van
+                            // los precios del combustible y hay que verlos enteros.
+                            color: "#29B6F6"; font.pixelSize: ts(1.6)
+                            wrapMode: Text.WordWrap
                         }
                     }
 
