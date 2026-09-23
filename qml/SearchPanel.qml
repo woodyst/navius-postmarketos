@@ -967,8 +967,15 @@ Rectangle {
                 Rectangle {
                     visible: panel._useDepTime
                     width: parent.width
-                    height: units.gu(7.5); radius: units.gu(0.8); color: "#1C1C2E"
+                    // El alto sale del contenido. Con gu(7.5) fijo las flechas de
+                    // subir y bajar la hora se salen por arriba y por abajo: la
+                    // columna mide flecha + numero + flecha, y el numero va a
+                    // ts(2.2), que con los textos del buscador a 1.5x pide casi
+                    // gu(9.5). El minimo se queda para cuando quepa de sobra.
+                    height: Math.max(units.gu(7.5), horaRow.height + units.gu(1.2))
+                    radius: units.gu(0.8); color: "#1C1C2E"
                     Row {
+                        id: horaRow
                         anchors.centerIn: parent; spacing: units.gu(2)
                         Row {
                             anchors.verticalCenter: parent.verticalCenter; spacing: units.gu(0.5)
@@ -1871,17 +1878,33 @@ Rectangle {
                                 { type: "atm",         icon: "🏧", label: i18n.tr("Cajero")     }
                             ]
                             delegate: Rectangle {
+                                id: poiCell
                                 width:  (parent.width - 3 * units.gu(0.8)) / 4
-                                height: units.gu(7.5); radius: units.gu(0.8)
+                                // El alto sale del contenido. Con gu(7.5) fijo, al
+                                // agrandar los textos del buscador los rotulos de
+                                // Gasolina y Cafe se salen por debajo del boton y
+                                // los otros seis no: no es la palabra, son sus
+                                // emojis, que se dibujan mas altos que los demas.
+                                height: Math.max(units.gu(7.5), poiCol.height + units.gu(1.2))
+                                radius: units.gu(0.8)
                                 color:  poiCatArea.pressed ? "#1E3A5F" : "#1C1C2E"
                                 Column {
+                                    id: poiCol
                                     anchors.centerIn: parent; spacing: units.gu(0.3)
                                     Label {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         text: modelData.icon; font.pixelSize: ts(2.2)
+                                        // Alto fijo: cada emoji pide un alto de linea
+                                        // distinto, y asi las ocho fichas miden igual
+                                        // y el rotulo cae a la misma altura en todas.
+                                        height: ts(2.8); verticalAlignment: Text.AlignVCenter
                                     }
                                     Label {
                                         anchors.horizontalCenter: parent.horizontalCenter
+                                        // Y que tampoco se salga de lado si se sube
+                                        // uiScale o se traduce a una palabra larga.
+                                        width: poiCell.width - units.gu(0.6)
+                                        elide: Text.ElideRight
                                         text: modelData.label; color: "#90A4AE"
                                         font.pixelSize: ts(1.8)
                                         horizontalAlignment: Text.AlignHCenter
