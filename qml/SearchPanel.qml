@@ -104,7 +104,18 @@ Rectangle {
     }
 
     onVisibleChanged: {
-        if (visible) { _st = "idle"; _refreshVehicles() }
+        // Volviendo de la previsualizacion sin arrancar, el panel se reabria en
+        // "idle": perdia la lista de rutas y con ella el boton de borrarla,
+        // mientras la ruta seguia pintada en el mapa. O sea, dibujada y sin
+        // forma de quitarla desde la interfaz.
+        //
+        // Si la ruta sigue calculada se vuelve a "routed" y todo cuadra: se ven
+        // las alternativas, se puede arrancar y se puede borrar. Sin rutas se
+        // abre en "idle", que es lo que se quiere al entrar desde el mapa.
+        if (visible) {
+            _st = (_routes.length > 0 && _dests.length > 0) ? "routed" : "idle"
+            _refreshVehicles()
+        }
         else { Qt.inputMethod.hide(); _pendingCalc = false }
     }
 
