@@ -312,7 +312,11 @@ ApplicationWindow {
         onMapNaviusStylesChanged:   if (!root._settingsSyncBlocked) root._onSettingChanged()
         onValhallaUrlChanged:       if (!root._settingsSyncBlocked) root._onSettingChanged()
         onValhallaCustomServersChanged: if (!root._settingsSyncBlocked) root._onSettingChanged()
-        onPreferOsmScoutChanged:    if (!root._settingsSyncBlocked) root._onSettingChanged()
+        onPreferOsmScoutChanged: {
+            if (!root._settingsSyncBlocked) root._onSettingChanged()
+            // Aplicarlo YA, no al proximo arranque.
+            root._applyOsmScoutPreference()
+        }
         onOverpassServerChanged:    if (!root._settingsSyncBlocked) root._onSettingChanged()
         onRouteAdjustZoomChanged:      if (!root._settingsSyncBlocked) root._onSettingChanged()
         onRouteAheadSecsChanged: {
@@ -405,12 +409,20 @@ ApplicationWindow {
     }
     readonly property color _uiBorder: _mapIsLight ? "#CC666666" : "#99FFFFFF"  // contornos/bordes
     readonly property color _uiFg:     _mapIsLight ? "#DD333333" : "#FFFFFFFF"  // texto e iconos
+    // Fondo de los botones SUPERPUESTOS AL MAPA (recentrar, estilo, pausa,
+    // alerta, autozoom, menú, candado). Iban con color "transparent": solo el
+    // contorno, y sobre mapa claro o sobre zonas con mucho detalle se perdían.
+    //
+    // Sigue el tema en vez de ser blanco fijo: con mapa oscuro los iconos son
+    // blancos (_uiFg), y un fondo blanco los borraría.
+    readonly property color _uiOverlayBg: _mapIsLight ? "#B3FFFFFF" : "#B3101828" // 70% alfa
+
     // Fondo de los botones del MENÚ. Era un 30% de alfa, con el argumento de que
     // van sobre el panel del menú, que ya oscurece el mapa. Pero ese panel no
     // existe: el menú es una columna de botones sobre el mapa desnudo, igual que
     // los de la pantalla principal, y con ese 30% el mapa se transparentaba por
     // debajo del texto. Mismo fondo que aquellos, que es lo que son.
-    readonly property color _uiBtnBg: _mapIsLight ? "#B3FFFFFF" : "#B3101828"
+    readonly property color _uiBtnBg: _uiOverlayBg
 
     function _pushStatus(text, color) {
         var clr = color || "#EF9A9A"
@@ -763,6 +775,60 @@ ApplicationWindow {
            + tramoBar.height + commAlertBanner.height)
     // Pantalla de carga: solo visible durante la carga inicial, no en cambios de estilo posteriores
     property bool _initialLoadDone: false
+
+    // Decide a que servidor de rutas se va, segun «preferir OSM Scout Server».
+    //
+    // Estaba metida a pelo en Component.onCompleted, asi que solo se evaluaba al
+    // arrancar: desmarcando la opcion se seguia pidiendo al servidor local hasta
+    // reiniciar la aplicacion. Y no se notaba, porque el local responde bien:
+    // solo que da menos alternativas de ruta que el online.
+    function _applyOsmScoutPreference() {
+        satModel.log_to_file("OSM Scout: preferOsmScout=" + appSettings.preferOsmScout)
+        if (appSettings.preferOsmScout) {
+            // Bloquear rutas hasta confirmar servidor; ninguna petición irá a valhalla1
+            NavSearch.setRouteBlocked(true)
+            searchPanel.setRouteBlocked(true)
+            _setEffectiveUrl("http://127.0.0.1:8553/v2")  // URL especulativa
+            satModel.log_to_file("OSM Scout: iniciando detección…")
+            NavSearch.detectOsmScout(function(found) {
+                // Si mientras se detectaba el usuario ha desmarcado la opcion, el
+                // resultado ya no vale: mandaria al servidor local a alguien que
+                // acaba de decir que no lo quiere.
+                if (!appSettings.preferOsmScout) return
+                root._osmScoutActive = found
+                // El buscador conmuta con el mismo interruptor que las rutas y
+                // el mapa: con el servidor local activo, buscar destinos y POIs
+                // deja de depender de la cobertura. Hay que decírselo también al
+                // panel, que tiene su propia copia de NavSearch.js.
+                NavSearch.setOsmScoutSearch(found)
+                searchPanel.setOsmScoutSearch(found)
+                satModel.log_to_file("OSM Scout detect result: " + (found ? "ACTIVO" : "no disponible"))
+                if (found) {
+                    NavSearch.setRouteBlocked(false)
+                    searchPanel.setRouteBlocked(false)
+                    root._startupMsg = i18n.tr("OSM Scout · rutas y mapas offline")
+                    startupMsgTimer.restart()
+                } else {
+                    // No está instalado o no arrancó — fallback silencioso
+                    satModel.log_to_file("OSM Scout: no disponible — fallback a " + appSettings.valhallaUrl)
+                    _setEffectiveUrl(appSettings.valhallaUrl)
+                    NavSearch.setRouteBlocked(false)
+                    searchPanel.setRouteBlocked(false)
+                }
+            })
+        } else {
+            // Al desmarcar hay que deshacer TODO lo que puso el modo local, no
+            // solo la URL: el buscador conmuta con este mismo interruptor.
+            root._osmScoutActive = false
+            NavSearch.setOsmScoutSearch(false)
+            searchPanel.setOsmScoutSearch(false)
+            NavSearch.setRouteBlocked(false)
+            searchPanel.setRouteBlocked(false)
+            _setEffectiveUrl(appSettings.valhallaUrl)
+            root._startupMsg = i18n.tr("Servidor: ") + appSettings.valhallaUrl.replace("https://","").replace("http://","")
+            startupMsgTimer.restart()
+        }
+    }
 
     function _setEffectiveUrl(url) {
         NavSearch.setValhallaUrl(url)
@@ -2733,40 +2799,7 @@ ApplicationWindow {
                 t.triggered.connect(function() { t.destroy(); fn() })
             } else { Qt.callLater(fn) }
         })
-        satModel.log_to_file("OSM Scout: preferOsmScout=" + appSettings.preferOsmScout)
-        if (appSettings.preferOsmScout) {
-            // Bloquear rutas hasta confirmar servidor; ninguna petición irá a valhalla1
-            NavSearch.setRouteBlocked(true)
-            searchPanel.setRouteBlocked(true)
-            _setEffectiveUrl("http://127.0.0.1:8553/v2")  // URL especulativa
-            satModel.log_to_file("OSM Scout: iniciando detección…")
-            NavSearch.detectOsmScout(function(found) {
-                root._osmScoutActive = found
-                // El buscador conmuta con el mismo interruptor que las rutas y
-                // el mapa: con el servidor local activo, buscar destinos y POIs
-                // deja de depender de la cobertura. Hay que decírselo también al
-                // panel, que tiene su propia copia de NavSearch.js.
-                NavSearch.setOsmScoutSearch(found)
-                searchPanel.setOsmScoutSearch(found)
-                satModel.log_to_file("OSM Scout detect result: " + (found ? "ACTIVO" : "no disponible"))
-                if (found) {
-                    NavSearch.setRouteBlocked(false)
-                    searchPanel.setRouteBlocked(false)
-                    root._startupMsg = i18n.tr("OSM Scout · rutas y mapas offline")
-                    startupMsgTimer.restart()
-                } else {
-                    // No está instalado o no arrancó — fallback silencioso
-                    satModel.log_to_file("OSM Scout: no disponible — fallback a " + appSettings.valhallaUrl)
-                    _setEffectiveUrl(appSettings.valhallaUrl)
-                    NavSearch.setRouteBlocked(false)
-                    searchPanel.setRouteBlocked(false)
-                }
-            })
-        } else {
-            _setEffectiveUrl(appSettings.valhallaUrl)
-            root._startupMsg = i18n.tr("Servidor: ") + appSettings.valhallaUrl.replace("https://","").replace("http://","")
-            startupMsgTimer.restart()
-        }
+        _applyOsmScoutPreference()
         // Restaurar navegación desde navius_route si quedó activa al cerrar
         var _rrXhr = new XMLHttpRequest()
         _rrXhr.open("GET", root._routePath)
@@ -6001,7 +6034,7 @@ ApplicationWindow {
 
         Rectangle {
             anchors.fill: parent; radius: width / 2
-            color: "transparent"
+            color: root._uiOverlayBg
             border.color: root._uiBorder; border.width: units.gu(0.15)
         }
         Rectangle {
@@ -6117,7 +6150,7 @@ ApplicationWindow {
     Rectangle {
         id: mapStyleBtn
         width: mapBtnGroup._sz; height: mapBtnGroup._sz; radius: width / 2
-        color: "transparent"
+        color: root._uiOverlayBg
         border.color: root._uiBorder
         border.width: units.gu(0.15)
 
@@ -6198,7 +6231,7 @@ ApplicationWindow {
         visible: root._navActive && !root._driveCtrlActive
                  && !prefsPanel.visible && !searchPanel.visible && !routeViewPanel.visible
         width: mapBtnGroup._sz; height: mapBtnGroup._sz; radius: width / 2
-        color: "transparent"
+        color: root._uiOverlayBg
         border.color: root._uiBorder
         border.width: units.gu(0.15)
 
@@ -6355,7 +6388,7 @@ ApplicationWindow {
         anchors { right: parent.right; rightMargin: units.gu(2.5) + root._scrubOff
                   bottom: autoZoomBtn.top; bottomMargin: units.gu(0.5) }
         width: units.gu(9); height: units.gu(9); radius: width / 2
-        color: "transparent"
+        color: root._uiOverlayBg
         border.color: root._uiBorder; border.width: units.gu(0.15)
         opacity: mainAuthSettings.token !== "" ? 1.0 : 0.45
         z: 10
@@ -6395,7 +6428,7 @@ ApplicationWindow {
         anchors { right: compassWidget.left; rightMargin: units.gu(0.5)
                   verticalCenter: compassWidget.verticalCenter }
         width: units.gu(9); height: units.gu(9); radius: width / 2
-        color: "transparent"
+        color: root._uiOverlayBg
         border.color: root._uiBorder; border.width: units.gu(0.15)
         opacity: mainAuthSettings.token !== "" ? 1.0 : 0.45
         z: 10
@@ -6435,7 +6468,7 @@ ApplicationWindow {
         anchors { right: parent.right; rightMargin: units.gu(2.5) + root._scrubOff
                   bottom: compassWidget.top; bottomMargin: units.gu(0.5) }
         width: units.gu(9); height: units.gu(9); radius: width / 2
-        color: "transparent"
+        color: root._uiOverlayBg
         border.color: root._uiBorder
         border.width: units.gu(0.15)
         z: 10
@@ -6994,7 +7027,7 @@ ApplicationWindow {
         anchors { right: parent.right; rightMargin: units.gu(2.5) + root._scrubOff
                   top: parent.top; topMargin: root._navBarScreenHeight + root._alertBannerHeight + units.gu(1.5) }
         width: units.gu(9); height: units.gu(9); radius: width / 2
-        color: "transparent"
+        color: root._uiOverlayBg
         border.color: root._uiBorder
         border.width: units.gu(0.15)
         z: 20
@@ -7018,7 +7051,7 @@ ApplicationWindow {
         anchors { right: parent.right; rightMargin: units.gu(2.5) + root._scrubOff
                   top: menuBtn.bottom; topMargin: units.gu(0.5) }
         width: units.gu(9); height: units.gu(9); radius: width / 2
-        color: "transparent"
+        color: root._uiOverlayBg
         border.color: root._mapLocked ? "#FF9800" : root._uiBorder
         border.width: units.gu(0.15)
         z: 20
