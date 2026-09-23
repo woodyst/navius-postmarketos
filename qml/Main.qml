@@ -7442,6 +7442,42 @@ ApplicationWindow {
                 onClicked: { root._menuOpen = false; messagesPanel.open(-1) } }
         }
 
+        // Ayuda y asistente.
+        //
+        // Estaban solo en Opciones → Ayuda, tres toques y un desplegable: quien
+        // no supiera que existen no los encontraba. Aqui se llega de uno.
+        Rectangle {
+            width: root._menuItemW; height: root._menuItemH
+            radius: units.gu(1)
+            color: root._uiBtnBg; border.color: root._uiBorder; border.width: units.gu(0.15)
+            Row {
+                anchors.centerIn: parent; spacing: units.gu(1.2)
+                Label { text: "📖"; color: root._uiFg; font.pixelSize: root._menuItemH * 0.55
+                        anchors.verticalCenter: parent.verticalCenter }
+                Label { text: i18n.tr("Ayuda"); color: root._uiFg
+                        font.pixelSize: root._menuItemH * 0.40
+                        anchors.verticalCenter: parent.verticalCenter }
+            }
+            MouseArea { anchors.fill: parent
+                onClicked: { root._menuOpen = false; helpPanel.show() } }
+        }
+
+        Rectangle {
+            width: root._menuItemW; height: root._menuItemH
+            radius: units.gu(1)
+            color: root._uiBtnBg; border.color: root._uiBorder; border.width: units.gu(0.15)
+            Row {
+                anchors.centerIn: parent; spacing: units.gu(1.2)
+                Label { text: "🧭"; color: root._uiFg; font.pixelSize: root._menuItemH * 0.55
+                        anchors.verticalCenter: parent.verticalCenter }
+                Label { text: i18n.tr("Asistente"); color: root._uiFg
+                        font.pixelSize: root._menuItemH * 0.40
+                        anchors.verticalCenter: parent.verticalCenter }
+            }
+            MouseArea { anchors.fill: parent
+                onClicked: { root._menuOpen = false; tourOverlay.show() } }
+        }
+
         // Bloqueo de mapa
         Rectangle {
             width: root._menuItemW; height: root._menuItemH

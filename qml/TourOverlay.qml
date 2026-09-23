@@ -179,10 +179,30 @@ Item {
             color: "#1565C0"
         }
 
+        // Cerrar, en todas las paginas. Antes solo se salia por "Saltar tour",
+        // que esta en el primer paso, o llegando al ultimo: a mitad del
+        // asistente no habia forma de irse sin pasar por todo.
+        Rectangle {
+            id: cerrarBtn
+            anchors { top: parent.top; right: parent.right
+                      topMargin: units.gu(0.9); rightMargin: units.gu(0.9) }
+            width: units.gu(4.2); height: units.gu(4.2); radius: width / 2
+            color: cerrarMa.pressed ? "#1A2535" : "#16243A"
+            border.color: "#2A4060"; border.width: 1
+            z: 5
+            Label {
+                anchors.centerIn: parent
+                text: "✕"; color: "#90A4AE"; font.pixelSize: ts(1.7)
+            }
+            MouseArea { id: cerrarMa; anchors.fill: parent; onClicked: overlay.dismiss() }
+        }
+
         // Indicador de paso (puntitos)
         Row {
             id: dotsRow
             anchors { top: parent.top; horizontalCenter: parent.horizontalCenter; topMargin: units.gu(1.2) }
+            // Los puntitos son 19: con la X en la esquina hay que dejarle sitio.
+            width: Math.min(implicitWidth, parent.width - units.gu(12))
             spacing: units.gu(0.7)
             Repeater {
                 model: overlay.steps.length
@@ -200,7 +220,7 @@ Item {
         Flickable {
             id: stepFlick
             anchors {
-                top: dotsRow.bottom; left: parent.left; right: parent.right; bottom: btnRow.top
+                top: dotsRow.bottom; left: parent.left; right: parent.right; bottom: noStartBox.top
                 topMargin: units.gu(1); bottomMargin: units.gu(1)
                 leftMargin: units.gu(2.5); rightMargin: units.gu(2.5)
             }
@@ -248,45 +268,56 @@ Item {
                     lineHeight: 1.35
                 }
 
-                // Toggle "no mostrar al inicio" (solo último paso)
-                Rectangle {
-                    visible: overlay._step === overlay.steps.length - 1
-                    width: parent.width
-                    height: units.gu(5.5)
-                    radius: units.gu(0.8)
-                    color: "#131F2E"
-                    border.color: "#1E3A5F"
-                    border.width: 1
+            }
+        }
 
-                    Row {
-                        anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter
-                                  leftMargin: units.gu(1.5); rightMargin: units.gu(1.5) }
-                        spacing: units.gu(1)
+        // Toggle "no mostrar al inicio".
+        //
+        // Salia solo en el ultimo paso: para no volver a ver el tour habia que
+        // pasarselo entero. Y va FUERA de la columna que se desplaza, fijo
+        // encima de los botones; dentro quedaba al final del texto, o sea que
+        // en los pasos largos habia que bajar hasta el fondo para encontrarlo,
+        // que es casi el mismo problema que se venia a arreglar.
+        Rectangle {
+            id: noStartBox
+            anchors { left: parent.left; right: parent.right; bottom: btnRow.top
+                      leftMargin: units.gu(2.5); rightMargin: units.gu(2.5)
+                      bottomMargin: units.gu(1.2) }
+            // Del contenido: la etiqueta parte lineas y dos no caben en gu(5.5).
+            height: Math.max(units.gu(5.5), noStartLbl.height + units.gu(2))
+            radius: units.gu(0.8)
+            color: "#131F2E"
+            border.color: "#1E3A5F"
+            border.width: 1
 
-                        Label {
-                            text: i18n.tr("No mostrar al inicio")
-                            color: "#90A4AE"
-                            font.pixelSize: ts(1.7)
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: parent.width - units.gu(8)
-                            wrapMode: Text.WordWrap
-                        }
+            Row {
+                anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter
+                          leftMargin: units.gu(1.5); rightMargin: units.gu(1.5) }
+                spacing: units.gu(1)
 
-                        Switch {
-                            id: noStartSwitch
-                            anchors.verticalCenter: parent.verticalCenter
-                            checked: !tourSettings.showOnStart
-                            onCheckedChanged: tourSettings.showOnStart = !checked
-                        }
-                    }
+                Label {
+                    id: noStartLbl
+                    text: i18n.tr("No mostrar al inicio")
+                    color: "#90A4AE"
+                    font.pixelSize: ts(1.7)
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width - units.gu(8)
+                    wrapMode: Text.WordWrap
+                }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            tourSettings.showOnStart = !tourSettings.showOnStart
-                            noStartSwitch.checked = !tourSettings.showOnStart
-                        }
-                    }
+                Switch {
+                    id: noStartSwitch
+                    anchors.verticalCenter: parent.verticalCenter
+                    checked: !tourSettings.showOnStart
+                    onCheckedChanged: tourSettings.showOnStart = !checked
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    tourSettings.showOnStart = !tourSettings.showOnStart
+                    noStartSwitch.checked = !tourSettings.showOnStart
                 }
             }
         }
