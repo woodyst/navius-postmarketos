@@ -63,6 +63,11 @@ Rectangle {
     property string _st: "idle"     // idle | results | routing | routed
     property bool _pendingCalc: false
     property bool _searching: false
+    // Cada busqueda lleva su numero. La respuesta que no traiga el numero de la
+    // busqueda en curso se tira: sin esto ganaba la respuesta que llegaba la
+    // ultima, no la ultima que se pidio, y tecleando rapido la de «Ma» podia
+    // llegar despues de la de «Madrid» y dejar en pantalla sitios de America.
+    property int  _searchSeq: 0
     property string _searchErr: ""
     property var    _results:  []
     property string _poiType:  ""
@@ -343,7 +348,8 @@ Rectangle {
     }
 
     function _doSearch(q) {
-        if (q.length < 2) { _results = []; _searching = false; _searchErr = ""; return }
+        if (q.length < 2) { _searchSeq++; _results = []; _searching = false; _searchErr = ""; return }
+        var seq    = ++_searchSeq
         _st        = "results"
         _searching = true
         _searchErr = ""
@@ -352,6 +358,10 @@ Rectangle {
         _resetLog()
         _addLog(i18n.tr("Buscando «%1»").arg(q))
         NavSearch.geocode(q, panel.gpsLat, panel.gpsLon, function(err, res) {
+            if (seq !== panel._searchSeq) {
+                _addLog("↯ descartada: llega «" + q + "» y ya no es lo buscado")
+                return
+            }
             _searching = false
             if (err) {
                 var isConnErr = err.indexOf("Timeout") >= 0 || err.indexOf("HTTP 0") >= 0
@@ -374,6 +384,7 @@ Rectangle {
     }
 
     function _searchPoi(type) {
+        var seq      = ++_searchSeq
         _st          = "results"
         _searching   = true
         _searchErr   = ""
@@ -388,6 +399,10 @@ Rectangle {
                       : "cerca"
         _addLog((def ? def.icon + " " + def.label : type) + " · " + modeLabel + " · " + r + " m")
         var cb = function(err, res) {
+            if (seq !== panel._searchSeq) {
+                _addLog("↯ descartada: llega " + type + " y ya no es lo buscado")
+                return
+            }
             _searching = false
             if (err) {
                 _addLog("✗ " + err)
@@ -764,7 +779,12 @@ Rectangle {
                     font.pixelSize: parent.font.pixelSize
                     anchors.verticalCenter: parent.verticalCenter
                 }
-                onTextChanged: panel._doSearch(text)
+                onTextChanged: {
+                    // Menos de dos letras no busca nada: se atiende al momento
+                    // para que la lista se vacie sin esperas raras.
+                    if (text.length < 2) { buscarTimer.stop(); panel._doSearch(text) }
+                    else                   buscarTimer.restart()
+                }
             }
             Rectangle {
                 id: clearBtn; visible: searchField.text.length > 0
@@ -782,6 +802,17 @@ Rectangle {
                 MouseArea { anchors.fill: parent; onClicked: panel._logCollapsed = !panel._logCollapsed }
             }
         }
+    }
+
+    // No se pide una busqueda por tecla, se espera a que el usuario pare. Cada
+    // pulsacion lanzaba una peticion a Photon: aparte de la carga que eso le
+    // mete al servidor, cuantas mas respuestas hay en vuelo mas facil es que una
+    // vieja llegue la ultima. 300 ms no se notan escribiendo y quitan de en
+    // medio casi todas.
+    Timer {
+        id: buscarTimer
+        interval: 300; repeat: false
+        onTriggered: panel._doSearch(searchField.text)
     }
 
     // Log de actividad — justo bajo el campo de búsqueda, visible con el teclado
