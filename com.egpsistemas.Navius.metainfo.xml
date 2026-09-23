@@ -131,6 +131,12 @@
   </screenshots>
 
   <releases>
+    <release version="1.0.14" date="2026-09-23">
+      <description>
+        <p>Route planning gets a lot of polish: routes now show the arrival time, the starting point can be set without simulation mode, picking another vehicle really recalculates the route, and the route list no longer hides the drawn route. Destination search no longer shows far-away places when typing fast, fuel prices are shown in full, and there is a way back from the points-of-interest results. Map tiles can be pre-downloaded before setting off, with a progress screen instead of the map racing along the route. Bigger text in the search and route screens, and labels that no longer overflow their buttons.</p>
+        <p xml:lang="es">La planificación de rutas se pule bastante: cada ruta dice la hora de llegada, el punto de inicio se puede fijar sin modo simulación, cambiar de vehículo recalcula la ruta de verdad y la lista de rutas ya no tapa el trazado. La búsqueda de destinos ya no saca sitios lejanos al escribir rápido, los precios del combustible salen enteros y hay forma de volver desde los resultados de puntos de interés. El mapa de la ruta se puede descargar antes de salir, con una pantalla de progreso en vez de recorrer la ruta a toda velocidad. Textos más grandes en las pantallas de búsqueda y de rutas, y rótulos que ya no se salen de sus botones.</p>
+      </description>
+    </release>
     <release version="1.0.13" date="2026-09-13">
       <description>
         <p>Voice guidance and beeps play again on postmarketOS edge (the default-sink audio path timed out); route search no longer hangs when the local OSM Scout server is up but has no routing data (it falls back to the online server); pinch rotates the map. Adds the qt5-qtbase-sqlite and pulseaudio-utils dependencies.</p>
