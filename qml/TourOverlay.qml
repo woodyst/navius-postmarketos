@@ -5,7 +5,12 @@ import QtQuick.Controls 2.15
 Item {
     id: overlay
     property real textScale: 1.0
-    function ts(v) { return units.gu(v * textScale) }
+    // El tour se lee una vez y de pasada, asi que el texto tiene que entrar por
+    // los ojos. Mismo 1.5x que el buscador. La tarjeta es un Flickable con clip,
+    // asi que lo que no quepa se desplaza; los siete usos de ts() de este
+    // fichero son todos font.pixelSize, ninguno mide una caja.
+    readonly property real textFactor: 1.5
+    function ts(v) { return units.gu(v * textScale * textFactor) }
     anchors.fill: parent
     visible: false
     z: 210
@@ -265,7 +270,9 @@ Item {
                     color: "#CFD8DC"
                     font.pixelSize: ts(1.65)
                     wrapMode: Text.WordWrap
-                    lineHeight: 1.35
+                    // 1.35 deja demasiado aire entre lineas con el texto a
+                    // 1.5x: el parrafo se desparrama y cabe menos.
+                    lineHeight: 1.15
                 }
 
             }
