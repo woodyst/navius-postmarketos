@@ -8,7 +8,14 @@ import "TodoDB.js" as TodoDB
 Rectangle {
     id: panel
     property real textScale: 1.0
-    function ts(v) { return units.gu(v * textScale) }
+    // Los textos de esta pantalla van un 50% mas grandes: es la que se usa
+    // parado y de un vistazo —escribir un destino, tocar una opcion— y a tamano
+    // normal se leia mal. Portado del port de Android (4b10571).
+    //
+    // Se escala aqui, en el ayudante, y no Label a Label: las 106 llamadas a
+    // ts() de este fichero son todas font.pixelSize, ninguna mide una caja.
+    readonly property real textFactor: 1.5
+    function ts(v) { return units.gu(v * textScale * textFactor) }
     anchors.fill: parent
     color: "#0D0D1A"
     z: 10
@@ -854,7 +861,21 @@ Rectangle {
                 wrapMode: Text.WordWrap
             }
 
+            // Las cuatro pildoras van SIEMPRE en una fila: si no caben se encogen
+            // lo justo, que se ve mejor que partirlas en dos lineas. Con el
+            // texto a 1.5x ya no cabian, y volverian a no caber en cuanto se
+            // suba uiScale o se traduzca a un idioma de palabras mas largas.
+            //
+            // La escala sale del ancho que la fila pediria a tamano natural, que
+            // NO depende de la escala: por eso no hay ligadura circular.
+            Item {
+                width: parent.width - parent.leftPadding - parent.rightPadding
+                height: chipsRow.height * chipsRow.scale
+
             Row {
+                id: chipsRow
+                transformOrigin: Item.TopLeft
+                scale: Math.min(1, parent.width / Math.max(1, implicitWidth))
                 spacing: units.gu(1)
                 Repeater {
                     model: [
@@ -864,7 +885,10 @@ Rectangle {
                         {key:"no_highway", lbl: i18n.tr("Sin autopista")}
                     ]
                     Rectangle {
-                        height: units.gu(4.5); width: lbl.width + units.gu(2.5); radius: height/2
+                        // La altura tambien sale del texto: con gu(4.5) fijo la
+                        // etiqueta se salia por arriba y por abajo al agrandarlo.
+                        height: Math.max(units.gu(4.5), lbl.height + units.gu(1.6))
+                        width: lbl.width + units.gu(2.5); radius: height/2
                         property bool on: modelData.key==="no_tolls"   ? panel._noTolls   :
                                           modelData.key==="no_ferry"   ? panel._noFerry   :
                                           modelData.key==="no_dirt"    ? panel._noDirt    : panel._noHighway
@@ -880,6 +904,7 @@ Rectangle {
                         }}
                     }
                 }
+            }
             }
 
             Rectangle {
