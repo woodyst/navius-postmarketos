@@ -6354,12 +6354,30 @@ ApplicationWindow {
         border.color: root._uiBorder; border.width: units.gu(0.15)
         opacity: mainAuthSettings.token !== "" ? 1.0 : 0.45
         z: 10
-        Column {
-            anchors.centerIn: parent; spacing: units.gu(0.1)
-            Label { anchors.horizontalCenter: parent.horizontalCenter
-                    text: "⚠️"; font.pixelSize: units.gu(4.2 * appSettings.textScale) }
-            BtnLabel { anchors.horizontalCenter: parent.horizontalCenter
-                       text: i18n.tr("Alerta"); fontSize: units.gu(2.05); bold: false; mainColor: root._uiFg }
+        // El contenido se encoge lo justo para caber DENTRO del circulo.
+        //
+        // Estaba puesto a pelo y "Alerta" se salia por debajo del boton: el
+        // ⚠️ pide mas alto de linea que los iconos de los botones vecinos, y
+        // encima crece con textScale mientras el circulo se queda en gu(9).
+        // El recuadro interior es el cuadrado que cabe holgado en el circulo;
+        // en un circulo no vale medir hasta el borde, que por arriba y por
+        // abajo la curva se come el hueco.
+        Item {
+            anchors.centerIn: parent
+            width: parent.width * 0.72; height: parent.height * 0.72
+            Column {
+                anchors.centerIn: parent; spacing: units.gu(0.1)
+                scale: Math.min(1, parent.width  / Math.max(1, implicitWidth),
+                                   parent.height / Math.max(1, implicitHeight))
+                Label { anchors.horizontalCenter: parent.horizontalCenter
+                        text: "⚠️"; font.pixelSize: units.gu(4.2 * appSettings.textScale)
+                        // Alto fijo: si no, es el glifo quien decide el alto de
+                        // la columna, y cada emoji mide una cosa distinta.
+                        height: units.gu(4.6 * appSettings.textScale)
+                        verticalAlignment: Text.AlignVCenter }
+                BtnLabel { anchors.horizontalCenter: parent.horizontalCenter
+                           text: i18n.tr("Alerta"); fontSize: units.gu(2.05); bold: false; mainColor: root._uiFg }
+            }
         }
         MouseArea { anchors.fill: parent
             onClicked: mainAuthSettings.token !== "" ? alertasOverlay.open() : loginPanel.open() }
@@ -6376,12 +6394,30 @@ ApplicationWindow {
         border.color: root._uiBorder; border.width: units.gu(0.15)
         opacity: mainAuthSettings.token !== "" ? 1.0 : 0.45
         z: 10
-        Column {
-            anchors.centerIn: parent; spacing: units.gu(0.1)
-            Label { anchors.horizontalCenter: parent.horizontalCenter
-                    text: "⚠️"; font.pixelSize: units.gu(4.2 * appSettings.textScale) }
-            BtnLabel { anchors.horizontalCenter: parent.horizontalCenter
-                       text: i18n.tr("Alerta"); fontSize: units.gu(2.05); bold: false; mainColor: root._uiFg }
+        // El contenido se encoge lo justo para caber DENTRO del circulo.
+        //
+        // Estaba puesto a pelo y "Alerta" se salia por debajo del boton: el
+        // ⚠️ pide mas alto de linea que los iconos de los botones vecinos, y
+        // encima crece con textScale mientras el circulo se queda en gu(9).
+        // El recuadro interior es el cuadrado que cabe holgado en el circulo;
+        // en un circulo no vale medir hasta el borde, que por arriba y por
+        // abajo la curva se come el hueco.
+        Item {
+            anchors.centerIn: parent
+            width: parent.width * 0.72; height: parent.height * 0.72
+            Column {
+                anchors.centerIn: parent; spacing: units.gu(0.1)
+                scale: Math.min(1, parent.width  / Math.max(1, implicitWidth),
+                                   parent.height / Math.max(1, implicitHeight))
+                Label { anchors.horizontalCenter: parent.horizontalCenter
+                        text: "⚠️"; font.pixelSize: units.gu(4.2 * appSettings.textScale)
+                        // Alto fijo: si no, es el glifo quien decide el alto de
+                        // la columna, y cada emoji mide una cosa distinta.
+                        height: units.gu(4.6 * appSettings.textScale)
+                        verticalAlignment: Text.AlignVCenter }
+                BtnLabel { anchors.horizontalCenter: parent.horizontalCenter
+                           text: i18n.tr("Alerta"); fontSize: units.gu(2.05); bold: false; mainColor: root._uiFg }
+            }
         }
         MouseArea { anchors.fill: parent
             onClicked: mainAuthSettings.token !== "" ? alertasOverlay.open() : loginPanel.open() }
