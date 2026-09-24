@@ -251,3 +251,21 @@ function clickUrl(billboardId, token) {
     if (token) url += "?token=" + encodeURIComponent(token)
     return url
 }
+
+function borrarCuenta(token, password, callback) {
+    // callback(ok, mensaje)
+    var xhr = new XMLHttpRequest()
+    xhr.open("DELETE", _serverUrl + "/api/v1/usuarios/me")
+    _addAppHeaders(xhr)
+    xhr.setRequestHeader("Content-Type", "application/json")
+    xhr.setRequestHeader("Authorization", "Bearer " + token)
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState !== XMLHttpRequest.DONE) return
+        if (xhr.status === 200)      callback(true,  "")
+        else if (xhr.status === 401) callback(false, "Contraseña incorrecta")
+        else if (xhr.status === 404) callback(false, "La cuenta ya no existe")
+        else if (xhr.status === 0)   callback(false, "Sin conexión")
+        else                         callback(false, "Error " + xhr.status)
+    }
+    xhr.send(JSON.stringify({ email: "", password: password }))
+}

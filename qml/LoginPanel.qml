@@ -37,6 +37,9 @@ Item {
     property bool _modoRegistro: false
     property bool _ocupado: false
     property bool _puedeReenviar: false
+    property bool _modoBorrar: false   // confirmacion de borrado de cuenta
+    property bool _borrando:   false
+
     property bool _consentido: false
 
     readonly property string currentToken: authSettings.token
@@ -144,6 +147,102 @@ Item {
                         onClicked: { authSettings.token = ""; authSettings.email = ""; root.logoutOk() }
                     }
                 }
+
+                // ── Borrar cuenta ────────────────────────────────
+                // Play exige esta via dentro de la app para cualquier app que
+                // permita crear cuenta. El servidor pide la contrasena ademas
+                // del testigo, asi que aqui hay que recogerla.
+                Rectangle {
+                    visible: !_modoBorrar
+                    width: parent.width; height: units.gu(6.5); radius: units.gu(0.8)
+                    color: borrarMa.pressed ? "#2A1A1A" : "#241618"; border.color: "#5A2A2A"
+                    Row {
+                        anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: units.gu(2) }
+                        spacing: units.gu(1.5)
+                        Label { text: "🗑"; font.pixelSize: ts(2.5); anchors.verticalCenter: parent.verticalCenter }
+                        Label { text: i18n.tr("Borrar mi cuenta"); color: "#EF5350"
+                                font.pixelSize: ts(2.3); anchors.verticalCenter: parent.verticalCenter }
+                    }
+                    MouseArea {
+                        id: borrarMa; anchors.fill: parent
+                        onClicked: { _modoBorrar = true; borrarPassField.text = ""; borrarStatus.text = "" }
+                    }
+                }
+
+                Column {
+                    visible: _modoBorrar
+                    width: parent.width; spacing: units.gu(1)
+
+                    Rectangle {
+                        width: parent.width; height: borrarAviso.height + units.gu(2)
+                        color: "#241618"; radius: units.gu(0.8); border.color: "#5A2A2A"
+                        Label {
+                            id: borrarAviso
+                            anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter
+                                      leftMargin: units.gu(1.5); rightMargin: units.gu(1.5) }
+                            wrapMode: Text.WordWrap
+                            color: "#ECEFF1"; font.pixelSize: ts(1.9)
+                            text: i18n.tr("Se borrarán tu correo, tus ajustes, tus vehículos y todo tu historial de posiciones y rutas en el servidor. Las alertas y límites que aportaste seguirán ayudando a otros conductores, pero dejarán de estar asociados a ti.\n\nEsto no se puede deshacer. Escribe tu contraseña para confirmar.")
+                        }
+                    }
+
+                    Rectangle {
+                        width: parent.width; height: units.gu(5.5)
+                        color: "#131F2E"; radius: units.gu(0.8)
+                        border.color: borrarPassField.activeFocus ? "#EF5350" : "#5A2A2A"; border.width: 1
+                        // NavTextInput y no TextInput: Phosh no implementa
+                        // text-input-v3 para Qt5, asi que un TextInput normal no
+                        // levanta el teclado en pantalla y la contrasena de
+                        // confirmacion no se podria escribir.
+                        NavTextInput {
+                            id: borrarPassField
+                            anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter
+                                      leftMargin: units.gu(1.5); rightMargin: units.gu(1.5) }
+                            color: "#ECEFF1"; font.pixelSize: ts(2.3)
+                            echoMode: TextInput.Password
+                            selectionColor: "#EF5350"
+                            Label {
+                                anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                                text: i18n.tr("Contraseña")
+                                color: "#37474F"; font.pixelSize: ts(2.3)
+                                visible: parent.text === "" && !parent.activeFocus
+                            }
+                        }
+                    }
+
+                    Label {
+                        id: borrarStatus
+                        width: parent.width; wrapMode: Text.WordWrap
+                        color: "#EF5350"; font.pixelSize: ts(1.9); text: ""
+                    }
+
+                    Rectangle {
+                        width: parent.width; height: units.gu(6.5); radius: units.gu(0.8)
+                        color: confirmarMa.pressed ? "#7A2020" : "#B71C1C"
+                        opacity: _borrando ? 0.5 : 1
+                        Label {
+                            anchors.centerIn: parent
+                            text: _borrando ? i18n.tr("Borrando…") : i18n.tr("Borrar definitivamente")
+                            color: "#FFFFFF"; font.pixelSize: ts(2.3); font.bold: true
+                        }
+                        MouseArea {
+                            id: confirmarMa; anchors.fill: parent
+                            enabled: !_borrando
+                            onClicked: root._confirmarBorrado()
+                        }
+                    }
+
+                    Rectangle {
+                        width: parent.width; height: units.gu(6); radius: units.gu(0.8)
+                        color: cancelarBorrarMa.pressed ? "#1A2535" : "#1C2D40"; border.color: "#2A4060"
+                        Label { anchors.centerIn: parent; text: i18n.tr("Cancelar"); color: "#90A4AE"; font.pixelSize: ts(2.3) }
+                        MouseArea {
+                            id: cancelarBorrarMa; anchors.fill: parent
+                            onClicked: { _modoBorrar = false; borrarPassField.text = ""; borrarStatus.text = "" }
+                        }
+                    }
+                }
+
 
                 Rectangle {
                     width: parent.width; height: units.gu(6); radius: units.gu(0.8)
@@ -406,6 +505,31 @@ Item {
 
             Item { width: 1; height: units.gu(0.5) }
         }
+    }
+
+    function _confirmarBorrado() {
+        if (borrarPassField.text === "") {
+            borrarStatus.text = i18n.tr("Escribe tu contraseña")
+            return
+        }
+        _borrando = true
+        borrarStatus.text = ""
+        NavAlerts.borrarCuenta(authSettings.token, borrarPassField.text, function(ok, msg) {
+            _borrando = false
+            if (ok) {
+                // Misma limpieza que al cerrar sesion: sin testigo no se envia
+                // nada al servidor, y la cuenta ya no existe.
+                borrarPassField.text = ""
+                _modoBorrar = false
+                authSettings.token  = ""
+                authSettings.email  = ""
+                authSettings.userId = 0
+                root.logoutOk()
+                root.cerrar()
+            } else {
+                borrarStatus.text = msg
+            }
+        })
     }
 
     function _submit() {
