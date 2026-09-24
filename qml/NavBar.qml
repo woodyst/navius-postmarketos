@@ -315,9 +315,33 @@ Rectangle {
         var nearDest     = (man && _step >= man.length - 1) || _legArrivalPending
                            || _distToLegEnd < 150
         var offThreshold = bar.offRouteDistM
-        var goodAccuracy = bar.posAccuracy < 0 || bar.posAccuracy < offThreshold
+        // Dos maneras de dar el desvio por bueno, segun lo fino que venga el fix.
+        //
+        // Antes habia una sola, `precision < offThreshold`, y con eso el recalculo
+        // no saltaba casi nunca: offRouteDistM son 8..15 m y ningun GPS de movil
+        // baja de ahi en marcha. Peor todavia, bajar el deslizador para "afinar"
+        // el desvio apretaba de paso la exigencia de precision y lo DESACTIVABA
+        // del todo; con el minimo antiguo de 5 m no recalculaba jamas, por lejos
+        // que uno se fuera. (Visto en pmOS el 24/09/2026, con offRouteDistM=5.)
+        //
+        // Ahora el ajuste manda solo sobre la distancia, y a un fix peor se le
+        // pide haberse separado mas antes de creerselo:
+        //
+        //   fix fino   (precision <  1x el ajuste)  ->  basta separarse 1x
+        //   fix flojo  (precision <  3x el ajuste)  ->  hay que separarse 2x
+        //
+        // Los umbrales de distancia son inclusivos: con el ajuste en 8 m y un
+        // fix de menos de 24 m, a 16 m clavados ya recalcula.
+        //
+        // Precision negativa significa "no disponible", y entonces se confia,
+        // como se hacia antes.
+        var _acc      = bar.posAccuracy
+        var _accFino  = _acc < 0 || _acc < offThreshold
+        var _accFlojo = _acc < 0 || _acc < offThreshold * 3
+        var _seDesvia = (_accFino  && distM >= offThreshold)
+                     || (_accFlojo && distM >= offThreshold * 2)
 
-        if (!nearDest && distM > offThreshold && bar.hasFix && goodAccuracy && _realFix && !bar.trackReplayMode) {
+        if (!nearDest && _seDesvia && bar.hasFix && _realFix && !bar.trackReplayMode) {
             _offCount++
             if (_offCount === 1) _status = "offroute"
             if (_offCount >= 3) {

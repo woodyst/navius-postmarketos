@@ -6658,7 +6658,10 @@ ApplicationWindow {
         commAlertSpeed:      root._commAlertSpeed
         radarMaxspeed:       root._radarAlertMaxspeed
         showRoadSpeedLimit:  appSettings.showRoadSpeedLimit
-        offRouteDistM:       appSettings.offRouteDistM
+        // Suelo de 8 m: el minimo del deslizador subio de 5 a 8, y sin esto los
+        // ajustes ya guardados con 5 seguirian pidiendo una precision que
+        // ningun GPS da.
+        offRouteDistM:       Math.max(8, appSettings.offRouteDistM)
         imperial:            appSettings.measureSystem === "imperial"
         revMode:           root._revModeActive
         revShape:          gpsSource.revShape

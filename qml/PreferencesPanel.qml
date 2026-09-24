@@ -1767,7 +1767,7 @@ Rectangle {
                     }
                     Slider {
                         width: parent.width
-                        from: 5; to: 15; stepSize: 1; live: true
+                        from: 8; to: 15; stepSize: 1; live: true
                         value: panel.cfg ? panel.cfg.offRouteDistM : 11
                         onValueChanged: if (panel.cfg) panel.cfg.offRouteDistM = Math.round(value)
                     }
