@@ -678,8 +678,38 @@ ApplicationWindow {
     // ── Radares ───────────────────────────────────────────────────────────────
     readonly property int _maxTramoLayers: 4
     property var  _radarFijos:     []      // [{lat,lon,maxspeed}]
+    // Los que se pintan de verdad, igual que _commAlertasVisibles y por lo
+    // mismo: en previsualizacion solo los que caen sobre alguna de las rutas
+    // ofrecidas. Un radar a un kilometro de la ruta no dice nada del viaje.
+    readonly property var _radarFijosVisibles: {
+        if (!routeSelectPanel.visible || root._previewShape.length < 2)
+            return root._radarFijos
+        var res = []
+        for (var i = 0; i < root._radarFijos.length; i++) {
+            var r = root._radarFijos[i]
+            if (root._sobreLaPrevisualizacion(r.lat, r.lon, 50)) res.push(r)
+        }
+        return res
+    }
     property var  _radarTramos:   []      // [{shape,maxspeed,lengthM}]
     property var  _commAlertas:   []      // [{lat,lng,categoria,...}] alertas comunitarias
+    // Las que se pintan de verdad. Con la previsualizacion abierta, solo las que
+    // caen sobre alguna de las rutas ofrecidas: esa pantalla es para decidir por
+    // donde ir, y una alerta a tres calles de la ruta no dice nada del viaje.
+    //
+    // Se calcula al cambiar la lista o la ruta, NO en cada repintado: alertCanvas
+    // se redibuja con cada movimiento del mapa y esto recorre todos los puntos de
+    // todas las alternativas.
+    readonly property var _commAlertasVisibles: {
+        if (!routeSelectPanel.visible || root._previewShape.length < 2)
+            return root._commAlertas
+        var res = []
+        for (var i = 0; i < root._commAlertas.length; i++) {
+            var a = root._commAlertas[i]
+            if (root._sobreLaPrevisualizacion(a.lat, a.lng, 50)) res.push(a)
+        }
+        return res
+    }
     property var  _billboards:    []      // [{id,lat,lng,bearing,titulo,subtitulo,url}] billboards publicitarios
     property real _billboardFetchLat: 0   // lat del último fetch de billboards
     property real _billboardFetchLng: 0   // lng del último fetch de billboards
@@ -756,6 +786,12 @@ ApplicationWindow {
 
     // Modo landscape: divide pantalla en panel izquierdo 1/3 (instrucciones+botones) + mapa 2/3
     readonly property bool _isLandscape: width > height
+    // ...salvo mientras se elige ruta, que entonces el mapa se lo queda todo.
+    // Ese panel es el fondo de la NavBar, y eligiendo ruta la NavBar no tiene
+    // nada que contar: salia un tercio de pantalla en negro y, con el panel de
+    // rutas ocupando el 42 % por la derecha, al mapa le quedaba la cuarta parte
+    // del ancho para dibujar la ruta.
+    readonly property bool _panelLateralVisible: _isLandscape && !routeSelectPanel.visible
     readonly property bool _searchingGps: !appSettings.simMode && !appSettings.manualPosActive && !satModel.pos_has_fix
     // Altura que NavBar ocupa en la parte superior del MAPA (0 en landscape)
     readonly property real _navBarScreenHeight: _isLandscape ? 0 : (navBar.height + adPanel.height)
@@ -1164,6 +1200,36 @@ ApplicationWindow {
     // Comprueba si el punto (aLat, aLon) está a ≤ margin m de la ruta activa.
     // Devuelve {onRoute, arcDist} donde arcDist es la distancia por ruta desde la posición actual.
     // Si no hay ruta activa siempre devuelve onRoute=true para no filtrar nada.
+    // ¿Cae el punto sobre alguna de las rutas que se estan previsualizando?
+    //
+    // No sirve _routeInfo: esa parte de la posicion actual y solo mira un
+    // kilometro por delante, porque su trabajo es avisar mientras se navega.
+    // Aqui no hay posicion de referencia —todavia no se ha arrancado— y hay que
+    // mirar la ruta entera. Se compara contra _previewShape, que es la union de
+    // TODAS las alternativas ofrecidas: son las que estan pintadas en el mapa,
+    // asi que una alerta sobre cualquiera de ellas cuenta para decidir.
+    //
+    // Mismo margen que el filtro de _checkCommAlerts, 50 m, para que lo que se
+    // ve en la previsualizacion sea lo mismo que luego avisara al navegar.
+    function _sobreLaPrevisualizacion(lat, lon, margen) {
+        var shape = root._previewShape
+        if (!shape || shape.length < 2) return true
+        var cosL = Math.cos(lat * Math.PI / 180), M = 111319
+        var m2 = margen * margen
+        for (var i = 0; i < shape.length - 1; i++) {
+            var x0 = (shape[i][0]   - lon) * M * cosL, y0 = (shape[i][1]   - lat) * M
+            var x1 = (shape[i+1][0] - lon) * M * cosL, y1 = (shape[i+1][1] - lat) * M
+            var dx = x1 - x0, dy = y1 - y0
+            var len2 = dx * dx + dy * dy
+            // Proyeccion del origen (el punto, que es el centro de coordenadas)
+            // sobre el segmento, acotada a sus extremos.
+            var t  = len2 > 0 ? Math.max(0, Math.min(1, -(x0 * dx + y0 * dy) / len2)) : 0
+            var px = x0 + t * dx, py = y0 + t * dy
+            if (px * px + py * py <= m2) return true
+        }
+        return false
+    }
+
     function _routeInfo(aLat, aLon, margin) {
         if (!root._navActive || !root._navData || !root._navData.shape)
             return { onRoute: true, arcDist: -1 }
@@ -3456,10 +3522,13 @@ ApplicationWindow {
     // ── Panel izquierdo landscape (1/3): fondo detrás de NavBar + botones ──
     Rectangle {
         id: landscapePanel
-        visible: root._isLandscape
+        visible: root._panelLateralVisible
         z: 0
         anchors { left: parent.left; top: parent.top; bottom: statusBar.top }
-        width: root._isLandscape ? Math.round(parent.width / 3) : 0
+        // El ancho tiene que irse a 0, no basta con visible: mapView, NavBar y
+        // los botones del mapa se anclan a landscapePanel.right, y un item
+        // invisible conserva su geometria.
+        width: root._panelLateralVisible ? Math.round(parent.width / 3) : 0
         color: "#F007111E"
         // Línea separadora derecha
         Rectangle {
@@ -4195,8 +4264,8 @@ ApplicationWindow {
                 }
                 // Detectar tap en alerta cercana (umbral 60 px, solo con sesión)
                 var _nearAlert = null
-                for (var _ai = 0; _ai < (mainAuthSettings.token !== "" ? root._commAlertas.length : 0); _ai++) {
-                    var _aa = root._commAlertas[_ai]
+                for (var _ai = 0; _ai < (mainAuthSettings.token !== "" ? root._commAlertasVisibles.length : 0); _ai++) {
+                    var _aa = root._commAlertasVisibles[_ai]
                     var _sp = root._geoToScreen(_aa.lat, _aa.lng)
                     var _dx = mouse.x - _sp.x, _dy = mouse.y - _sp.y
                     // Hit: viñeta a la derecha del punto geo + margen en el punto
@@ -4234,9 +4303,9 @@ ApplicationWindow {
         visible: !prefsPanel.visible && !satPanel.visible
                  && (root._pinVisible || root._testPoiVisible ||
                      (root._navActive && root._navDests.length > 0) ||
-                     (appSettings.showRadarFijos && root._radarFijos.length > 0) ||
+                     (appSettings.showRadarFijos && root._radarFijosVisibles.length > 0) ||
                      (appSettings.showRadarTramo && root._radarTramos.length > 0) ||
-                     root._commAlertas.length > 0 ||
+                     root._commAlertasVisibles.length > 0 ||
                      root._commLimites.length > 0 ||
                      appSettings.showBisectorDebug)
 
@@ -4248,6 +4317,17 @@ ApplicationWindow {
             var topClip = root._navBarScreenHeight + (root._navActive
                 ? root._radarBarsHeight
                 : (root._commAlertActive ? units.gu(5.5) : 0))
+
+            // Avisos —radares y alertas— translucidos salvo navegando. A su
+            // tamano tapan varias calles, y fuera de la navegacion lo que se
+            // esta mirando es el mapa, no el aviso. Navegando van opacos: ahi
+            // el aviso ES lo que importa.
+            //
+            // Con globalAlpha y no bajando el alfa de cada color: cada marca
+            // son varios dibujos solapados —relleno, borde, icono, texto— y con
+            // alfa individual el borde saldria mas opaco que el centro.
+            var alfaAvisos = root._navActive ? 1.0 : 0.5
+            ctx.globalAlpha = alfaAvisos
 
             // Radares de tramo — icono de inicio y fin (mismo estilo que radares fijos)
             if (appSettings.showRadarTramo) {
@@ -4296,8 +4376,8 @@ ApplicationWindow {
 
             // Radares fijos — círculo rojo con límite de velocidad
             if (appSettings.showRadarFijos) {
-                for (var fi = 0; fi < root._radarFijos.length; fi++) {
-                    var r = root._radarFijos[fi]
+                for (var fi = 0; fi < root._radarFijosVisibles.length; fi++) {
+                    var r = root._radarFijosVisibles[fi]
                     var sz2 = units.gu(2.4)
                     var sp = root._geoToScreen(r.lat, r.lon)
                     if (sp.x < -sz2 || sp.x > iW+sz2 || sp.y < topClip || sp.y > iH+sz2) continue
@@ -4311,6 +4391,8 @@ ApplicationWindow {
                     ctx.fillText(r.maxspeed > 0 ? String(r.maxspeed) : "R", sp.x, sp.y)
                 }
             }
+
+            ctx.globalAlpha = 1.0
 
             // Bandera a cuadros en el destino final (cuando hay navegación activa)
             if (root._navActive && root._navDests.length > 0) {
@@ -4442,8 +4524,10 @@ ApplicationWindow {
             var _viBr  = units.gu(0.7)   // radio esquinas
             var _viMinW = _viISz + _viPad * 2   // ancho mínimo (icono + márgenes)
 
-            for (var _vai = 0; _vai < root._commAlertas.length; _vai++) {
-                var _va2  = root._commAlertas[_vai]
+            ctx.globalAlpha = alfaAvisos
+
+            for (var _vai = 0; _vai < root._commAlertasVisibles.length; _vai++) {
+                var _va2  = root._commAlertasVisibles[_vai]
                 var _vap  = root._geoToScreen(_va2.lat, _va2.lng)
                 if (_vap.x < -units.gu(12) || _vap.x > iW + units.gu(12)
                         || _vap.y < -units.gu(12) || _vap.y > iH + units.gu(12)) continue
@@ -4519,6 +4603,8 @@ ApplicationWindow {
                 ctx.fillText(_viTxt, _viBx + _viW / 2, _viBy + _viPad + _viISz + _viPad + _viTH / 2)
             }
 
+            ctx.globalAlpha = 1.0
+
             // ── Señales de límite de velocidad comunitarias ──────────────────
             var _slR = units.gu(1.92)   // 60% de 3.2
             var _slFS = Math.round(units.gu(1.8))
@@ -4567,6 +4653,8 @@ ApplicationWindow {
             function onTestPoiVisibleChanged()  { alertCanvas.requestPaint() }
             function onBillboardsChanged()       { alertCanvas.requestPaint() }
             function onCommAlertasChanged()     { alertCanvas.requestPaint() }
+            function onCommAlertasVisiblesChanged() { alertCanvas.requestPaint() }
+            function onRadarFijosVisiblesChanged()  { alertCanvas.requestPaint() }
             function onCommLimitesChanged()     { alertCanvas.requestPaint() }
             function onCommSpeedLimitIdChanged(){ alertCanvas.requestPaint() }
         }
@@ -6029,11 +6117,29 @@ ApplicationWindow {
 
     // ── Re-center crosshair (bottom-center del mapa) ─────────────────────
     Item {
-        visible: !mapView.followMode && !root._menuOpen
-        anchors { bottom: mapBottomAnchor.bottom; bottomMargin: units.gu(9) }
-        x: root._isLandscape
-           ? landscapePanel.width + (parent.width - landscapePanel.width) / 2 - width / 2
-           : parent.width / 2 - width / 2
+        // Lo que cuenta como "centrado" cambia con la pantalla: normalmente es
+        // seguir la posicion (followMode), y en previsualizacion es estar en el
+        // encuadre de la ruta. Alli followMode es siempre false, asi que con la
+        // condicion de siempre el boton no se iba nunca.
+        visible: !root._menuOpen
+                 && (routeSelectPanel.visible ? !routeViewPanel.enEncuadre
+                                              : !mapView.followMode)
+        // En previsualizacion vertical el panel de rutas ocupa la parte baja de
+        // la pantalla, justo donde se ancla este boton, y quedaba enterrado
+        // detras. Se sube por encima del panel; en los demas casos, donde no
+        // hay nada abajo, se queda como estaba.
+        anchors {
+            bottom: mapBottomAnchor.bottom
+            bottomMargin: units.gu(9)
+                + ((routeSelectPanel.visible && !root._isLandscape)
+                   ? Math.max(0, routeSelectPanel.sheetHeight - statusBar.height)
+                   : 0)
+        }
+        // Centrado en el area de mapa visible, no en la ventana: a la izquierda
+        // puede estar el panel de apaisado y a la derecha el de rutas.
+        x: (landscapePanel.width
+            + (parent.width - landscapePanel.width - routeViewPanel.rightPanelWidth) / 2)
+           - width / 2
         width: units.gu(9); height: units.gu(9)
 
         Rectangle {
@@ -6060,6 +6166,11 @@ ApplicationWindow {
         MouseArea {
             anchors.fill: parent
             onClicked: {
+                // En previsualizacion recentrar es volver al encuadre de la
+                // ruta, no saltar a la posicion del GPS: ahi todavia no se ha
+                // arrancado y lo que se esta mirando es el trazado. Fuera de
+                // previsualizacion se queda como estaba.
+                if (routeSelectPanel.visible) { routeViewPanel.open(); return }
                 mapView.followMode = true
                 var lat, lon
                 if (!isNaN(mapView._lastLat) && !isNaN(mapView._lastLon) && mapView._hasPos) {
@@ -6131,7 +6242,7 @@ ApplicationWindow {
         readonly property real _sp: root._isLandscape ? units.gu(0.8) : units.gu(1)
         flow:    root._isLandscape ? Flow.LeftToRight : Flow.TopToBottom
         spacing: _sp
-        width:   root._isLandscape ? landscapePanel.width - units.gu(2) : _sz
+        width:   root._isLandscape ? Math.max(0, landscapePanel.width - units.gu(2)) : _sz
         // Anchors por defecto = portrait (top fijo)
         anchors { left: parent.left; leftMargin: units.gu(2)
                   top: parent.top;   topMargin:  root._topWidgetMargin }
@@ -6517,7 +6628,11 @@ ApplicationWindow {
     NavBar {
         id: navBar
         z: 4                        // sobre billboards (z:3)
-        visible: !satPanel.visible
+        // En apaisado vive dentro de landscapePanel, asi que se va con el
+        // mientras se elige ruta. En vertical es la barra de arriba y se queda:
+        // alli el mapa no gana nada quitandola, porque el hueco que deja no es
+        // donde va la ruta.
+        visible: !satPanel.visible && !(root._isLandscape && routeSelectPanel.visible)
         paused:            root._navPaused
         navActive:         root._navActive
         routeData:         root._navData
@@ -9624,10 +9739,52 @@ ApplicationWindow {
                       : ((root._navActive && root._navData) ? root._navData.shape : [])
         hideCloseBtn:      routeSelectPanel.visible
         bottomPanelHeight: routeSelectPanel.visible ? routeSelectPanel.sheetHeight : 0
+        rightPanelWidth:   routeSelectPanel.visible ? routeSelectPanel.sheetWidth  : 0
+        bottomBarHeight:   statusBar.visible ? statusBar.height : 0
+        enPrevisualizacion: routeSelectPanel.visible
         navActive:    routeSelectPanel.visible || root._navActive
         navDests:     routeSelectPanel.visible ? searchPanel.dests : root._navDests
         screenPosOf:  root._geoToScreen
         onClosed: { /* estado restaurado internamente */ }
+    }
+
+    // Rehace el encuadre de la previsualizacion cuando cambia el area de mapa
+    // a la vista. Pasa en dos momentos y por el mismo motivo:
+    //
+    //   - al girar el dispositivo, que cambia ancho y alto utiles;
+    //   - al ABRIR la previsualizacion en apaisado, porque al hacerse visible
+    //     el panel de rutas desaparece el de la izquierda y el mapa crece.
+    //
+    // En los dos casos no vale encuadrar en el mismo tick: mapView se
+    // redimensiona en el pase de layout siguiente y open() lee mapRef.width y
+    // mapRef.height, asi que con las medidas de antes la ruta salia
+    // descentrada. De ahi el temporizador en vez de un Qt.callLater.
+    //
+    // Repetir open() es seguro: guarda el estado del mapa solo la primera vez
+    // —lo que hace falta para poder restaurarlo al cerrar— y esta escrito para
+    // llamarse mas de una vez (ya lo hace al cambiar de vehiculo).
+    Timer {
+        id: reencuadreGiro
+        interval: 250
+        onTriggered: if (routeSelectPanel.visible) routeViewPanel.open()
+    }
+
+    Connections {
+        target: mapView
+        function onWidthChanged()  { if (routeSelectPanel.visible) reencuadreGiro.restart() }
+        function onHeightChanged() { if (routeSelectPanel.visible) reencuadreGiro.restart() }
+    }
+
+    // Y tambien cuando cambia lo que el panel de rutas tapa. No basta con mirar
+    // el tamano del mapa: en vertical el mapa NO se redimensiona al abrir la
+    // previsualizacion —el panel se dibuja encima—, asi que el unico encuadre
+    // era el del primer tick, con el alto del panel todavia sin medir. Salia un
+    // zoom un tercio mayor de la cuenta y la ruta se metia por detras del panel.
+    Connections {
+        target: routeSelectPanel
+        function onSheetHeightChanged() { if (routeSelectPanel.visible) reencuadreGiro.restart() }
+        function onSheetWidthChanged()  { if (routeSelectPanel.visible) reencuadreGiro.restart() }
+        function onVisibleChanged()     { if (routeSelectPanel.visible) reencuadreGiro.restart() }
     }
 
 

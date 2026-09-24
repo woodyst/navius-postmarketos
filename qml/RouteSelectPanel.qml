@@ -44,16 +44,20 @@ Item {
 
     // ── Botón cerrar ──────────────────────────────────────────────────────────
     Rectangle {
-        anchors {
-            // Portrait: esquina superior derecha libre del mapa
-            // Landscape: esquina superior izquierda del panel lateral
-            left:        rsp.isLandscape ? bottomSheet.left : undefined
-            leftMargin:  rsp.isLandscape ? units.gu(1.5)    : 0
-            right:       rsp.isLandscape ? undefined         : parent.right
-            rightMargin: rsp.isLandscape ? 0                 : units.gu(1.5)
-            top:         parent.top
-            topMargin:   navBarHeight + units.gu(1)
-        }
+        // Siempre sobre el mapa, pegado al panel: en portrait encima del
+        // bottom sheet, en landscape a la izquierda del panel lateral.
+        //
+        // Posicion con x/y, no con anclas: ver la nota del panel de abajo.
+        // Aqui pasaba lo mismo —quedaban puestas left y right a la vez—, asi
+        // que en landscape el boton se estiraba de lado a lado y la ✕, centrada
+        // en el, aparecia en mitad de la pantalla. Dentro del panel tampoco
+        // cabe: lo primero que hay ahi es la fila de vehiculos, que ademas se
+        // desplaza con el dedo. Y estando declarado antes que el panel, el
+        // panel lo tapaba entero; de ahi tambien el z.
+        x: rsp.isLandscape ? bottomSheet.x - width - units.gu(1.5)
+                           : parent.width - width - units.gu(1.5)
+        y: rsp.navBarHeight + units.gu(1)
+        z: 1
         width: units.gu(5.5); height: units.gu(5.5); radius: width / 2
         color: "#CC1C1C2E"
         border.color: "#90A4AE"; border.width: units.gu(0.12)
@@ -79,6 +83,12 @@ Item {
                                                       ? _altoContenido : _estimado,
                                                       parent.height * 0.75)
 
+    // Lo que el panel le quita al mapa por la derecha. El equivalente lateral de
+    // sheetHeight: en portrait tapa por abajo y no por los lados, en landscape
+    // al reves. Lo lee Main.qml para que RouteViewPanel encuadre la ruta en el
+    // trozo de mapa que queda a la vista y no por debajo del panel.
+    readonly property real sheetWidth: isLandscape ? Math.round(width * 0.42) : 0
+
     // Lo que pide de verdad el contenido, que es lo que mide el panel. Esto SI
     // puede mirar el layout, porque solo lo usa el propio panel; sheetHeight no,
     // que Main.qml la lee en el mismo tick en que asigna las rutas, antes de que
@@ -91,13 +101,16 @@ Item {
         id: bottomSheet
         // Landscape: panel lateral derecho (mapa visible a la izquierda)
         // Portrait:  bottom sheet con altura máxima del 62% de pantalla
-        anchors {
-            left:   rsp.isLandscape ? undefined   : parent.left
-            right:  parent.right
-            bottom: parent.bottom
-            top:    rsp.isLandscape ? parent.top  : undefined
-        }
-        width:  rsp.isLandscape ? Math.round(parent.width * 0.42) : parent.width
+        //
+        // NO se usa `anchors.left: cond ? x : undefined`. Una vez que un ancla
+        // esta puesta, reevaluar su expresion a undefined NO la quita (Qt 6.8,
+        // comprobado aparte). En landscape quedaban left Y right a la vez, que
+        // mandan sobre width, y el panel salia a pantalla completa: tapaba el
+        // mapa entero y la ruta solo se adivinaba por detras. Con solo right y
+        // bottom no hay conflicto y width manda.
+        anchors.right:  parent.right
+        anchors.bottom: parent.bottom
+        width:  rsp.isLandscape ? rsp.sheetWidth : parent.width
         // El alto es el del contenido, ni mas ni menos: con la formula mandando
         // sobraba hueco entre la ultima ruta y el boton. El tope del 75% deja
         // que la lista se desplace cuando hay varias alternativas.

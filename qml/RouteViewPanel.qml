@@ -40,6 +40,42 @@ Item {
 
     property bool hideCloseBtn:      false  // ocultado cuando RouteSelectPanel es el dueño
     property real bottomPanelHeight: 0     // altura del panel inferior que cubre el mapa
+    // Ancho del panel lateral que cubre el mapa por la derecha. En landscape el
+    // de seleccion de rutas se lleva casi la mitad del ancho: sin descontarlo,
+    // la ruta se encuadraba centrada en TODO el mapa y su mitad derecha quedaba
+    // debajo del panel.
+    property real rightPanelWidth:   0
+    // Barra de estado de abajo ("Navius · version · satelites"). Tapa el mapa
+    // igual que las otras, y en apaisado es lo unico que lo tapa por abajo.
+    property real bottomBarHeight:   0
+    // En previsualizacion la ruta se centra en el area visible. Navegando NO:
+    // alli el encuadre imita la vista de conduccion, con el inicio abajo, donde
+    // esta el marcador de posicion.
+    property bool enPrevisualizacion: false
+
+    // Encuadre que dejo puesto open(), para saber si el mapa sigue en el.
+    property real _encLat:  0
+    property real _encLon:  0
+    property real _encZoom: -1
+
+    // ¿Sigue el mapa donde lo dejo open()? Es lo que decide si hace falta el
+    // boton de recentrar. Fuera de previsualizacion eso lo dice followMode,
+    // pero en previsualizacion followMode es SIEMPRE false —no se sigue a
+    // nadie, se esta mirando la ruta—, asi que sin esto el boton no
+    // desaparecia nunca, ni recien encuadrado.
+    readonly property bool enEncuadre: {
+        if (!mapRef || _encZoom < 0) return false
+        if (Math.abs(mapRef.zoomLevel - _encZoom) > 0.05) return false
+        var c = mapRef.center
+        if (!c) return false
+        // Tolerancia en PIXELES, no en grados ni en metros: lo que importa es
+        // si se nota el desplazamiento en pantalla, y el mismo desplazamiento
+        // en metros se ve mucho o nada segun el zoom.
+        var M = 111319
+        var dLat = (c.latitude  - _encLat) * M
+        var dLon = (c.longitude - _encLon) * M * Math.cos(_encLat * Math.PI / 180)
+        return Math.sqrt(dLat * dLat + dLon * dLon) < mapRef.metersPerPixel * units.gu(1)
+    }
 
     // Estado del mapa guardado al abrir
     property bool   _stateSaved:  false
@@ -115,16 +151,42 @@ Item {
         var mapCLat = cLat + (-cH_m * sinB + cV_m * cosB) / M
         var mapCLon = cLon + ( cH_m * cosB + cV_m * sinB) / (M * cosLat)
 
+        // ── Area de mapa que se ve de verdad ─────────────────────────────
+        // El mapa ocupa toda la ventana y encima van los paneles, asi que hay
+        // que descontar lo que lo tapa en cada modo. Cuales son cambia con la
+        // orientacion: en vertical el panel de rutas esta abajo y la barra de
+        // navegacion arriba; en apaisado el panel esta a la derecha y arriba no
+        // hay nada. Por eso no vale un margen fijo, hay que calcularlo.
+        var visTop    = navBarHeight
+        // Por abajo tapan dos cosas, pero se solapan: en vertical el panel de
+        // rutas se dibuja ENCIMA de la barra de estado, asi que restar las dos
+        // se comia el alto de la barra por duplicado. Manda la mas alta.
+        var visBottom = mapRef.height - Math.max(bottomPanelHeight, bottomBarHeight)
+        var visLeft   = 0
+        var visRight  = mapRef.width - rightPanelWidth
+        // Margen para que la ruta no llegue a tocar los bordes. Proporcional al
+        // area y no una medida fija: entre vertical y apaisado el alto util
+        // cambia casi al doble, y con gu() fijo la ruta salia pegada arriba y
+        // abajo justo en el modo donde mas sitio hay.
+        var margenV = Math.max(units.gu(2.25), (visBottom - visTop)  * 0.06)
+        var margenH = Math.max(units.gu(2.25), (visRight  - visLeft) * 0.06)
+
         // targetY: posición GPS en navegación (gu(19) desde abajo) o justo encima del panel
         // de selección de rutas cuando está activo (bottomPanelHeight + gu(3) margen).
         var targetY = bottomPanelHeight > 0
                       ? mapRef.height - bottomPanelHeight - units.gu(5)
                       : mapRef.height - units.gu(19)
-        // vH: espacio disponible entre el panel superior y targetY.
-        // El 10% extra sobre navBarHeight compensa que el panel puede crecer
-        // con instrucciones largas y tapar la parte superior de la ruta.
-        var vH = Math.max(1, targetY - navBarHeight - units.gu(2.25) - mapRef.height * 0.10)
-        var vW = mapRef.width
+        var vW, vH
+        if (enPrevisualizacion) {
+            vW = Math.max(1, (visRight  - visLeft) - margenH * 2)
+            vH = Math.max(1, (visBottom - visTop)  - margenV * 2)
+        } else {
+            // vH: espacio disponible entre el panel superior y targetY.
+            // El 10% extra sobre navBarHeight compensa que el panel puede crecer
+            // con instrucciones largas y tapar la parte superior de la ruta.
+            vH = Math.max(1, targetY - navBarHeight - units.gu(2.25) - mapRef.height * 0.10)
+            vW = Math.max(1, mapRef.width - rightPanelWidth - units.gu(2.25))
+        }
 
         var zV   = _savedZoom + Math.log(currentMpp * vH / spanV) / Math.log(2)
         var zW   = _savedZoom + Math.log(currentMpp * vW / spanH) / Math.log(2)
@@ -135,12 +197,38 @@ Item {
 
         var mppNew = currentMpp * Math.pow(2, _savedZoom - zoom)
 
-        // Colocar inicio de ruta en targetY (posición GPS en modo navegación).
-        // Con ruta centrada en pantalla, inicio estaría en height/2 + spanV/(2*mppNew);
-        // dt_m desplaza el centro para llevarlo a targetY.
-        var dt_m   = spanV / 2 - (targetY - mapRef.height / 2) * mppNew
-        var adjLat = mapCLat - dt_m * cosB / M
-        var adjLon = mapCLon - dt_m * sinB / (M * cosLat)
+        // Donde cae la ruta en pantalla. Con el mapa centrado en el centro
+        // geometrico de la ruta, esta sale centrada en la VENTANA; lo que sigue
+        // corre el centro del mapa para llevarla donde toca.
+        //
+        // Los ejes son los de la ruta, no los de la pantalla: V va en el sentido
+        // de la marcha (hacia arriba, porque el mapa se ha girado al rumbo) y H
+        // es el perpendicular. Y los signos no son los que uno diria, estan
+        // sacados de la formula de mas abajo: correr el centro +dV por V baja la
+        // ruta en pantalla, y correrlo +dH por H la mueve a la IZQUIERDA.
+        var adjLat, adjLon
+        if (enPrevisualizacion) {
+            // Centrada en el area visible: es una pantalla para mirar el
+            // trazado entero, no para conducir.
+            var cx = (visLeft + visRight) / 2
+            var cy = (visTop  + visBottom) / 2
+            var dH = (mapRef.width  / 2 - cx) * mppNew
+            var dV = (cy - mapRef.height / 2) * mppNew
+            adjLat = mapCLat + dV * cosB / M            - dH * sinB / M
+            adjLon = mapCLon + dV * sinB / (M * cosLat) + dH * cosB / (M * cosLat)
+        } else {
+            // Navegando: el inicio de la ruta en targetY, que es donde va el
+            // marcador de posicion. Con la ruta centrada el inicio estaria en
+            // height/2 + spanV/(2*mppNew); dt_m corre el centro para bajarlo.
+            var dt_m = spanV / 2 - (targetY - mapRef.height / 2) * mppNew
+            adjLat = mapCLat - dt_m * cosB / M
+            adjLon = mapCLon - dt_m * sinB / (M * cosLat)
+            if (rightPanelWidth > 0) {
+                var dh_m = (rightPanelWidth / 2) * mppNew
+                adjLat += -dh_m * sinB / M
+                adjLon +=  dh_m * cosB / (M * cosLat)
+            }
+        }
 
         // Debug
         _dbgPts    = shape.length
@@ -165,12 +253,14 @@ Item {
         mapRef.center = QtPositioning.coordinate(adjLat, adjLon)
         mapRef._gpsUpdating = false
         mapRef.setZoomLevel(zoom, Qt.point(mapRef.width / 2, mapRef.height / 2))
+        _encLat = adjLat; _encLon = adjLon; _encZoom = zoom
         visible = true
     }
 
     function close() {
         visible = false
         _stateSaved = false
+        _encZoom    = -1
         if (!mapRef) { rvp.closed(); return }
         appSettings.autoZoom    = _savedAutoZoom
         appSettings.bearingMode = _savedBearMode
