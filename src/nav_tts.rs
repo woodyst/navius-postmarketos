@@ -1143,7 +1143,9 @@ cpp! {{
     }
     extern "C" void navius_reroute_beep() {
         if (!g_pa_ok || !g_pa_stream) return;
-        play_tone(220, 150); play_tone(0, 40); play_tone(220, 150);
+        // Dos notas descendentes. Antes eran 220 Hz dobles, la misma nota
+        // que el pitido de maniobra, y en marcha no se distinguian.
+        play_tone(880, 140); play_tone(0, 50); play_tone(587, 180);
         g_pa_drain(g_pa_stream, nullptr);
     }
 

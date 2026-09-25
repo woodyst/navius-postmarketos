@@ -356,7 +356,12 @@ Rectangle {
                     if (Math.sqrt(_rdLatOff*_rdLatOff + _rdLonOff*_rdLonOff) < 50) _rcdOff = true
                 }
                 if (_rcdOff) {
-                    _offCount = 0
+                    // Retenido en el umbral, no a cero: en cuanto venza la
+                    // espera o nos alejemos del punto del recalculo anterior,
+                    // hay que pedir ruta en el tick siguiente y no volver a
+                    // contar tres desde el principio. Esos segundos de mas
+                    // bastan en ciudad para pasarse la calle. (pmOS, 25/09/2026.)
+                    _offCount = 3
                 } else {
                     _offCount = 0
                     _yaRecalculado = true
@@ -752,6 +757,11 @@ Rectangle {
                         if (dM3 < avail3) { sf3 += dM3 / sgLen; dM3 = 0 }
                         else { dM3 -= avail3; si3++; sf3 = 0 }
                     }
+                    // Un recalculo cambia la ruta entera y el trazado nuevo puede ser
+                    // mas corto, asi que el indice guardado se queda apuntando fuera.
+                    // Indexar ahi devuelve undefined y la excepcion aborta lo que
+                    // queda de la funcion. Visto conduciendo el 25/09/2026.
+                    if (si3 > shape3.length - 1) { si3 = shape3.length - 1; sf3 = 0 }
                     _snapShapeI = si3; _snapShapeFrac = sf3
                     var spA = shape3[si3], spB = shape3[Math.min(si3 + 1, shape3.length - 1)]
                     snapLat = spA[1] + sf3 * (spB[1] - spA[1])

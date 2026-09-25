@@ -6915,7 +6915,15 @@ ApplicationWindow {
 
             var _pedirRuta = function() {
                 rerouteWatchdog.restart()
-                if (root._effAlertSound !== "off" || root._effInstrSound !== "off") navTts.reroute_beep()
+                var _pita = (root._effAlertSound !== "off" || root._effInstrSound !== "off")
+                if (appSettings.debugMode) {
+                    root._traceLines += root._tsLocal()
+                        + " === PITIDO recalculo pita=" + _pita
+                        + " alert=" + root._effAlertSound
+                        + " instr=" + root._effInstrSound + "\n"
+                    root._flushTrace()
+                }
+                if (_pita) navTts.reroute_beep()
                 NavSearch.route(wps, root._navOpts, function(err, routes) {
                     rerouteWatchdog.stop()
                     if (_wasRev) { root._revModeActive = false; gpsSource.cancelRevMode() }
