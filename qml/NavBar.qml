@@ -102,6 +102,9 @@ Rectangle {
 
     // Off-route
     property int  _offCount:      0   // lecturas consecutivas fuera de ruta
+    property bool _yaRecalculado: false // ya se recalculo una vez en este desvio
+    property bool _offSinVia:     false // fuera de ruta pero sin via distinta bajo el vehiculo
+    property int  _ticksEnRuta:   0   // ticks consecutivos de vuelta en ruta
     property bool _rerouting:     false
     property real _lastRerouteMs:    0   // timestamp de finalización del último recálculo (ms)
     property real _lastRerouteLat:   0   // posición donde se disparó el último recálculo

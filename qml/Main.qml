@@ -3499,7 +3499,10 @@ ApplicationWindow {
             }
 
             // Log de tick real: después de handleTick para tener distFromRoute actualizado
-            if (isReal && appSettings.debugMode && appSettings.simMode && root._navActive) {
+            // Sin exigir simMode: asi no se traza nada conduciendo de verdad,
+            // que es justo cuando aparecen los fallos que no se reproducen en
+            // simulacion. Sigue apagado salvo con el modo depuracion puesto.
+            if (isReal && appSettings.debugMode && root._navActive) {
                 var tsR = root._tsLocal(ms)
                 var realLine = tsR + " idx=" + gpsSource.simIdx
                     + " src=" + source
@@ -6855,7 +6858,7 @@ ApplicationWindow {
             }
         }
         onOffRoute: {
-            if (appSettings.debugMode && appSettings.simMode) {
+            if (appSettings.debugMode) {
                 var tsOff = root._tsLocal()
                 var reLine = tsOff + " === REROUTE simIdx=" + gpsSource.simIdx
                     + " realLat=" + navBar._realLat.toFixed(6)
@@ -6901,6 +6904,15 @@ ApplicationWindow {
             // Si no se puede consultar, se recalcula igual: quedarse sin
             // recalcular por un fallo de red es peor que un recalculo de mas, y
             // para ese caso esta ademas la espera creciente de NavBar.
+            // El perro guardian se arma AQUI, antes de nada, y no dentro de
+            // _pedirRuta. La comprobacion de si hay via es asincrona: si su
+            // respuesta no llega —red colgada, servidor mudo—, sin esto nadie
+            // rescata _rerouting, que se queda en true para siempre. Y la
+            // primera linea de NavBar.update() es `if (_rerouting) return`, asi
+            // que la navegacion entera se congela: ni distancia, ni maniobra, ni
+            // deteccion de desvio, nunca mas. Visto conduciendo el 25/09/2026.
+            rerouteWatchdog.restart()
+
             var _pedirRuta = function() {
                 rerouteWatchdog.restart()
                 if (root._effAlertSound !== "off" || root._effInstrSound !== "off") navTts.reroute_beep()
