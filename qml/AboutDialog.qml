@@ -232,12 +232,37 @@ Item {
                     font.pixelSize: ts(1.55)
                     wrapMode: Text.WordWrap
                 }
+                // El nombre de la licencia lleva enlace a su texto. Decir "GPL
+                // v3" sin dar donde leerla deja al usuario con la palabra y sin
+                // el derecho. Se enlaza gnu.org, que es el texto autoritativo.
+                // Mismo patron de enlace que PrivacyBanner.qml.
                 Label {
                     width: parent.width
+                    // El enlace se INSERTA en la cadena ya traducida, no se
+                    // monta troceandola: partirla en dos habria tirado las once
+                    // traducciones que existen de ella. "GNU GPL v3" aparece
+                    // literal en las once —comprobado—, asi que el replace
+                    // acierta en todas; y si alguna futura no lo llevara, se
+                    // queda el texto sin enlace en vez de salir roto.
                     text: i18n.tr("Licencia GNU GPL v3. Software libre.")
+                              .replace("GNU GPL v3",
+                                       "<a href='https://www.gnu.org/licenses/gpl-3.0.html'>GNU GPL v3</a>")
                     color: "#90A4AE"
+                    linkColor: "#29B6F6"
                     font.pixelSize: ts(1.45)
                     wrapMode: Text.WordWrap
+                    onLinkActivated: Qt.openUrlExternally(link)
+                }
+                // Y el codigo, que es la otra mitad de lo que la GPL garantiza.
+                Label {
+                    width: parent.width
+                    text: "<a href='https://github.com/woodyst/navius-postmarketos'>"
+                          + i18n.tr("Código fuente") + "</a>"
+                    color: "#90A4AE"
+                    linkColor: "#29B6F6"
+                    font.pixelSize: ts(1.45)
+                    wrapMode: Text.WordWrap
+                    onLinkActivated: Qt.openUrlExternally(link)
                 }
             }
 
