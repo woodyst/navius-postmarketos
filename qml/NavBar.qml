@@ -103,6 +103,17 @@ Rectangle {
     // Off-route
     property int  _offCount:      0   // lecturas consecutivas fuera de ruta
     property bool _rerouting:     false
+    // Recalculos encadenados: los que no sirven de nada porque al volver del
+    // servidor seguimos fuera de la ruta nueva. Pasa cuando se circula por algo
+    // que NO esta en el mapa —una pista, un vial nuevo, un parking—: la ruta
+    // recalculada vuelve a pasar por la carretera de al lado, uno sigue fuera, y
+    // la app se pasa el viaje entero pidiendo rutas, una cada cinco segundos,
+    // ninguna util. Cada recalculo seguido dobla la espera hasta un minuto.
+    property int  _reroutesEnCadena: 0
+    property int  _ticksEnRuta:      0   // seguidos dentro de la ruta; 5 rompen la cadena
+    readonly property int _esperaReroute:
+        Math.min(5000 * Math.pow(2, _reroutesEnCadena), 60000)
+
     property real _lastRerouteMs:    0   // timestamp de finalización del último recálculo (ms)
     property real _lastRerouteLat:   0   // posición donde se disparó el último recálculo
     property real _lastRerouteLon:   0
@@ -343,9 +354,10 @@ Rectangle {
 
         if (!nearDest && _seDesvia && bar.hasFix && _realFix && !bar.trackReplayMode) {
             _offCount++
+            _ticksEnRuta = 0
             if (_offCount === 1) _status = "offroute"
             if (_offCount >= 3) {
-                var _rcdOff = Date.now() - _lastRerouteMs < 5000
+                var _rcdOff = Date.now() - _lastRerouteMs < _esperaReroute
                 if (!_rcdOff && _lastRerouteLat !== 0) {
                     var _rdLatOff = (_realLat - _lastRerouteLat) * 111319
                     var _rdLonOff = (_realLon - _lastRerouteLon) * 111319 * Math.cos(_realLat * Math.PI / 180)
@@ -355,6 +367,7 @@ Rectangle {
                     _offCount = 0
                 } else {
                     _offCount = 0
+                    _reroutesEnCadena++
                     _status   = "rerouting"; _rerouting = true
                     _lastRerouteLat = _realLat; _lastRerouteLon = _realLon
                     bar.offRoute()
@@ -362,6 +375,13 @@ Rectangle {
             }
         } else {
             _offCount = 0
+            // De vuelta dentro de la ruta: unos cuantos ticks seguidos bastan
+            // para dar la cadena por rota y volver a la espera corta.
+            if (distM < offThreshold) {
+                if (++_ticksEnRuta >= 5) _reroutesEnCadena = 0
+            } else {
+                _ticksEnRuta = 0
+            }
             if (_status !== "rerouting") _status = "nav"
         }
 
