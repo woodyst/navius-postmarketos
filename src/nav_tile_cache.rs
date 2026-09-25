@@ -5,7 +5,8 @@
 // (ruta por defecto de Qt: ~/.cache/{OrganizationName}/{ApplicationName}/...,
 // ver QCoreApplication::setOrganizationName/setApplicationName en main.rs)
 // Esquema: tiles(z, x, y, data BLOB, compressed INTEGER)
-//   compressed=1 → data es gzip; compressed=0 → MVT en crudo
+//   compressed=1 → data COMPRIMIDO: en la practica zlib, no gzip (ver
+//                   decompress_tile); compressed=0 → MVT en crudo
 //
 // roads_near(lat, lon) → JSON con LineStrings de vías del área 3×3 z14.
 // Usado para dead reckoning sin ruta calculada o snap-to-road offline.
@@ -118,7 +119,7 @@ fn query_roads_near(lat: f64, lon: f64) -> Result<String, String> {
     for row in rows {
         let (tx, ty, data, compressed) = row.map_err(|e| e.to_string())?;
         let mvt = if compressed != 0 {
-            decompress_gzip(&data)?
+            decompress_tile(&data)?
         } else {
             data
         };
@@ -132,11 +133,40 @@ fn query_roads_near(lat: f64, lon: f64) -> Result<String, String> {
 
 // ─── Descompresión gzip ───────────────────────────────────────────────────────
 
-fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>, String> {
-    let mut dec = flate2::read::GzDecoder::new(data);
+/// Descomprime mirando la cabecera, no fiandose del formato.
+///
+/// QMapLibre marca compressed=1 y guarda ZLIB (cabecera 0x78 ...), no gzip. Con
+/// GzDecoder a secas fallaba SIEMPRE, y como el error se tragaba devolviendo
+/// "[]", roads_near no ha dado nunca un solo dato: ni para esto ni para el dead
+/// reckoning ni para el enganche a via sin conexion, que son sus otros usuarios.
+///
+/// Se prueban los tres formatos por orden de probabilidad y, si ninguno cuela,
+/// se devuelve el dato tal cual: puede venir sin comprimir aunque la columna
+/// diga lo contrario.
+fn decompress_tile(data: &[u8]) -> Result<Vec<u8>, String> {
     let mut out = Vec::new();
-    dec.read_to_end(&mut out).map_err(|e| format!("gzip: {e}"))?;
-    Ok(out)
+
+    if data.len() >= 2 && data[0] == 0x1f && data[1] == 0x8b {
+        let mut dec = flate2::read::GzDecoder::new(data);
+        if dec.read_to_end(&mut out).is_ok() {
+            return Ok(out);
+        }
+        out.clear();
+    }
+
+    // ZLIB: primer byte 0x78 en la practica (CM=8, CINFO=7).
+    let mut dec = flate2::read::ZlibDecoder::new(data);
+    if dec.read_to_end(&mut out).is_ok() {
+        return Ok(out);
+    }
+    out.clear();
+
+    let mut dec = flate2::read::DeflateDecoder::new(data);
+    if dec.read_to_end(&mut out).is_ok() {
+        return Ok(out);
+    }
+
+    Ok(data.to_vec())
 }
 
 // ─── Extracción MVT ───────────────────────────────────────────────────────────
