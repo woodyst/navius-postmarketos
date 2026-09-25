@@ -704,7 +704,23 @@ Item {
         _emit(pLat, pLon, v * 3.6, segHdg, _hasFix, false, now, "interp")
     }
 
+    // Desvio lateral de la simulacion, en metros, perpendicular al rumbo. Solo
+    // para depurar: es la unica forma de probar el recalculo por desvio sin
+    // salir a la calle. Con posicion manual (comando "pos") no vale, porque
+    // entonces dejan de llegar ticks y NavBar.update() no llega a evaluar nada.
+    // Positivo = a la derecha del sentido de marcha.
+    property real simDesvioM: 0
+
     function _emit(eLat, eLon, eSpdKmh, eHdg, eHasFix, eIsReal, eMs, eSource) {
+        if (simDesvioM !== 0) {
+            // Perpendicular al rumbo = rumbo + 90 grados. Con el rumbo medido
+            // desde el norte en sentido horario, la componente norte es cos y la
+            // este es sin, asi que a +90 quedan -sin y +cos.
+            var _dK = 111319
+            eLat = eLat + (simDesvioM * -Math.sin(eHdg)) / _dK
+            eLon = eLon + (simDesvioM *  Math.cos(eHdg))
+                          / (_dK * Math.cos(eLat * Math.PI / 180))
+        }
         lat        = eLat;    lon       = eLon
         speedKmh   = eSpdKmh; headRad  = eHdg
         hasFix     = eHasFix; lastIsReal = eIsReal

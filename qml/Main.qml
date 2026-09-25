@@ -10316,6 +10316,12 @@ ApplicationWindow {
         else if (cmd === "tts") {
             navTts.say("En quinientos metros, gire a la derecha")
         }
+        else if (cmd.indexOf("desvio") === 0) {
+            // Aparta la simulacion N metros a la derecha del sentido de marcha,
+            // sin tocar la ruta. "desvio0" vuelve a la ruta.
+            var _dv = parseFloat(cmd.substring(6))
+            if (!isNaN(_dv)) { gpsSource.simDesvioM = _dv; _writeAck("desvio " + _dv + " m") }
+        }
         else if (cmd.indexOf("pos") === 0) {
             var posRest2 = cmd.substring(3)
             var posCoords = posRest2.split(",")
