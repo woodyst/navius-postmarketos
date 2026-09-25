@@ -4714,18 +4714,18 @@ ApplicationWindow {
         }
         Connections {
             target: root
-            function onPinVisibleChanged()      { alertCanvas.requestPaint() }
-            function onPinLatChanged()          { alertCanvas.requestPaint() }
-            function onNavActiveChanged()       { alertCanvas.requestPaint() }
-            function onNavDestsChanged()        { alertCanvas.requestPaint() }
-            function onDispHeadRadChanged()     { alertCanvas.requestPaint() }
-            function onTestPoiVisibleChanged()  { alertCanvas.requestPaint() }
-            function onBillboardsChanged()       { alertCanvas.requestPaint() }
-            function onCommAlertasChanged()     { alertCanvas.requestPaint() }
-            function onCommAlertasVisiblesChanged() { alertCanvas.requestPaint() }
-            function onRadarFijosVisiblesChanged()  { alertCanvas.requestPaint() }
-            function onCommLimitesChanged()     { alertCanvas.requestPaint() }
-            function onCommSpeedLimitIdChanged(){ alertCanvas.requestPaint() }
+            function on_PinVisibleChanged()      { alertCanvas.requestPaint() }
+            function on_PinLatChanged()          { alertCanvas.requestPaint() }
+            function on_NavActiveChanged()       { alertCanvas.requestPaint() }
+            function on_NavDestsChanged()        { alertCanvas.requestPaint() }
+            function on_DispHeadRadChanged()     { alertCanvas.requestPaint() }
+            function on_TestPoiVisibleChanged()  { alertCanvas.requestPaint() }
+            function on_BillboardsChanged()       { alertCanvas.requestPaint() }
+            function on_CommAlertasChanged()     { alertCanvas.requestPaint() }
+            function on_CommAlertasVisiblesChanged() { alertCanvas.requestPaint() }
+            function on_RadarFijosVisiblesChanged()  { alertCanvas.requestPaint() }
+            function on_CommLimitesChanged()     { alertCanvas.requestPaint() }
+            function on_CommSpeedLimitIdChanged(){ alertCanvas.requestPaint() }
         }
         Connections {
             target: gpsSource
@@ -10350,7 +10350,7 @@ ApplicationWindow {
     // Limpia tráfico y navius_route al salir de navegación
     Connections {
         target: root
-        function onNavActiveChanged() {
+        function on_NavActiveChanged() {
             if (!root._navActive) root._clearTrafficComparison()
             if (!root._navActive) {
                 var xhr2 = new XMLHttpRequest()
