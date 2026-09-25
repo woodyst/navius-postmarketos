@@ -103,26 +103,6 @@ Rectangle {
     // Off-route
     property int  _offCount:      0   // lecturas consecutivas fuera de ruta
     property bool _rerouting:     false
-    // Recalculos encadenados: los que no sirven de nada porque al volver del
-    // servidor seguimos fuera de la ruta nueva. Pasa cuando se circula por algo
-    // que NO esta en el mapa —una pista, un vial nuevo, un parking—: la ruta
-    // recalculada vuelve a pasar por la carretera de al lado, uno sigue fuera, y
-    // la app se pasa el viaje entero pidiendo rutas, una cada cinco segundos,
-    // ninguna util. Cada recalculo seguido dobla la espera hasta un minuto.
-    // Ya se recalculo al menos una vez sin haber vuelto a la ruta. Main.qml lo
-    // usa para exigir, antes del siguiente recalculo, que haya una via debajo.
-    // Fuera de ruta, pero sin via debajo: se circula por algo que no esta en el
-    // mapa. No se recalcula —seria inutil— y ADEMAS no se anuncia como "Fuera
-    // de ruta", porque ese rotulo sustituye a la instruccion y dejaria al
-    // conductor sin indicaciones justo mientras sigue teniendo una ruta valida
-    // a la que volver. El aviso se queda en el icono.
-    property bool _offSinVia:        false
-    property bool _yaRecalculado:    false
-    property int  _reroutesEnCadena: 0
-    property int  _ticksEnRuta:      0   // seguidos dentro de la ruta; 5 rompen la cadena
-    readonly property int _esperaReroute:
-        Math.min(5000 * Math.pow(2, _reroutesEnCadena), 60000)
-
     property real _lastRerouteMs:    0   // timestamp de finalización del último recálculo (ms)
     property real _lastRerouteLat:   0   // posición donde se disparó el último recálculo
     property real _lastRerouteLon:   0
@@ -366,7 +346,7 @@ Rectangle {
             _ticksEnRuta = 0
             if (_offCount === 1 && !_offSinVia) _status = "offroute"
             if (_offCount >= 3) {
-                var _rcdOff = Date.now() - _lastRerouteMs < _esperaReroute
+                var _rcdOff = Date.now() - _lastRerouteMs < 5000
                 if (!_rcdOff && _lastRerouteLat !== 0) {
                     var _rdLatOff = (_realLat - _lastRerouteLat) * 111319
                     var _rdLonOff = (_realLon - _lastRerouteLon) * 111319 * Math.cos(_realLat * Math.PI / 180)
@@ -376,7 +356,6 @@ Rectangle {
                     _offCount = 0
                 } else {
                     _offCount = 0
-                    _reroutesEnCadena++
                     _yaRecalculado = true
                     _status   = "rerouting"; _rerouting = true
                     _lastRerouteLat = _realLat; _lastRerouteLon = _realLon
@@ -388,9 +367,7 @@ Rectangle {
             // De vuelta dentro de la ruta: unos cuantos ticks seguidos bastan
             // para dar la cadena por rota y volver a la espera corta.
             if (distM < offThreshold) {
-                if (++_ticksEnRuta >= 5) {
-                    _reroutesEnCadena = 0; _yaRecalculado = false; _offSinVia = false
-                }
+                if (++_ticksEnRuta >= 5) { _yaRecalculado = false; _offSinVia = false }
             } else {
                 _ticksEnRuta = 0
             }

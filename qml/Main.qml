@@ -1240,6 +1240,25 @@ ApplicationWindow {
     // Devuelve -1, o sea "no se sabe", en dos casos en los que un "no hay via"
     // seria mentira: sin tiles de la zona, y con vista de satelite, porque esos
     // tiles son raster y no llevan geometria ninguna.
+    // Clases de la capa "transportation" por las que de verdad se puede ir con
+    // el vehiculo activo. Sin esto valia cualquier linea del tile —caminos de
+    // tierra, sendas, vias de tren— y se daba por "estoy en otra via" un sitio
+    // por el que Valhalla no va a llevar un coche: se recalculaba y salia
+    // practicamente la misma ruta, una y otra vez.
+    function _clasesTransitables() {
+        var costing = vehicleManager ? vehicleManager.activeCosting() : "auto"
+        if (costing === "pedestrian")
+            return ["motorway","trunk","primary","secondary","tertiary","minor",
+                    "unclassified","residential","living_street","service",
+                    "path","footway","pedestrian","steps","track"]
+        if (costing === "bicycle")
+            return ["primary","secondary","tertiary","minor","unclassified",
+                    "residential","living_street","service","cycleway","path","track"]
+        // Coche, moto, camion: nada de sendas ni caminos de tierra.
+        return ["motorway","trunk","primary","secondary","tertiary","minor",
+                "unclassified","residential","living_street","service"]
+    }
+
     function _distViaEnTiles(lat, lon) {
         if (!tileCache) return -1
         var _estilo = mapView._forcedStyle !== "" ? mapView._forcedStyle
@@ -1250,9 +1269,13 @@ ApplicationWindow {
         try { vias = JSON.parse(tileCache.roads_near(lat, lon)) } catch (e) { return -1 }
         if (!vias) return -1
         var M = 111319, cosL = Math.cos(lat * Math.PI / 180), mejor = 1e9
+        var _clases = root._clasesTransitables()
         for (var i = 0; i < vias.length; i++) {
             var c = vias[i].coords
             if (!c || c.length < 2) continue
+            // Con corchetes: "class" es palabra reservada y como propiedad
+            // suelta depende del motor.
+            if (_clases.indexOf(vias[i]["class"]) < 0) continue
             for (var j = 0; j < c.length - 1; j++) {
                 // coords vienen [lat,lon]
                 var x0 = (c[j][1]   - lon) * M * cosL, y0 = (c[j][0]   - lat) * M
