@@ -982,6 +982,47 @@ function _valhallaLang() {
     return map[lang] || "en-US"
 }
 
+// ¿Hay una via bajo estas coordenadas, y a que distancia?
+//
+// Sirve para distinguir "me he metido por otra carretera" de "voy por donde no
+// hay carretera" (una pista, un vial nuevo, un parking). Lo primero merece un
+// recalculo; lo segundo no, porque la ruta nueva volvera a pasar por la
+// carretera de al lado y seguiremos fuera.
+//
+// Usa el MISMO servidor que las rutas, asi que funciona igual contra el
+// Valhalla oficial que contra OSM Scout Server en local; de ahi que mire si
+// VALHALLA apunta a 127.0.0.1 para cambiar a GET con el json en la URL, como
+// hacen route() y trace_attributes.
+//
+// callback(ok, distanciaEnMetros). ok=false si no se pudo consultar: quien
+// llama debe decidir por su cuenta, nunca dar por hecho que no hay via.
+function locate(lat, lon, callback) {
+    var body = JSON.stringify({
+        locations: [{lat: lat, lon: lon}],
+        costing: "auto",
+        verbose: false
+    })
+    var _isLocal = VALHALLA.indexOf("127.0.0.1") >= 0
+    var _url  = _isLocal ? VALHALLA + "/locate?json=" + encodeURIComponent(body)
+                         : VALHALLA + "/locate"
+    _xhr(_isLocal ? "GET" : "POST", _url, _isLocal ? null : body, function(err, text) {
+        if (err) { callback(false, -1); return }
+        try {
+            var r = JSON.parse(text)
+            var e = (r && r[0] && r[0].edges) ? r[0].edges : []
+            if (e.length === 0) { callback(true, 1e9); return }   // consultado: no hay via
+            var M = 111319, cosL = Math.cos(lat * Math.PI / 180), mejor = 1e9
+            for (var i = 0; i < e.length; i++) {
+                var dLat = (e[i].correlated_lat - lat) * M
+                var dLon = (e[i].correlated_lon - lon) * M * cosL
+                var d = Math.sqrt(dLat * dLat + dLon * dLon)
+                if (d < mejor) mejor = d
+            }
+            callback(true, mejor)
+        } catch (ex) { callback(false, -1) }
+    }, 4000)
+}
+
 function route(waypoints, opts, callback) {
     var locs = []
     for (var i = 0; i < waypoints.length; i++) {

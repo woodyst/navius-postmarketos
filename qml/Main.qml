@@ -1230,6 +1230,49 @@ ApplicationWindow {
         return false
     }
 
+    // ¿Hay una via bajo el punto, segun los tiles vectoriales YA descargados?
+    //
+    // Devuelve la distancia en metros a la via mas cercana, o -1 si no se puede
+    // saber. Es gratis y sin red: lee el mismo cache SQLite que pinta el mapa,
+    // que navegando esta siempre lleno de la zona —la precarga baja la ruta en
+    // z11 y z15, y el mapa centrado en el coche cachea lo de debajo.
+    //
+    // Devuelve -1, o sea "no se sabe", en dos casos en los que un "no hay via"
+    // seria mentira: sin tiles de la zona, y con vista de satelite, porque esos
+    // tiles son raster y no llevan geometria ninguna.
+    function _distViaEnTiles(lat, lon) {
+        if (!tileCache) return -1
+        var _estilo = mapView._forcedStyle !== "" ? mapView._forcedStyle
+                                                  : appSettings.mapStyleMode
+        if (_estilo === "satellite") return -1
+        if (tileCache.cached_tile_count(lat, lon) <= 0) return -1
+        var vias = null
+        try { vias = JSON.parse(tileCache.roads_near(lat, lon)) } catch (e) { return -1 }
+        if (!vias) return -1
+        var M = 111319, cosL = Math.cos(lat * Math.PI / 180), mejor = 1e9
+        for (var i = 0; i < vias.length; i++) {
+            var c = vias[i].coords
+            if (!c || c.length < 2) continue
+            for (var j = 0; j < c.length - 1; j++) {
+                // coords vienen [lat,lon]
+                var x0 = (c[j][1]   - lon) * M * cosL, y0 = (c[j][0]   - lat) * M
+                var x1 = (c[j+1][1] - lon) * M * cosL, y1 = (c[j+1][0] - lat) * M
+                var dx = x1 - x0, dy = y1 - y0
+                var len2 = dx * dx + dy * dy
+                var t = len2 > 0 ? Math.max(0, Math.min(1, -(x0 * dx + y0 * dy) / len2)) : 0
+                var px = x0 + t * dx, py = y0 + t * dy
+                var d = Math.sqrt(px * px + py * py)
+                if (d < mejor) mejor = d
+            }
+        }
+        // Lista vacia NO significa "no hay via": significa "no lo se". Puede ser
+        // que el estilo cachee la capa con otro nombre, que falte justo el tile
+        // del punto, o que sean raster. Solo se puede negar cuando el parser SI
+        // ha devuelto vias y todas quedan lejos —que es el caso que interesa:
+        // circular por una pista con la carretera a cincuenta metros.
+        return mejor < 1e9 ? mejor : -1
+    }
+
     function _routeInfo(aLat, aLon, margin) {
         if (!root._navActive || !root._navData || !root._navData.shape)
             return { onRoute: true, arcDist: -1 }
@@ -6820,72 +6863,145 @@ ApplicationWindow {
                 }
                 navBar._rerouting = false; navBar._status = "nav"; return
             }
-            rerouteWatchdog.restart()
-            if (root._effAlertSound !== "off" || root._effInstrSound !== "off") navTts.reroute_beep()
-            NavSearch.route(wps, root._navOpts, function(err, routes) {
-                rerouteWatchdog.stop()
-                if (_wasRev) { root._revModeActive = false; gpsSource.cancelRevMode() }
-                navBar._rerouting = false
-                navBar._lastRerouteMs = Date.now()
-                if (!root._navActive) return
-                if (err || !routes || routes.length === 0) {
-                    navBar._status = "nav"
-                    return
-                }
-                root.drawRoute(routes, 0)
-                root._navData        = routes[0]
-                gpsSource.routeShape = routes[0].shape
-                gpsSource._shapeIdx  = 0
-                gpsSource._shapeFrac = 0
-                // En simMode: actualizar simRoute inmediatamente para que el sim no use la ruta antigua
-                // (seekTo antes del callback async enrichSpeedLimits evita el salto visual de 180°)
-                if (appSettings.simMode && root._navActive && root._navData) {
-                    root.simRoute = root.buildSimRouteFromNavData(root._navData)
-                    gpsSource.seekTo(0)
-                }
-                if (appSettings.debugMode && appSettings.simMode) {
-                    root._traceLines += root._tsLocal()
-                        + " === REROUTE_OK shape=" + routes[0].shape.length
-                        + " steps=" + routes[0].maneuvers.length + "\n"
-                    root._flushTrace()
-                }
-                mapView.followMode = true
-                root._activeTramo = null; root._tramoFrac = 0
-                root._radarApproachingTramo = false
-                root._radarAlert = false; root._radarAlertMsg = ""; root._radarAlertMaxspeed = 0
-                if (appSettings.simRouteIdx === 0 || appSettings.simRouteIdx === 4) {
-                    NavSearch.fetchRadars(routes[0].shape, function(result) {
-                        if (!root._navActive) return
-                        root._radarFijos  = result.fijos
-                        root._radarTramos = result.tramos
-                        root._updateRadarLayers()
-                        root._handleRadarFetchResult(result)
-                    })
-                }
-                NavSearch.enrichSpeedLimits(routes[0].shape, routes[0].maneuvers, function(enrichedMans) {
-                    if (!root._navActive || !root._navData) return
-                    var origMans = root._navData.maneuvers
-                    if (!origMans) return
-                    for (var ri = 0; ri < enrichedMans.length && ri < origMans.length; ri++) {
-                        var rsl = enrichedMans[ri].speed_limit
-                        if (rsl !== undefined && rsl > 0) {
-                            origMans[ri].speed_limit     = rsl
-                            origMans[ri].speed_limit_src = enrichedMans[ri].speed_limit_src || ""
-                            origMans[ri]._dbgSpeed       = enrichedMans[ri]._dbgSpeed  || 0
-                            origMans[ri]._slOsm          = enrichedMans[ri]._slOsm     || 0
-                            origMans[ri]._slVal          = enrichedMans[ri]._slVal     || 0
-                            origMans[ri]._slLegal        = enrichedMans[ri]._slLegal   || 0
-                            origMans[ri]._roadClass      = enrichedMans[ri].road_class || ""
-                        }
+            // Ya se recalculo antes en este desvio: antes de volver a pedir
+            // ruta hay que saber DONDE estamos.
+            //
+            // Sobre otra via, el recalculo tiene sentido: nos hemos metido por
+            // otra carretera. Sin via debajo —una pista, un vial nuevo, un
+            // parking— no lo tiene: la ruta nueva volvera a pasar por la
+            // carretera de al lado, seguiremos fuera, y la app se pasa el viaje
+            // entero pidiendo rutas, una cada cinco segundos, ninguna util.
+            //
+            // La consulta va al MISMO servidor de rutas, asi que vale igual
+            // contra el Valhalla oficial que contra OSM Scout Server en local.
+            //
+            // Si no se puede consultar, se recalcula igual: quedarse sin
+            // recalcular por un fallo de red es peor que un recalculo de mas, y
+            // para ese caso esta ademas la espera creciente de NavBar.
+            var _pedirRuta = function() {
+                rerouteWatchdog.restart()
+                if (root._effAlertSound !== "off" || root._effInstrSound !== "off") navTts.reroute_beep()
+                NavSearch.route(wps, root._navOpts, function(err, routes) {
+                    rerouteWatchdog.stop()
+                    if (_wasRev) { root._revModeActive = false; gpsSource.cancelRevMode() }
+                    navBar._rerouting = false
+                    navBar._lastRerouteMs = Date.now()
+                    if (!root._navActive) return
+                    if (err || !routes || routes.length === 0) {
+                        navBar._status = "nav"
+                        return
                     }
-                    root._propagateRoundaboutSpeeds(origMans)
-                    root._slDebugTick++; root._writeSlDebugFile()
-                    // Actualizar simRoute con límites de velocidad reales; sin seekTo (sim ya corre desde idx=0)
+                    root.drawRoute(routes, 0)
+                    root._navData        = routes[0]
+                    gpsSource.routeShape = routes[0].shape
+                    gpsSource._shapeIdx  = 0
+                    gpsSource._shapeFrac = 0
+                    // En simMode: actualizar simRoute inmediatamente para que el sim no use la ruta antigua
+                    // (seekTo antes del callback async enrichSpeedLimits evita el salto visual de 180°)
                     if (appSettings.simMode && root._navActive && root._navData) {
                         root.simRoute = root.buildSimRouteFromNavData(root._navData)
+                        gpsSource.seekTo(0)
+                    }
+                    if (appSettings.debugMode && appSettings.simMode) {
+                        root._traceLines += root._tsLocal()
+                            + " === REROUTE_OK shape=" + routes[0].shape.length
+                            + " steps=" + routes[0].maneuvers.length + "\n"
+                        root._flushTrace()
+                    }
+                    mapView.followMode = true
+                    root._activeTramo = null; root._tramoFrac = 0
+                    root._radarApproachingTramo = false
+                    root._radarAlert = false; root._radarAlertMsg = ""; root._radarAlertMaxspeed = 0
+                    if (appSettings.simRouteIdx === 0 || appSettings.simRouteIdx === 4) {
+                        NavSearch.fetchRadars(routes[0].shape, function(result) {
+                            if (!root._navActive) return
+                            root._radarFijos  = result.fijos
+                            root._radarTramos = result.tramos
+                            root._updateRadarLayers()
+                            root._handleRadarFetchResult(result)
+                        })
+                    }
+                    NavSearch.enrichSpeedLimits(routes[0].shape, routes[0].maneuvers, function(enrichedMans) {
+                        if (!root._navActive || !root._navData) return
+                        var origMans = root._navData.maneuvers
+                        if (!origMans) return
+                        for (var ri = 0; ri < enrichedMans.length && ri < origMans.length; ri++) {
+                            var rsl = enrichedMans[ri].speed_limit
+                            if (rsl !== undefined && rsl > 0) {
+                                origMans[ri].speed_limit     = rsl
+                                origMans[ri].speed_limit_src = enrichedMans[ri].speed_limit_src || ""
+                                origMans[ri]._dbgSpeed       = enrichedMans[ri]._dbgSpeed  || 0
+                                origMans[ri]._slOsm          = enrichedMans[ri]._slOsm     || 0
+                                origMans[ri]._slVal          = enrichedMans[ri]._slVal     || 0
+                                origMans[ri]._slLegal        = enrichedMans[ri]._slLegal   || 0
+                                origMans[ri]._roadClass      = enrichedMans[ri].road_class || ""
+                            }
+                        }
+                        root._propagateRoundaboutSpeeds(origMans)
+                        root._slDebugTick++; root._writeSlDebugFile()
+                        // Actualizar simRoute con límites de velocidad reales; sin seekTo (sim ya corre desde idx=0)
+                        if (appSettings.simMode && root._navActive && root._navData) {
+                            root.simRoute = root.buildSimRouteFromNavData(root._navData)
+                        }
+                    })
+                })
+            }
+
+            if (navBar._yaRecalculado) {
+                // Cuanto puede uno estar separado del eje de una via y seguir
+                // circulando por ella: medio ancho de calzada, el error del GPS y
+                // lo que simplifica la geometria del tile. No vale el umbral de
+                // desvio, que es otra cosa y se queda corto: con 11 m, ir por la
+                // calle de al lado ya contaba como "no hay via".
+                var _limiteVia = Math.max(navBar.offRouteDistM, 20)
+                var _traza = function(txt) {
+                    if (!appSettings.debugMode) return
+                    root._traceLines += root._tsLocal() + " === VIA " + txt + "\n"
+                    root._flushTrace()
+                }
+                var _omitir = function(motivo) {
+                    _traza("OMITIDO: " + motivo)
+                    navBar._rerouting = false; navBar._status = "nav"
+                    // Que no vuelva a rotularse "Fuera de ruta" en cada tick: la
+                    // ruta sigue siendo valida y las indicaciones tienen que
+                    // verse. Queda el icono de aviso.
+                    navBar._offSinVia = true
+                }
+                // Primero el cache de tiles: local, instantaneo y sin red.
+                var _dTiles = root._distViaEnTiles(_rerouteLat, _rerouteLon)
+                if (_dTiles < 0) _traza("tiles: sin datos utiles, pregunto a locate")
+                if (_dTiles >= 0) {
+                    if (_dTiles > _limiteVia) {
+                        _omitir("tiles: via mas cercana a " + _dTiles.toFixed(1)
+                                + " m (limite " + _limiteVia + ")")
+                    } else {
+                        _traza("tiles: via a " + _dTiles.toFixed(1) + " m -> recalcula")
+                        navBar._offSinVia = false; _pedirRuta()
+                    }
+                    return
+                }
+                // Sin tiles utiles —o con satelite— se le pregunta al servidor
+                // de rutas, que vale igual si es el Valhalla oficial que si es
+                // OSM Scout Server en local: los dos sirven /locate.
+                NavSearch.locate(_rerouteLat, _rerouteLon, function(ok, distVia) {
+                    if (!ok) {
+                        // Ni tiles ni servidor: no hay con que verificar, y sin
+                        // red tampoco habria ruta que pedir. Pedirla solo gasta
+                        // un intento fallido y un pitido.
+                        _omitir("sin forma de verificar")
+                        return
+                    }
+                    if (distVia > _limiteVia) {
+                        _omitir("locate: via mas cercana a " + distVia.toFixed(1)
+                                + " m (limite " + _limiteVia + ")")
+                    } else {
+                        _traza("locate: via a " + distVia.toFixed(1) + " m -> recalcula")
+                        navBar._offSinVia = false; _pedirRuta()
                     }
                 })
-            })
+                return
+            }
+            _pedirRuta()
         }
     }
 
