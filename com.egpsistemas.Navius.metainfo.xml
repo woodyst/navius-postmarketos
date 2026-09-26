@@ -131,6 +131,12 @@
   </screenshots>
 
   <releases>
+    <release version="1.0.16" date="2026-09-26">
+      <description>
+        <p>Rerouting works again while actually driving. Three properties that pace the recalculations were used without being declared, which on Qt 5.15 only logs a warning but left the off-route detection in an odd state; they are now declared. Also fixed: an index that fell out of range when a recalculated route came back shorter, a wait after each reroute so they no longer chain one after another, and thirteen signal handlers that never ran because the signal name was written without its underscore. Version number aligned with the Android and Ubuntu Touch ports.</p>
+        <p xml:lang="es">El recálculo de ruta vuelve a funcionar conduciendo de verdad. Tres propiedades que marcan la cadencia de los recálculos se usaban sin declarar, lo que en Qt 5.15 solo suelta un aviso pero dejaba la detección de desvío en un estado raro; ahora se declaran. Se arreglan además un índice que se salía de rango cuando la ruta recalculada volvía más corta, una espera tras cada recálculo para que no se encadenen uno tras otro, y trece manejadores de señal que no se ejecutaban nunca porque el nombre iba sin su guion bajo. Número de versión alineado con los ports de Android y Ubuntu Touch.</p>
+      </description>
+    </release>
     <release version="1.0.14" date="2026-09-23">
       <description>
         <p>Route planning gets a lot of polish: routes now show the arrival time, the starting point can be set without simulation mode, picking another vehicle really recalculates the route, and the route list no longer hides the drawn route. Destination search no longer shows far-away places when typing fast, fuel prices are shown in full, and there is a way back from the points-of-interest results. Map tiles can be pre-downloaded before setting off, with a progress screen instead of the map racing along the route. Bigger text in the search and route screens, and labels that no longer overflow their buttons.</p>
