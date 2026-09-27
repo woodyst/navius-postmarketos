@@ -65,7 +65,7 @@ function _xhrGet(url, callback) {
 function login(email, password, callback) {
     // callback(ok, token_o_null, id_usuario, mensaje_error)
     _xhrPost(_serverUrl + "/api/v1/usuarios/login", null,
-             { email: email, password: password },
+             { email: email, password: password, idioma: _idioma },
              function(status, body) {
                  if (status === 200) {
                      try {
@@ -113,7 +113,7 @@ function registro(email, password, callback) {
 
 function reenviarVerificacion(email, callback) {
     _xhrPost(_serverUrl + "/api/v1/usuarios/reenviar-verificacion", null,
-             { email: email, password: "" },
+             { email: email, password: "", idioma: _idioma },
              function(status, body) { callback(status === 200) })
 }
 
