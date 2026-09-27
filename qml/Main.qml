@@ -2817,6 +2817,10 @@ ApplicationWindow {
         NavMessages.setAppInfo(root._version, _plat)
         NavSettings.setAppInfo(root._version, _plat)
         NavAlerts.setAppInfo(root._version, _plat)
+        // Y el idioma, que viaja al servidor al registrarse para que el correo de
+        // verificacion salga en el del usuario. Aqui la interfaz sigue al locale
+        // del sistema, asi que sale de Qt.locale().
+        NavAlerts.setIdioma(String(Qt.locale().name).substring(0, 2))
         // Ubicación compartida por otra app vía esquema geo: (argv al lanzar,
         // ver sharedUri en main.rs) — sustituye al Content-Hub de Lomiri.
         if (typeof sharedUri !== "undefined" && sharedUri.length > 0) {

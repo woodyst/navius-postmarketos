@@ -82,10 +82,18 @@ function login(email, password, callback) {
              })
 }
 
+// Idioma de la interfaz, en dos letras. Se manda al registrarse para que el
+// servidor escriba el correo de verificacion en el idioma del usuario: hasta el
+// 27/09/2026 salia siempre en castellano, y un tester aleman con la app en
+// ingles recibio un correo que no entendia. Lo inyecta Main.qml, que este
+// fichero es .pragma library y no ve el contexto QML.
+var _idioma = "es"
+function setIdioma(cod) { if (cod) _idioma = cod }
+
 function registro(email, password, callback) {
     // callback(ok, mensaje, puedeReenviar)
     _xhrPost(_serverUrl + "/api/v1/usuarios/registro", null,
-             { email: email, password: password },
+             { email: email, password: password, idioma: _idioma },
              function(status, body) {
                  if (status === 201) {
                      callback(true, "", false)
