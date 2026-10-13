@@ -447,6 +447,65 @@ function _photonLang() {
     return "default"
 }
 
+// ── Pais de referencia ──────────────────────────────────────────────────────
+//
+// Sirve para apartar de la lista los resultados que estan en otro pais. Buscar
+// «Toledo» desde Madrid devuelve el de Castilla-La Mancha y el de Ohio mezclados,
+// y el de Ohio nunca es lo que se busca... salvo que lo sea, asi que no se tiran:
+// se guardan detras de «En otro pais».
+//
+// El pais sale de la POSICION, no del idioma del telefono: un aleman de viaje por
+// España quiere los resultados españoles. Vale cualquier posicion, aunque sea
+// mala —la de la red movil tiene kilometros de error y para esto sobra—, y si no
+// hay ninguna no se agrupa nada y se ve todo como siempre.
+var _paisRef = { lat: 0, lon: 0, code: "" }
+
+function paisRef() { return _paisRef.code }
+
+/// Pide el pais de una posicion y avisa cuando lo sabe. Se recuerda mientras no
+/// nos movamos 50 km, que es de sobra para no repetir la consulta en cada
+/// busqueda y poco para cruzar una frontera sin enterarse.
+function resolverPaisRef(lat, lon, cb) {
+    if (!lat && !lon) {                       // sin posicion: no se agrupa
+        _paisRef = { lat: 0, lon: 0, code: "" }
+        if (cb) cb("")
+        return
+    }
+    if (_paisRef.code && _haversineKm(lat, lon, _paisRef.lat, _paisRef.lon) < 50) {
+        if (cb) cb(_paisRef.code)
+        return
+    }
+    var url = PHOTON + "/reverse?lat=" + lat + "&lon=" + lon + "&limit=1"
+    _xhr("GET", url, null, function(err, text) {
+        if (err) { _logMsg("País de referencia: sin respuesta"); if (cb) cb(_paisRef.code); return }
+        try {
+            var fc = JSON.parse(text)
+            var p  = (fc.features && fc.features.length) ? fc.features[0].properties : null
+            var cc = (p && p.countrycode) ? String(p.countrycode).toUpperCase() : ""
+            if (cc) {
+                _paisRef = { lat: lat, lon: lon, code: cc }
+                _logMsg("País de referencia: " + cc)
+            }
+            if (cb) cb(_paisRef.code)
+        } catch(e) { if (cb) cb(_paisRef.code) }
+    }, 6000)
+}
+
+/// Codigo de pais de un resultado, en mayusculas. Vacio si no lo trae.
+function paisDe(f) {
+    var p = f && f.properties ? f.properties : null
+    return (p && p.countrycode) ? String(p.countrycode).toUpperCase() : ""
+}
+
+/// true si el resultado esta en otro pais. Sin pais de referencia, o sin pais en
+/// el resultado, se da por de aqui: mas vale enseñarlo de mas que esconderlo.
+function esDeFuera(f) {
+    var ref = _paisRef.code
+    if (!ref) return false
+    var c = paisDe(f)
+    return c !== "" && c !== ref
+}
+
 var PHOTON_FALLBACK = "https://photon.komoot.io"
 
 // Busca lugares con Photon. aroundLat/Lon: centro para biasing (0,0 para ignorar).

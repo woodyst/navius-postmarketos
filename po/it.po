@@ -3555,6 +3555,12 @@ msgstr "Registra percorso"
 msgid "¿No sale tu destino? Búscalo en Google Maps"
 msgstr "Non trovi la tua destinazione? Cercala su Google Maps"
 
+msgid "En otro país (%1)"
+msgstr "In un altro paese (%1)"
+
+msgid "Posición GPS aún no disponible"
+msgstr "Posizione GPS non ancora disponibile"
+
 #~ msgid "Silenciado"
 #~ msgstr "Silenziato"
 

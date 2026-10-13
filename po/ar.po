@@ -3480,6 +3480,12 @@ msgstr "تسجيل المسار"
 msgid "¿No sale tu destino? Búscalo en Google Maps"
 msgstr "لا تظهر وجهتك؟ ابحث عنها في خرائط Google"
 
+msgid "En otro país (%1)"
+msgstr "في بلد آخر (%1)"
+
+msgid "Posición GPS aún no disponible"
+msgstr "موقع GPS غير متاح بعد"
+
 #~ msgid "Silenciado"
 #~ msgstr "صامت"
 

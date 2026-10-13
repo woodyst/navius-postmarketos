@@ -3532,6 +3532,12 @@ msgstr "Gravar rota"
 msgid "¿No sale tu destino? Búscalo en Google Maps"
 msgstr "Não aparece o teu destino? Procura-o no Google Maps"
 
+msgid "En otro país (%1)"
+msgstr "Noutro país (%1)"
+
+msgid "Posición GPS aún no disponible"
+msgstr "Posição GPS ainda não disponível"
+
 #~ msgid "Silenciado"
 #~ msgstr "Silenciado"
 

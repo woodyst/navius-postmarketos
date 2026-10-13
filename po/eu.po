@@ -3546,6 +3546,12 @@ msgstr "Ibilbidea grabatu"
 msgid "¿No sale tu destino? Búscalo en Google Maps"
 msgstr "Ez da zure helmuga agertzen? Bilatu Google Maps-en"
 
+msgid "En otro país (%1)"
+msgstr "Beste herrialde batean (%1)"
+
+msgid "Posición GPS aún no disponible"
+msgstr "GPS kokapena ez dago eskuragarri oraindik"
+
 #~ msgid "Silenciado"
 #~ msgstr "Isilarazia"
 

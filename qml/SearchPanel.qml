@@ -133,6 +133,13 @@ Rectangle {
     property int  _searchSeq: 0
     property string _searchErr: ""
     property var    _results:  []
+    // Los de otro pais van aparte, detras de un desplegable: ver _agrupar().
+    property var    _resAqui:  []
+    property var    _resFuera: []
+    property bool   _fueraAbierto: false
+    // Lo que pinta la lista: los de aqui, la cabecera del desplegable si hay
+    // algo detras, y los de fuera cuando esta abierto.
+    property var    _modelo:   []
     property string _poiType:  ""
     property string _mineturDate: ""
     property var _dests:     []     // [{lat, lon, name, todos:[{text,done}]}, ...]  waypoints del usuario
@@ -294,6 +301,31 @@ Rectangle {
     }
 
     // Añade un destino al final de la lista de waypoints y persiste.
+    // Separa los resultados por pais. Sin pais de referencia —sin posicion de
+    // ningun tipo— no se separa nada y la lista queda como siempre.
+    function _agrupar() {
+        var aqui = [], fuera = []
+        for (var i = 0; i < _results.length; i++) {
+            if (NavSearch.esDeFuera(_results[i])) fuera.push(_results[i])
+            else                                  aqui.push(_results[i])
+        }
+        _resAqui  = aqui
+        _resFuera = fuera
+        // Si no hay nada de aqui, el desplegable nace abierto: con la lista
+        // vacia y un desplegable cerrado parece que no se ha encontrado nada.
+        if (aqui.length === 0 && fuera.length > 0) _fueraAbierto = true
+        _rehacerModelo()
+    }
+
+    function _rehacerModelo() {
+        var m = _resAqui.slice()
+        if (_resFuera.length > 0) {
+            m.push({ _cabecera: true })
+            if (_fueraAbierto) m = m.concat(_resFuera)
+        }
+        _modelo = m
+    }
+
     function addDest(lat, lon, name) {
         var d = _dests.slice()
         d.push({ lat: lat, lon: lon, name: name, todos: _latestTodos(lat, lon) })
@@ -425,6 +457,7 @@ Rectangle {
         Qt.inputMethod.hide()
         searchField.text = ""
         _results       = []
+        _agrupar()
         _searchErr     = ""
         _st            = "idle"
         _settingOrigin = false
@@ -460,15 +493,19 @@ Rectangle {
     }
 
     function _doSearch(q) {
-        if (q.length < 2) { _searchSeq++; _results = []; _searching = false; _searchErr = ""; return }
+        if (q.length < 2) { _searchSeq++; _results = []; _agrupar(); _searching = false; _searchErr = ""; return }
         var seq    = ++_searchSeq
         _st        = "results"
         _searching = true
         _searchErr = ""
         _results   = []
+        _agrupar()
         _poiType   = ""
         _resetLog()
         _addLog(i18n.tr("Buscando «%1»").arg(q))
+        // De paso se averigua en que pais estamos, para apartar despues lo que
+        // este en otro. Va en paralelo con la busqueda y no la retrasa.
+        NavSearch.resolverPaisRef(panel.gpsLat, panel.gpsLon, function() { panel._agrupar() })
         NavSearch.geocode(q, panel.gpsLat, panel.gpsLon, function(err, res) {
             if (seq !== panel._searchSeq) {
                 _addLog("↯ descartada: llega «" + q + "» y ya no es lo buscado")
@@ -491,6 +528,7 @@ Rectangle {
             } else {
                 _searchErr = ""
                 _results = res
+                _agrupar()
             }
         })
     }
@@ -501,6 +539,7 @@ Rectangle {
         _searching   = true
         _searchErr   = ""
         _results     = []
+        _agrupar()
         _poiType     = type
         _mineturDate = ""
         _resetLog()
@@ -528,7 +567,7 @@ Rectangle {
                     _searchErr = i18n.tr("Error: ") + err
                 }
             } else if (!res || res.length === 0) { _searchErr = i18n.tr("Sin resultados cerca"); _addLog("Sin resultados") }
-            else                                  { _results = res; _addLog("✓ " + res.length + " resultado(s)") }
+            else                                  { _results = res; _agrupar(); _addLog("✓ " + res.length + " resultado(s)") }
             if (type === "fuel") _mineturDate = NavSearch.mineturCacheDate()
         }
         var spd = panel.navSpeedKmh
@@ -757,6 +796,7 @@ Rectangle {
             }
             _settingOrigin = false
             _results = []
+            _agrupar()
             _st = "idle"
             searchField.text = ""
         } else {
@@ -922,7 +962,7 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 width: units.gu(3.5); height: units.gu(3.5); radius: width/2; color: "#2A2A3E"
                 Label { anchors.centerIn: parent; text: "✕"; color: "#B0BEC5"; font.pixelSize: ts(1.5) }
-                MouseArea { anchors.fill: parent; onClicked: { searchField.text = ""; panel._results = []; panel._st = "idle"; panel._settingOrigin = false } }
+                MouseArea { anchors.fill: parent; onClicked: { searchField.text = ""; panel._results = []; panel._agrupar(); panel._st = "idle"; panel._settingOrigin = false } }
             }
             Rectangle {
                 id: logToggleBtn; visible: panel._logVisible
@@ -1425,26 +1465,64 @@ Rectangle {
                 anchors { fill: parent
                           topMargin: (fuelDateLabel.visible ? fuelDateLabel.height + units.gu(1) : 0)
                                      + gmapsHint.height }
-                visible: !panel._searching && panel._results.length > 0
-                model: panel._results
+                visible: !panel._searching && panel._modelo.length > 0
+                model: panel._modelo
                 clip: true
                 delegate: Rectangle {
                     id: resultDelegate
-                    property string _detail: (modelData.properties && modelData.properties.detail) ? modelData.properties.detail : ""
+                    // La lista lleva, ademas de resultados, UNA cabecera: la del
+                    // desplegable de «En otro país». Se distingue por la marca
+                    // _cabecera, y todo lo que lee del resultado va protegido,
+                    // que la cabecera no tiene geometria ni propiedades.
+                    property bool _esCabecera: modelData && modelData._cabecera === true
+                    property string _detail: (!_esCabecera && modelData.properties && modelData.properties.detail)
+                                             ? modelData.properties.detail : ""
                     width: parent.width
                     // El alto sale del contenido: el detalle de las gasolineras
                     // son varios precios y ocupa mas de una linea. Con gu(12)
                     // fijo no cabia. El minimo deja hueco para la estrella de
                     // favorito, que mide gu(7.5).
-                    height: Math.max(units.gu(10), infoCol.height + units.gu(2))
-                    color: rm.pressed ? "#1E3A5F" : "transparent"
+                    height: _esCabecera ? units.gu(6)
+                                        : Math.max(units.gu(10), infoCol.height + units.gu(2))
+                    color: _esCabecera ? (cabeceraMa.pressed ? "#1A2535" : "#141428")
+                                       : (rm.pressed ? "#1E3A5F" : "transparent")
                     Rectangle { width: parent.width; height: units.gu(0.06); anchors.bottom: parent.bottom; color: "#1C1C2E" }
 
-                    property real _rLat: modelData.geometry.coordinates[1]
-                    property real _rLon: modelData.geometry.coordinates[0]
+                    property real _rLat: _esCabecera ? 0 : modelData.geometry.coordinates[1]
+                    property real _rLon: _esCabecera ? 0 : modelData.geometry.coordinates[0]
+
+                    // ── Cabecera del desplegable ──────────────────────────
+                    Row {
+                        visible: resultDelegate._esCabecera
+                        anchors { left: parent.left; right: parent.right
+                                  verticalCenter: parent.verticalCenter
+                                  leftMargin: units.gu(2); rightMargin: units.gu(2) }
+                        spacing: units.gu(1)
+                        Label {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: panel._fueraAbierto ? "▾" : "▸"
+                            color: "#90A4AE"; font.pixelSize: ts(1.8)
+                        }
+                        Label {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: i18n.tr("En otro país (%1)").arg(panel._resFuera.length)
+                            color: "#90A4AE"; font.pixelSize: ts(1.8)
+                        }
+                    }
+                    MouseArea {
+                        id: cabeceraMa
+                        anchors.fill: parent
+                        visible: resultDelegate._esCabecera
+                        enabled: resultDelegate._esCabecera
+                        onClicked: {
+                            panel._fueraAbierto = !panel._fueraAbierto
+                            panel._rehacerModelo()
+                        }
+                    }
 
                     Column {
                         id: infoCol
+                        visible: !resultDelegate._esCabecera
                         anchors { left: parent.left; right: favStarBtn.left; verticalCenter: parent.verticalCenter
                                   leftMargin: units.gu(2); rightMargin: units.gu(1) }
                         spacing: units.gu(0.3)
@@ -1471,6 +1549,7 @@ Rectangle {
 
                     Rectangle {
                         id: favStarBtn
+                        visible: !resultDelegate._esCabecera
                         anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: units.gu(1) }
                         width: units.gu(7.5); height: units.gu(7.5); radius: width/2
                         color: panel._isFavorite(resultDelegate._rLat, resultDelegate._rLon) ? "#2A2A1A" : "transparent"
@@ -1497,6 +1576,8 @@ Rectangle {
 
                     MouseArea {
                         id: rm
+                        visible: !resultDelegate._esCabecera
+                        enabled: !resultDelegate._esCabecera
                         anchors { left: parent.left; right: favStarBtn.left; top: parent.top; bottom: parent.bottom }
                         onClicked: panel._pick(modelData)
                     }
@@ -1521,6 +1602,32 @@ Rectangle {
                 width: parent.width
                 topPadding: units.gu(1.5)
                 spacing: units.gu(1.2)
+
+                // ── Aviso de que todavia no hay posicion ──────────────────────
+                //
+                // Sin fix no se puede calcular una ruta desde donde estamos, y
+                // hasta ahora eso solo se veia al pulsar «Calcular ruta», con un
+                // «Esperando posición GPS…» que aparecia abajo y se perdia.
+                // Dicho aqui, se entiende antes de empezar por que no avanza.
+                //
+                // Con origen puesto a mano no sale: entonces la posicion no hace
+                // falta para nada.
+                Rectangle {
+                    visible: !panel.hasFix && !panel._origin
+                    anchors { left: parent.left; right: parent.right; margins: units.gu(2) }
+                    height: avisoGpsLabel.height + units.gu(1.6)
+                    radius: units.gu(0.8)
+                    color: "#2A2214"; border.color: "#8D6E63"; border.width: 1
+                    Label {
+                        id: avisoGpsLabel
+                        anchors { left: parent.left; right: parent.right
+                                  verticalCenter: parent.verticalCenter
+                                  leftMargin: units.gu(1.5); rightMargin: units.gu(1.5) }
+                        text: "⚠  " + i18n.tr("Posición GPS aún no disponible")
+                        color: "#FFCC80"; font.pixelSize: ts(1.6)
+                        wrapMode: Text.WordWrap
+                    }
+                }
 
                 // ── Planes guardados ──────────────────────────────────────────
                 Column {

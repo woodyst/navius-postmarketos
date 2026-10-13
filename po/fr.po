@@ -3587,6 +3587,12 @@ msgstr "Enregistrer le trajet"
 msgid "¿No sale tu destino? Búscalo en Google Maps"
 msgstr "Votre destination n'apparaît pas ? Cherchez-la sur Google Maps"
 
+msgid "En otro país (%1)"
+msgstr "Dans un autre pays (%1)"
+
+msgid "Posición GPS aún no disponible"
+msgstr "Position GPS pas encore disponible"
+
 #~ msgid "Silenciado"
 #~ msgstr "Silencieux"
 
