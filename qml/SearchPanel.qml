@@ -298,6 +298,14 @@ Rectangle {
         var d = _dests.slice()
         d.push({ lat: lat, lon: lon, name: name, todos: _latestTodos(lat, lon) })
         _dests = d
+        // Y se vuelve a la lista de destinos. Quien llega por aqui viene de
+        // FUERA —del visor de Google Maps o de una ubicacion compartida— y si el
+        // panel se queda en la pantalla de busqueda, con su texto y sus
+        // resultados, el destino que acaba de anadir no se ve por ningun lado.
+        _routes          = []
+        _results         = []
+        _st              = "idle"
+        searchField.text = ""
         _saveWaypoints()
     }
 
@@ -855,7 +863,16 @@ Rectangle {
             anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: units.gu(2) }
             width: units.gu(4); height: units.gu(4); radius: width/2
             color: backArea.pressed ? "#3A3A52" : "#2A2A3E"
-            Label { anchors.centerIn: parent; text: "←"; color: "#90A4AE"; font.pixelSize: ts(1.8) }
+            // La flecha, centrada por caja y no por el centro del glifo: «←»
+            // no esta centrada dentro de su propia celda tipografica, asi que
+            // con centerIn quedaba baja y a la izquierda. Y mas grande, que a
+            // 1.8 se veia como un detalle y no como un boton.
+            Label {
+                anchors.fill: parent
+                text: "←"; color: "#90A4AE"; font.pixelSize: ts(2.6)
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
             MouseArea { id: backArea; anchors.fill: parent; onClicked: panel._backToIdle() }
         }
         Rectangle {

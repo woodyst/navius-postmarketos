@@ -54,8 +54,18 @@ Item {
         return null
     }
 
+    // Las paginas de BUSQUEDA de Maps titulan "Toledo, ES: Explorar en Google
+    // Maps", con dos puntos y una coletilla que cambia con el idioma. Sin
+    // tratarlas, el destino se guardaba llamandose asi, y eso es lo que luego se
+    // lee en la lista de destinos y en el historial. Se corta por los ultimos
+    // dos puntos solo si lo de detras menciona a Google Maps, para no partir un
+    // nombre que los lleve de verdad («Bar Pepe: el de siempre»).
     function _extractName(title) {
-        return title.replace(/\s*[-–]\s*Google Maps\s*$/, "").split(" – ")[0].trim()
+        var t = title.replace(/\s*[-–]\s*Google Maps\s*$/, "").trim()
+        var i = t.lastIndexOf(": ")
+        if (i > 0 && t.substring(i).indexOf("Google Maps") !== -1)
+            t = t.substring(0, i).trim()
+        return t.split(" – ")[0].trim()
     }
 
     function _select() {
