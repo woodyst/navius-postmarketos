@@ -793,6 +793,38 @@ ApplicationWindow {
     // del ancho para dibujar la ruta.
     readonly property bool _panelLateralVisible: _isLandscape && !routeSelectPanel.visible
     readonly property bool _searchingGps: !appSettings.simMode && !appSettings.manualPosActive && !satModel.pos_has_fix
+
+    // ¿Hay posicion utilizable AHORA?
+    //
+    // pos_has_fix por si solo no vale: solo cambia cuando llega un tick del GPS,
+    // asi que al apagar la localizacion deja de llegar nada y la propiedad se
+    // queda con el ultimo valor —true— para siempre. El aviso de «sin posicion»
+    // no salia nunca por eso (13/10/2026). Hay que mirar ademas CUANDO llego el
+    // ultimo tick real.
+    //
+    // En simulacion y con posicion manual siempre hay posicion, que para eso
+    // estan.
+    property bool _posFresca: true
+    Timer {
+        interval: 2000; repeat: true; running: true
+        triggeredOnStart: true
+        onTriggered: root._posFresca =
+            appSettings.simMode || appSettings.manualPosActive
+            || (activeModel.pos_has_fix && gpsSource._realTickMs > 0
+                && (Date.now() - gpsSource._realTickMs) < 15000)
+    }
+    // Altura que NavBar ocupa en la parte superior del MAPA (0 en landscape)
+    readonly property real _navBarScreenHeight: _isLandscape ? 0 : (navBar.height + adPanel.height)
+    // Altura adicional de banners de alerta (radar/tramo/comunitario) — solo para menuBtn/mapLockBtn
+    // Todo lo que tapa el mapa por ARRIBA en navegacion: navbar, anuncio y los
+    // banners de alerta (radar de tramo, radar fijo, progreso de tramo, alerta
+    // comunitaria), que cuelgan bajo el anuncio. El autoZoom mide los segundos
+    // configurados desde el marcador hasta el borde inferior de todo esto; antes
+    // solo restaba navbar+anuncio y los banners se comian la parte mas lejana
+    // (en 3D, las filas de arriba concentran casi toda la distancia) -> se veia
+    // menos carretera de la configurada.
+    readonly property real _mapTopOccludedPx: _navBarScreenHeight
+        + radarAlertBanner.height + fijoAlertBanner.height + tramoBar.height + commAlertBanner.height
     // Altura que NavBar ocupa en la parte superior del MAPA (0 en landscape)
     readonly property real _navBarScreenHeight: _isLandscape ? 0 : (navBar.height + adPanel.height)
     // Todo lo que tapa el mapa por ARRIBA en navegación: navbar, anuncio y los
@@ -8003,6 +8035,7 @@ ApplicationWindow {
         gpsLat:      activeModel.pos_has_fix ? activeModel.pos_lat : appSettings.lastLat
         gpsLon:      activeModel.pos_has_fix ? activeModel.pos_lon : appSettings.lastLon
         hasFix:      activeModel.pos_has_fix
+        posFresca:   root._posFresca
         simMode:     appSettings.simMode
         vehicleMgr:  vehicleManager
         imperial:    appSettings.measureSystem === "imperial"

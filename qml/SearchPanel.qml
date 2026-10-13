@@ -25,6 +25,10 @@ Rectangle {
     property real gpsLat: 0
     property real gpsLon: 0
     property bool hasFix: false
+    // Distinto de hasFix: este dice si la posicion es RECIENTE. Lo calcula
+    // Main.qml, porque hasFix se queda pegado en true cuando se apaga la
+    // localizacion y dejan de llegar ticks.
+    property bool   posFresca:   true
     property bool simMode: false
     property bool imperial: false
     property bool isLandscape: false
@@ -317,11 +321,17 @@ Rectangle {
         _rehacerModelo()
     }
 
+    // El modelo lleva SIEMPRE todo: los de aqui, la cabecera y los de fuera.
+    // Desplegar no lo toca; lo unico que cambia es que las filas de fuera pasan
+    // a verse. Rehacerlo al desplegar mandaba la lista al principio —una
+    // ListView se reinicia cuando le cambias el modelo— y ni positionViewAtIndex
+    // ni Qt.callLater lo arreglaban del todo: la vista se recoloca despues y se
+    // come el posicionamiento. Asi no hay nada que recolocar.
     function _rehacerModelo() {
         var m = _resAqui.slice()
         if (_resFuera.length > 0) {
             m.push({ _cabecera: true })
-            if (_fueraAbierto) m = m.concat(_resFuera)
+            m = m.concat(_resFuera)
         }
         _modelo = m
     }
@@ -1476,6 +1486,11 @@ Rectangle {
                     // _cabecera, y todo lo que lee del resultado va protegido,
                     // que la cabecera no tiene geometria ni propiedades.
                     property bool _esCabecera: modelData && modelData._cabecera === true
+                    // Lo que va DESPUES de la cabecera es de otro pais. El
+                    // modelo esta ordenado: primero los de aqui, luego la
+                    // cabecera, luego los de fuera.
+                    property bool _esDeFuera: !_esCabecera && index > panel._resAqui.length
+                    visible: !_esDeFuera || panel._fueraAbierto
                     property string _detail: (!_esCabecera && modelData.properties && modelData.properties.detail)
                                              ? modelData.properties.detail : ""
                     width: parent.width
@@ -1483,7 +1498,8 @@ Rectangle {
                     // son varios precios y ocupa mas de una linea. Con gu(12)
                     // fijo no cabia. El minimo deja hueco para la estrella de
                     // favorito, que mide gu(7.5).
-                    height: _esCabecera ? units.gu(6)
+                    height: !visible ? 0
+                                        : _esCabecera ? units.gu(6)
                                         : Math.max(units.gu(10), infoCol.height + units.gu(2))
                     color: _esCabecera ? (cabeceraMa.pressed ? "#1A2535" : "#141428")
                                        : (rm.pressed ? "#1E3A5F" : "transparent")
@@ -1515,18 +1531,9 @@ Rectangle {
                         anchors.fill: parent
                         visible: resultDelegate._esCabecera
                         enabled: resultDelegate._esCabecera
-                        onClicked: {
-                            panel._fueraAbierto = !panel._fueraAbierto
-                            panel._rehacerModelo()
-                            // Rehacer el modelo manda la lista al principio, y
-                            // entonces lo que se acaba de desplegar se queda
-                            // fuera de la pantalla: el usuario toca «En otro
-                            // país» y lo que ve es el primer resultado de todos.
-                            // Se vuelve a poner la cabecera arriba, que es donde
-                            // estaba mirando.
-                            listaResultados.positionViewAtIndex(
-                                panel._resAqui.length, ListView.Beginning)
-                        }
+                        // Solo cambia el estado: el modelo no se toca, asi que
+                        // la lista no se mueve ni un pixel.
+                        onClicked: panel._fueraAbierto = !panel._fueraAbierto
                     }
 
                     Column {
@@ -1622,7 +1629,7 @@ Rectangle {
                 // Con origen puesto a mano no sale: entonces la posicion no hace
                 // falta para nada.
                 Rectangle {
-                    visible: !panel.hasFix && !panel._origin
+                    visible: !panel.posFresca && !panel._origin
                     anchors { left: parent.left; right: parent.right; margins: units.gu(2) }
                     height: avisoGpsLabel.height + units.gu(1.6)
                     radius: units.gu(0.8)
