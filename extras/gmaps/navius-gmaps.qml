@@ -179,13 +179,30 @@ Item {
                         for (var j = 0; j < CONTIENE.length; j++) if (t.indexOf(CONTIENE[j]) !== -1) return true;
                         return false;
                     }
+                    // Solo vale como «fila» un contenedor que NO lleve dentro
+                    // mas que esos botones, y que ademas sea bajo. Sin las dos
+                    // condiciones se sube demasiado y se esconde la ficha entera
+                    // del sitio —nombre, direccion, fotos—, que es justo lo que
+                    // hay que ver para elegir destino. Paso el 13/10/2026.
+                    function soloBotones(p){
+                        var b = p.querySelectorAll('button,[role=\"button\"],a[role=\"button\"]');
+                        if (b.length < 2) return false;
+                        var t = '';
+                        for (var k = 0; k < b.length; k++) {
+                            if (!casa(etiqueta(b[k]))) return false;
+                            t += (b[k].textContent || '');
+                        }
+                        return (p.textContent || '').replace(/\s+/g,'') === t.replace(/\s+/g,'');
+                    }
+                    function bajo(e){
+                        var r = e.getBoundingClientRect();
+                        return r.height > 0 && r.height < innerHeight * 0.22;
+                    }
                     function fila(e){
                         var p = e, mejor = null;
-                        for (var i = 0; i < 5 && p && p.parentElement && p.parentElement !== document.body; i++) {
+                        for (var i = 0; i < 3 && p && p.parentElement && p.parentElement !== document.body; i++) {
                             p = p.parentElement;
-                            var b = p.querySelectorAll('button,[role=\"button\"]'), n = 0;
-                            for (var k = 0; k < b.length; k++) if (casa(etiqueta(b[k]))) n++;
-                            if (n >= 2) mejor = p;
+                            if (soloBotones(p) && bajo(p)) mejor = p;
                         }
                         return mejor;
                     }
