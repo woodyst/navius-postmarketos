@@ -815,18 +815,6 @@ ApplicationWindow {
     }
     // Altura que NavBar ocupa en la parte superior del MAPA (0 en landscape)
     readonly property real _navBarScreenHeight: _isLandscape ? 0 : (navBar.height + adPanel.height)
-    // Altura adicional de banners de alerta (radar/tramo/comunitario) — solo para menuBtn/mapLockBtn
-    // Todo lo que tapa el mapa por ARRIBA en navegacion: navbar, anuncio y los
-    // banners de alerta (radar de tramo, radar fijo, progreso de tramo, alerta
-    // comunitaria), que cuelgan bajo el anuncio. El autoZoom mide los segundos
-    // configurados desde el marcador hasta el borde inferior de todo esto; antes
-    // solo restaba navbar+anuncio y los banners se comian la parte mas lejana
-    // (en 3D, las filas de arriba concentran casi toda la distancia) -> se veia
-    // menos carretera de la configurada.
-    readonly property real _mapTopOccludedPx: _navBarScreenHeight
-        + radarAlertBanner.height + fijoAlertBanner.height + tramoBar.height + commAlertBanner.height
-    // Altura que NavBar ocupa en la parte superior del MAPA (0 en landscape)
-    readonly property real _navBarScreenHeight: _isLandscape ? 0 : (navBar.height + adPanel.height)
     // Todo lo que tapa el mapa por ARRIBA en navegación: navbar, anuncio y los
     // banners de alerta (radar de tramo, radar fijo, progreso de tramo, alerta
     // comunitaria), que cuelgan bajo el anuncio. El autoZoom mide los segundos
