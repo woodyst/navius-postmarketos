@@ -1462,6 +1462,7 @@ Rectangle {
             }
 
             ListView {
+                id: listaResultados
                 anchors { fill: parent
                           topMargin: (fuelDateLabel.visible ? fuelDateLabel.height + units.gu(1) : 0)
                                      + gmapsHint.height }
@@ -1517,6 +1518,14 @@ Rectangle {
                         onClicked: {
                             panel._fueraAbierto = !panel._fueraAbierto
                             panel._rehacerModelo()
+                            // Rehacer el modelo manda la lista al principio, y
+                            // entonces lo que se acaba de desplegar se queda
+                            // fuera de la pantalla: el usuario toca «En otro
+                            // país» y lo que ve es el primer resultado de todos.
+                            // Se vuelve a poner la cabecera arriba, que es donde
+                            // estaba mirando.
+                            listaResultados.positionViewAtIndex(
+                                panel._resAqui.length, ListView.Beginning)
                         }
                     }
 
