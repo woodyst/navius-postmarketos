@@ -140,6 +140,73 @@ Item {
                 })();"
             },
             {
+                name: "navius-ocultar-acciones",
+                worldId: WebEngineScript.MainWorld,
+                injectionPoint: WebEngineScript.DocumentCreation,
+                sourceCode: "(function(){
+                    // Esconde los botones de Maps que no pintan nada aqui: la
+                    // barra de «Cómo llegar / Iniciar / Guardar» y el de abrir
+                    // la aplicacion.
+                    //
+                    // No es estetico. Este panel existe para ELEGIR un destino y
+                    // traerlo con «Usar este destino»; «Iniciar» arrancaria la
+                    // navegacion de Google dentro de un visor sin GPS ni voz, y
+                    // «Abrir aplicacion» se lleva al usuario fuera. Son las dos
+                    // formas de que alguien crea que esta navegando sin estarlo.
+                    //
+                    // Se esconde la FILA entera y no cada boton: dejarlos
+                    // invisibles uno a uno deja una barra vacia ocupando sitio.
+                    if (window.__naviusAcciones) return;
+                    window.__naviusAcciones = true;
+                    var EXACTOS = ['cómo llegar','como llegar','directions','iniciar',
+                                   'start','guardar','save','compartir','share'];
+                    var CONTIENE = ['abrir aplicación','abrir aplicacion',
+                                    'abrir la aplicación','abrir en la aplicación',
+                                    'open app','open in app','ver en la app','abrir la app'];
+                    function etiqueta(e){
+                        return ((e.getAttribute && e.getAttribute('aria-label'))
+                                || e.textContent || '').trim().toLowerCase();
+                    }
+                    function visible(e){
+                        var r = e.getBoundingClientRect();
+                        return r.width > 0 && r.height > 0;
+                    }
+                    // Coincidencia EXACTA en los de una palabra: 'iniciar' por
+                    // prefijo se comeria tambien 'iniciar sesion', que si hace falta.
+                    function casa(t){
+                        if (!t || t.length > 40) return false;
+                        for (var i = 0; i < EXACTOS.length; i++) if (t === EXACTOS[i]) return true;
+                        for (var j = 0; j < CONTIENE.length; j++) if (t.indexOf(CONTIENE[j]) !== -1) return true;
+                        return false;
+                    }
+                    function fila(e){
+                        var p = e, mejor = null;
+                        for (var i = 0; i < 5 && p && p.parentElement && p.parentElement !== document.body; i++) {
+                            p = p.parentElement;
+                            var b = p.querySelectorAll('button,[role=\"button\"]'), n = 0;
+                            for (var k = 0; k < b.length; k++) if (casa(etiqueta(b[k]))) n++;
+                            if (n >= 2) mejor = p;
+                        }
+                        return mejor;
+                    }
+                    function barrer(){
+                        var b = document.querySelectorAll('button,[role=\"button\"],a[role=\"button\"]');
+                        for (var i = 0; i < b.length; i++) {
+                            if (!visible(b[i]) || !casa(etiqueta(b[i]))) continue;
+                            var f = fila(b[i]) || b[i];
+                            f.style.setProperty('display','none','important');
+                        }
+                    }
+                    barrer();
+                    document.addEventListener('DOMContentLoaded', barrer);
+                    var obs = new MutationObserver(function(){ setTimeout(barrer, 100); });
+                    function startObs(){ obs.observe(document.documentElement, {childList:true, subtree:true}); }
+                    if (document.documentElement) startObs();
+                    else document.addEventListener('DOMContentLoaded', startObs);
+                    setInterval(barrer, 800);
+                })();"
+            },
+            {
                 name: "navius-dismiss-appbanner",
                 worldId: WebEngineScript.MainWorld,
                 injectionPoint: WebEngineScript.DocumentCreation,
@@ -325,8 +392,11 @@ Item {
                     text: "🏁"; font.pixelSize: gu(2.2) }
                 Column {
                     anchors.verticalCenter: parent.verticalCenter; spacing: 0
+                    // Mas grande que el resto de la barra a proposito: es la
+                    // unica salida util de esta pantalla —lo demas es la web de
+                    // Google— y a 1.8 se leia como un pie de foto.
                     Label { text: gmp.strs.use
-                        color: "white"; font.pixelSize: gu(1.8); font.bold: true }
+                        color: "white"; font.pixelSize: gu(2.4); font.bold: true }
                     Label {
                         visible: gmp._detName.length > 0
                         text: gmp._detName; color: "#A5D6A7"
