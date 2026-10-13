@@ -68,7 +68,10 @@ Rectangle {
     signal routeReady(var routes, int selIdx)
     signal navigationStarted(var routeData)
     signal previewRequested(var routes, int selIdx)
-    signal googleMapsRequested()
+    // La consulta escrita viaja con la señal: si el enlace de «¿no sale tu
+    // destino?» abre Google Maps ya buscando, el usuario no tiene que volver a
+    // teclear lo mismo. Vacia desde el boton del menu, que abre el mapa a secas.
+    signal googleMapsRequested(string consulta)
     // Botón "Buscar en Google Maps" solo si hay visor (Main: navProc.gmaps_available())
     property bool googleMapsAvailable: false
     signal serverFallbackNeeded(string service, string message, var retryFn)
@@ -1140,7 +1143,7 @@ Rectangle {
                         color: "#81C784"; font.pixelSize: ts(1.8) }
                 }
                 MouseArea { id: gmapsArea; anchors.fill: parent
-                    onClicked: panel.googleMapsRequested() }
+                    onClicked: panel.googleMapsRequested("") }
             }
 
             // ── Hora de salida ────────────────────────────────────────────────
@@ -1365,8 +1368,46 @@ Rectangle {
                 color: "#90A4AE"; font.pixelSize: ts(2.8)
             }
 
+            // Salida a Google Maps cuando el buscador no da con el sitio.
+            //
+            // Va ARRIBA y no al final de la lista a proposito: quien no ve su
+            // destino entre los primeros resultados no baja hasta el fondo, se
+            // da por vencido. Y con la consulta ya escrita, que volver a
+            // teclearla en el movil es justo lo que nadie hace.
+            //
+            // No sale en las busquedas de POI —gasolineras, cajeros—, que esas
+            // no son un destino que el usuario haya escrito.
+            Rectangle {
+                id: gmapsHint
+                anchors { top: parent.top; left: parent.left; right: parent.right
+                          topMargin: fuelDateLabel.visible
+                                     ? fuelDateLabel.height + units.gu(1) : 0 }
+                height: visible ? gmapsHintLabel.height + units.gu(1.6) : 0
+                visible: panel._poiType === "" && searchField.text.trim().length >= 2
+                color: gmapsHintArea.pressed ? "#132A40" : "transparent"
+                Rectangle { width: parent.width; height: units.gu(0.06)
+                            anchors.bottom: parent.bottom; color: "#1C1C2E" }
+                Label {
+                    id: gmapsHintLabel
+                    anchors { left: parent.left; right: parent.right
+                              verticalCenter: parent.verticalCenter
+                              leftMargin: units.gu(1.5); rightMargin: units.gu(1.5) }
+                    text: "🔎  " + i18n.tr("¿No sale tu destino? Búscalo en Google Maps")
+                    color: "#29B6F6"; font.pixelSize: ts(1.6)
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                }
+                MouseArea {
+                    id: gmapsHintArea
+                    anchors.fill: parent
+                    onClicked: panel.googleMapsRequested(searchField.text.trim())
+                }
+            }
+
             ListView {
-                anchors { fill: parent; topMargin: fuelDateLabel.visible ? fuelDateLabel.height + units.gu(1) : 0 }
+                anchors { fill: parent
+                          topMargin: (fuelDateLabel.visible ? fuelDateLabel.height + units.gu(1) : 0)
+                                     + gmapsHint.height }
                 visible: !panel._searching && panel._results.length > 0
                 model: panel._results
                 clip: true

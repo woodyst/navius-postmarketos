@@ -3430,6 +3430,21 @@ msgstr "新功能"
 msgid "Entendido"
 msgstr "知道了"
 
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "测速摄像头  ·  %1 米"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "%1 米后有测速摄像头"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "记录轨迹"
+
+msgid "¿No sale tu destino? Búscalo en Google Maps"
+msgstr "找不到目的地？在 Google 地图中搜索"
+
 #~ msgid "Silenciado"
 #~ msgstr "静音"
 
@@ -3489,15 +3504,3 @@ msgstr "知道了"
 
 #~ msgid "Rev ON"
 #~ msgstr "倒车 ON"
-
-#: qml/Main.qml
-msgid "Radar de velocidad  ·  %1 m"
-msgstr "测速摄像头  ·  %1 米"
-
-#: qml/Main.qml
-msgid "Radar de velocidad en %1 metros"
-msgstr "%1 米后有测速摄像头"
-
-#: qml/Main.qml
-msgid "Grabar ruta"
-msgstr "记录轨迹"

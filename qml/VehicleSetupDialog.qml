@@ -20,7 +20,7 @@ Item {
 
     function openDialog(first) {
         isFirst = (first === true)
-        aliasField.text = "Mi coche"
+        aliasField.text = i18n.tr("Mi coche")
         typeIdx = 0
         visible = true
     }

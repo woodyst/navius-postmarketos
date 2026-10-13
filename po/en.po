@@ -3496,6 +3496,21 @@ msgstr "What's new"
 msgid "Entendido"
 msgstr "Got it"
 
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "Speed camera  ·  %1 m"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "Speed camera in %1 meters"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "Record track"
+
+msgid "¿No sale tu destino? Búscalo en Google Maps"
+msgstr "Can't find your destination? Search it on Google Maps"
+
 #~ msgid "Silenciado"
 #~ msgstr "Muted"
 
@@ -3555,15 +3570,3 @@ msgstr "Got it"
 
 #~ msgid "Rev ON"
 #~ msgstr "Rev ON"
-
-#: qml/Main.qml
-msgid "Radar de velocidad  ·  %1 m"
-msgstr "Speed camera  ·  %1 m"
-
-#: qml/Main.qml
-msgid "Radar de velocidad en %1 metros"
-msgstr "Speed camera in %1 meters"
-
-#: qml/Main.qml
-msgid "Grabar ruta"
-msgstr "Record track"

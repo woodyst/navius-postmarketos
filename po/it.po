@@ -3540,6 +3540,21 @@ msgstr "Novità"
 msgid "Entendido"
 msgstr "Capito"
 
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "Autovelox  ·  %1 m"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "Autovelox tra %1 metri"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "Registra percorso"
+
+msgid "¿No sale tu destino? Búscalo en Google Maps"
+msgstr "Non trovi la tua destinazione? Cercala su Google Maps"
+
 #~ msgid "Silenciado"
 #~ msgstr "Silenziato"
 
@@ -3599,15 +3614,3 @@ msgstr "Capito"
 
 #~ msgid "Rev ON"
 #~ msgstr "Inv ON"
-
-#: qml/Main.qml
-msgid "Radar de velocidad  ·  %1 m"
-msgstr "Autovelox  ·  %1 m"
-
-#: qml/Main.qml
-msgid "Radar de velocidad en %1 metros"
-msgstr "Autovelox tra %1 metri"
-
-#: qml/Main.qml
-msgid "Grabar ruta"
-msgstr "Registra percorso"

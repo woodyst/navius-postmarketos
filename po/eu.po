@@ -3531,6 +3531,21 @@ msgstr "Berriak"
 msgid "Entendido"
 msgstr "Ulertuta"
 
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "Abiadura-radarra  ·  %1 m"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "Abiadura-radarra %1 metrora"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "Ibilbidea grabatu"
+
+msgid "¿No sale tu destino? Búscalo en Google Maps"
+msgstr "Ez da zure helmuga agertzen? Bilatu Google Maps-en"
+
 #~ msgid "Silenciado"
 #~ msgstr "Isilarazia"
 
@@ -3590,15 +3605,3 @@ msgstr "Ulertuta"
 
 #~ msgid "Rev ON"
 #~ msgstr "Atz. AK"
-
-#: qml/Main.qml
-msgid "Radar de velocidad  ·  %1 m"
-msgstr "Abiadura-radarra  ·  %1 m"
-
-#: qml/Main.qml
-msgid "Radar de velocidad en %1 metros"
-msgstr "Abiadura-radarra %1 metrora"
-
-#: qml/Main.qml
-msgid "Grabar ruta"
-msgstr "Ibilbidea grabatu"

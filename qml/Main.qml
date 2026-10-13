@@ -8047,9 +8047,9 @@ ApplicationWindow {
             Qt.callLater(routeViewPanel.open)
             root.drawRoutesPreview(routes, selIdx)
         }
-        onGoogleMapsRequested: {
+        onGoogleMapsRequested: function(consulta) {
             Qt.inputMethod.hide()
-            root._openGoogleMaps()
+            root._openGoogleMaps(consulta || "")
         }
         onServerFallbackNeeded: function(service, message, retryFn) {
             Qt.inputMethod.hide()
@@ -10817,7 +10817,7 @@ ApplicationWindow {
     // termina y volvemos aquí. Mientras vive, gmapsPollTimer recoge el
     // resultado: "lat\tlon\tnombre" → mismo diálogo que una ubicación
     // compartida (geo:).
-    function _openGoogleMaps() {
+    function _openGoogleMaps(consulta) {
         if (!root._gmapsAvailable) {
             root._startupMsg = i18n.tr("Google Maps no disponible: faltan qt6-qtdeclarative y qt6-qtwebengine")
             startupMsgTimer.restart()
@@ -10826,6 +10826,10 @@ ApplicationWindow {
         var args = {
             ua: "",
             cache: String(navProc.gmaps_cache_dir()),
+            // Lo que se escribio en el buscador. Con esto el visor abre ya en la
+            // pantalla de busqueda de Maps, que es la salida de «¿no sale tu
+            // destino?»; vacio desde el boton del menu, que abre el mapa a secas.
+            q: consulta || "",
             lat: mapView._hasPos ? mapView._lastLat : (mapView._centerLat || 0),
             lon: mapView._hasPos ? mapView._lastLon : (mapView._centerLon || 0),
             strings: {

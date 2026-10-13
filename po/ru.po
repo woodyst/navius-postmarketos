@@ -3541,6 +3541,21 @@ msgstr "Новости"
 msgid "Entendido"
 msgstr "Понятно"
 
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "Камера скорости  ·  %1 м"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "Камера скорости через %1 метров"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "Запись трека"
+
+msgid "¿No sale tu destino? Búscalo en Google Maps"
+msgstr "Не нашли пункт назначения? Поищите в Google Maps"
+
 #~ msgid "Silenciado"
 #~ msgstr "Без звука"
 
@@ -3603,15 +3618,3 @@ msgstr "Понятно"
 
 #~ msgid "Rev ON"
 #~ msgstr "Реверс ВКЛ"
-
-#: qml/Main.qml
-msgid "Radar de velocidad  ·  %1 m"
-msgstr "Камера скорости  ·  %1 м"
-
-#: qml/Main.qml
-msgid "Radar de velocidad en %1 metros"
-msgstr "Камера скорости через %1 метров"
-
-#: qml/Main.qml
-msgid "Grabar ruta"
-msgstr "Запись трека"

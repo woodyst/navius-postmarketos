@@ -182,7 +182,7 @@ Item {
                                       leftMargin: units.gu(1.5); rightMargin: units.gu(1.5) }
                             wrapMode: Text.WordWrap
                             color: "#ECEFF1"; font.pixelSize: ts(1.9)
-                            text: i18n.tr("Se borrarán tu correo, tus ajustes, tus vehículos y todo tu historial de posiciones y rutas en el servidor. Las alertas y límites que aportaste seguirán ayudando a otros conductores, pero dejarán de estar asociados a ti.\n\nEsto no se puede deshacer. Escribe tu contraseña para confirmar.")
+                            text: i18n.tr("Se borrarán tu correo, tus ajustes, tus vehículos, tus rutas y el registro de anuncios. Tu historial de posiciones, las alertas y los límites que aportaste no se borran, pero dejan de estar asociados a ti.\n\nEsto no se puede deshacer. Escribe tu contraseña para confirmar.")
                         }
                     }
 

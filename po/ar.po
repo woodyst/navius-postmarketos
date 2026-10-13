@@ -3465,6 +3465,21 @@ msgstr "الجديد"
 msgid "Entendido"
 msgstr "فهمت"
 
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "كاميرا سرعة  ·  %1 م"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "كاميرا سرعة على بعد %1 متر"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "تسجيل المسار"
+
+msgid "¿No sale tu destino? Búscalo en Google Maps"
+msgstr "لا تظهر وجهتك؟ ابحث عنها في خرائط Google"
+
 #~ msgid "Silenciado"
 #~ msgstr "صامت"
 
@@ -3524,15 +3539,3 @@ msgstr "فهمت"
 
 #~ msgid "Rev ON"
 #~ msgstr "عكس مفعّل"
-
-#: qml/Main.qml
-msgid "Radar de velocidad  ·  %1 m"
-msgstr "كاميرا سرعة  ·  %1 م"
-
-#: qml/Main.qml
-msgid "Radar de velocidad en %1 metros"
-msgstr "كاميرا سرعة على بعد %1 متر"
-
-#: qml/Main.qml
-msgid "Grabar ruta"
-msgstr "تسجيل المسار"

@@ -3559,6 +3559,21 @@ msgstr "Neuigkeiten"
 msgid "Entendido"
 msgstr "Verstanden"
 
+#: qml/Main.qml
+msgid "Radar de velocidad  ·  %1 m"
+msgstr "Blitzer  ·  %1 m"
+
+#: qml/Main.qml
+msgid "Radar de velocidad en %1 metros"
+msgstr "Blitzer in %1 Metern"
+
+#: qml/Main.qml
+msgid "Grabar ruta"
+msgstr "Route aufzeichnen"
+
+msgid "¿No sale tu destino? Búscalo en Google Maps"
+msgstr "Dein Ziel fehlt? Suche es auf Google Maps"
+
 #~ msgid "Silenciado"
 #~ msgstr "Stumm"
 
@@ -3618,15 +3633,3 @@ msgstr "Verstanden"
 
 #~ msgid "Rev ON"
 #~ msgstr "Rückw. AN"
-
-#: qml/Main.qml
-msgid "Radar de velocidad  ·  %1 m"
-msgstr "Blitzer  ·  %1 m"
-
-#: qml/Main.qml
-msgid "Radar de velocidad en %1 metros"
-msgstr "Blitzer in %1 Metern"
-
-#: qml/Main.qml
-msgid "Grabar ruta"
-msgstr "Route aufzeichnen"

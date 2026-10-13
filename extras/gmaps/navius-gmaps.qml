@@ -221,7 +221,12 @@ Item {
             userScripts.collection = _userScripts
             // Con posición conocida, abrir el mapa centrado ahí.
             var a = gmp.args
-            if (a && typeof a.lat === "number" && typeof a.lon === "number" && (a.lat !== 0 || a.lon !== 0))
+            if (a && a.q && String(a.q).length > 0)
+                // Con consulta, directo a la pantalla de busqueda: viene del
+                // enlace «¿no sale tu destino?» del buscador de Navius.
+                url = "https://www.google.com/maps/search/?api=1&query="
+                      + encodeURIComponent(String(a.q))
+            else if (a && typeof a.lat === "number" && typeof a.lon === "number" && (a.lat !== 0 || a.lon !== 0))
                 url = "https://www.google.com/maps/@" + a.lat.toFixed(6) + "," + a.lon.toFixed(6) + ",15z"
             else
                 url = "https://www.google.com/maps"
