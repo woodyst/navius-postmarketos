@@ -3371,6 +3371,11 @@ Rectangle {
                         id: manLatField
                         width: parent.width
                         placeholderText: "Latitud  (ej. 40.322130)"
+                        // Controls 2 pinta por omision el texto y la sugerencia en gris
+                        // oscuro, y sobre el fondo oscuro de Navius no hay quien los lea.
+                        // Como el resto del panel, los colores salen de la paleta.
+                        color: pal.fgPrimary
+                        placeholderTextColor: pal.fgSecondary
                         inputMethodHints: Qt.ImhFormattedNumbersOnly
                         onActiveFocusChanged: if (activeFocus) panel._kbdFocusItem = this
                     }
@@ -3378,6 +3383,11 @@ Rectangle {
                         id: manLonField
                         width: parent.width
                         placeholderText: "Longitud  (ej. -3.515801)"
+                        // Controls 2 pinta por omision el texto y la sugerencia en gris
+                        // oscuro, y sobre el fondo oscuro de Navius no hay quien los lea.
+                        // Como el resto del panel, los colores salen de la paleta.
+                        color: pal.fgPrimary
+                        placeholderTextColor: pal.fgSecondary
                         inputMethodHints: Qt.ImhFormattedNumbersOnly
                         onActiveFocusChanged: if (activeFocus) panel._kbdFocusItem = this
                     }
@@ -3503,6 +3513,11 @@ Rectangle {
                         id: gpsFailProbField
                         width: parent.width
                         placeholderText: "ej. 5.00"
+                        // Controls 2 pinta por omision el texto y la sugerencia en gris
+                        // oscuro, y sobre el fondo oscuro de Navius no hay quien los lea.
+                        // Como el resto del panel, los colores salen de la paleta.
+                        color: pal.fgPrimary
+                        placeholderTextColor: pal.fgSecondary
                         inputMethodHints: Qt.ImhFormattedNumbersOnly
                         text: panel.cfg ? panel.cfg.gpsFailProb.toFixed(2) : "5.00"
                         onActiveFocusChanged: if (activeFocus) panel._kbdFocusItem = this
@@ -3518,6 +3533,11 @@ Rectangle {
                         id: gpsFailDistField
                         width: parent.width
                         placeholderText: "ej. 50"
+                        // Controls 2 pinta por omision el texto y la sugerencia en gris
+                        // oscuro, y sobre el fondo oscuro de Navius no hay quien los lea.
+                        // Como el resto del panel, los colores salen de la paleta.
+                        color: pal.fgPrimary
+                        placeholderTextColor: pal.fgSecondary
                         inputMethodHints: Qt.ImhFormattedNumbersOnly
                         text: panel.cfg ? panel.cfg.gpsFailDist.toFixed(0) : "50"
                         onActiveFocusChanged: if (activeFocus) panel._kbdFocusItem = this
@@ -3533,6 +3553,11 @@ Rectangle {
                         id: gpsFailTicksField
                         width: parent.width
                         placeholderText: "ej. 3"
+                        // Controls 2 pinta por omision el texto y la sugerencia en gris
+                        // oscuro, y sobre el fondo oscuro de Navius no hay quien los lea.
+                        // Como el resto del panel, los colores salen de la paleta.
+                        color: pal.fgPrimary
+                        placeholderTextColor: pal.fgSecondary
                         inputMethodHints: Qt.ImhDigitsOnly
                         text: panel.cfg ? panel.cfg.gpsFailTicks.toString() : "3"
                         onActiveFocusChanged: if (activeFocus) panel._kbdFocusItem = this
