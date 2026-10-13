@@ -100,7 +100,15 @@ fn update_language_files() {
 }
 
 fn source_files() -> Vec<PathBuf> {
-    walk_dir(PathBuf::from("qml"), "qml")
+    // Tambien los .js. Hasta el 13/10/2026 solo se miraban los .qml, y los
+    // textos que viven en NavSearch.js y NavAlerts.js —los mensajes de error del
+    // acceso, los tipos de combustible, los avisos de red— no llegaban al
+    // catalogo: no se podian traducir y salian en castellano. El port de Android
+    // ya los extraia.
+    let mut files = walk_dir(PathBuf::from("qml"), "qml");
+    files.append(&mut walk_dir(PathBuf::from("qml"), "js"));
+    files.sort();
+    files
 }
 
 fn po_files() -> Vec<PathBuf> {

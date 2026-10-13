@@ -653,7 +653,7 @@ Rectangle {
         function _fuseText(txt, withDist) {
             if (!_nextText1 || _annText2) return txt
             if (_timeToNext < _ttsSec(txt, withDist) + 15 + 5)
-                return txt + ", y a continuación " + _nextText1.toLowerCase()
+                return txt + i18n.tr(", y a continuación %1").arg(_nextText1.toLowerCase())
             return txt
         }
 

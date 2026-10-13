@@ -13,10 +13,13 @@ Item {
     property bool showAtStartup: true
 
     // Actualizar en cada deploy (formato: YYYY-MM-DD HH:mm:ss)
-    readonly property string currentVersion: "2026-05-02 12:09:00"
+    readonly property string currentVersion: "2026-10-13 16:00:00"
 
     readonly property var changelog: [
         {
+            date:    "13 octubre 2026 · 16:00",
+            changes: [
+                {
             date:    "2 mayo 2026 · 12:09",
             changes: [
                 { icon: "📍", text: i18n.tr("Búsqueda de puntos de interés cerca de ti: gasolineras, parking, restaurantes, hoteles y más") },

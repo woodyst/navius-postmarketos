@@ -267,7 +267,7 @@ dependencies = [
 
 [[package]]
 name = "navius"
-version = "1.0.16"
+version = "1.0.17"
 dependencies = [
  "cc",
  "cpp",

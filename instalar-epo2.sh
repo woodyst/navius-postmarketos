@@ -15,8 +15,22 @@
 # pero no reinicia nada. Si estaba abierta, cerrarla del todo primero.
 set -euo pipefail
 
+# El .apk mas reciente, sin tuberias: `ls | head` deja a ls escribiendo en una
+# tuberia cerrada, y con `set -o pipefail` eso tumba el guion con un 141 que no
+# dice nada. Paso el 13/10/2026.
+ultimo_paquete() {
+    local f ultimo=""
+    for f in "$HOME"/.local/var/pmbootstrap/packages/*/aarch64/navius-*.apk; do
+        [ -e "$f" ] || continue
+        if [ -z "$ultimo" ] || [ "$f" -nt "$ultimo" ]; then
+            ultimo=$f
+        fi
+    done
+    printf '%s' "$ultimo"
+}
+
 HOST=${1:-${NAVIUS_PMOS_HOST:-epo2lan}}
-PAQUETE=${2:-$(ls -t "$HOME"/.local/var/pmbootstrap/packages/*/aarch64/navius-*.apk 2>/dev/null | head -1)}
+PAQUETE=${2:-$(ultimo_paquete)}
 
 [ -n "$PAQUETE" ] && [ -f "$PAQUETE" ] || {
     echo "ERROR: no hay paquete que instalar. Compila antes con ./compilar.sh" >&2; exit 1; }

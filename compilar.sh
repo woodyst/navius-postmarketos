@@ -14,6 +14,20 @@
 #    (ver packaging/README.md).
 set -euo pipefail
 
+# El .apk mas reciente, sin tuberias: `ls | head` deja a ls escribiendo en una
+# tuberia cerrada, y con `set -o pipefail` eso tumba el guion con un 141 que no
+# dice nada. Paso el 13/10/2026.
+ultimo_paquete() {
+    local f ultimo=""
+    for f in "$HOME"/.local/var/pmbootstrap/packages/*/aarch64/navius-*.apk; do
+        [ -e "$f" ] || continue
+        if [ -z "$ultimo" ] || [ "$f" -nt "$ultimo" ]; then
+            ultimo=$f
+        fi
+    done
+    printf '%s' "$ultimo"
+}
+
 SRC_DIR=$(cd "$(dirname "$0")" && pwd)
 REGISTRO=${REGISTRO:-/tmp/navius-pmos-build.log}
 
@@ -25,7 +39,7 @@ pmbootstrap build --src "$SRC_DIR" navius 2>&1 | tee "$REGISTRO" | tail -3
 
 # El paquete no lo dice pmbootstrap por la salida, asi que se busca el mas
 # reciente: es el que acaba de salir y el que recogera instalar-epo2.sh.
-PAQUETE=$(ls -t "$HOME"/.local/var/pmbootstrap/packages/*/aarch64/navius-*.apk 2>/dev/null | head -1)
+PAQUETE=$(ultimo_paquete)
 [ -n "$PAQUETE" ] || { echo "ERROR: no encuentro el .apk generado" >&2; exit 1; }
 
 echo

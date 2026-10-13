@@ -146,7 +146,7 @@ Item {
                         onClicked: {
                             dlg.visible = false
                             var name = aliasField.text.trim()
-                            dlg.accepted(name.length > 0 ? name : "Mi vehículo",
+                            dlg.accepted(name.length > 0 ? name : i18n.tr("Mi vehículo"),
                                          dlg.typeList[dlg.typeIdx].value)
                         }
                     }

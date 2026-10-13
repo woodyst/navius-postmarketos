@@ -3,6 +3,16 @@
 // Photon: geocoding basado en OSM. Servidor propio con índice mundial.
 // Valhalla:  routing con filtros, sin API key
 
+// Traducir desde aqui tiene truco. Este fichero NO es .pragma library, asi que
+// cada QML que lo importa recibe su propia copia y comparte su contexto, donde
+// i18n existe porque main.cpp lo pone en el contexto raiz. Aun asi se envuelve en
+// try: en Qt 6 un TypeError aborta la funcion entera, y no merece la pena perder
+// un recalculo de ruta por una traduccion. xgettext extrae las llamadas tr("...")
+// porque la tuberia usa --keyword=tr (ver scripts/update-po.sh).
+function tr(t) {
+    try { return i18n.tr(t) } catch (e) { return t }
+}
+
 var PHOTON   = "https://navius-maps.egpsistemas.com/photon"
 var VALHALLA = "https://valhalla1.openstreetmap.de"
 
@@ -241,9 +251,9 @@ function mineturCacheDate() {
     var p = function(n) { return n < 10 ? "0" + n : "" + n }
     var timeStr = p(d.getHours()) + ":" + p(d.getMinutes())
     var daysDiff = Math.floor((now - d) / 86400000)
-    if (daysDiff === 0) return "hoy a las " + timeStr
-    if (daysDiff === 1) return "ayer a las " + timeStr
-    return "hace " + daysDiff + " días a las " + timeStr
+    if (daysDiff === 0) return tr("hoy a las %1").arg(timeStr)
+    if (daysDiff === 1) return tr("ayer a las %1").arg(timeStr)
+    return tr("hace %1 días a las %2").arg(daysDiff).arg(timeStr)
 }
 
 function _mineturPriceFromDb(elLat, elLon) {
@@ -276,7 +286,7 @@ function _mineturPriceFromDb(elLat, elLon) {
                 // (SearchPanel, _detail), que ya crece con su contenido.
                 var parts = []
                 if (best.g95)    parts.push("G95 "    + best.g95    + " €")
-                if (best.diesel) parts.push("Diésel "  + best.diesel + " €")
+                if (best.diesel) parts.push(tr("Diésel") + " " + best.diesel + " €")
                 if (best.g98)    parts.push("G98 "    + best.g98    + " €")
                 result = parts.join("\n")
             }
@@ -321,10 +331,10 @@ function _poiDetail(type, tags) {
         var fuels = []
         if (tags["fuel:octane_95"] === "yes") fuels.push("G95")
         if (tags["fuel:octane_98"] === "yes") fuels.push("G98")
-        if (tags["fuel:diesel"]    === "yes") fuels.push("Diésel")
-        else if (tags["fuel:diesel_B"] === "yes") fuels.push("Diésel B")
+        if (tags["fuel:diesel"]    === "yes") fuels.push(tr("Diésel"))
+        else if (tags["fuel:diesel_B"] === "yes") fuels.push(tr("Diésel B"))
         if (tags["fuel:lpg"]       === "yes") fuels.push("GLP")
-        if (tags["fuel:electric"]  === "yes") fuels.push("Eléctrico")
+        if (tags["fuel:electric"]  === "yes") fuels.push(tr("Eléctrico"))
         if (tags["fuel:adblue"]    === "yes") fuels.push("AdBlue")
         return fuels.join(" · ")
     }
@@ -332,7 +342,7 @@ function _poiDetail(type, tags) {
         var parts = []
         var stars = parseInt(tags["stars"])
         if (stars > 0) { var s = ""; for (var i = 0; i < stars && i < 5; i++) s += "★"; parts.push(s) }
-        if (tags["rooms"]) parts.push(tags["rooms"] + " hab.")
+        if (tags["rooms"]) parts.push(tr("%1 hab.").arg(tags["rooms"]))
         if (tags["opening_hours"]) parts.push(tags["opening_hours"])
         return parts.join(" · ")
     }
@@ -344,15 +354,15 @@ function _poiDetail(type, tags) {
     }
     if (type === "parking") {
         var parts = []
-        if      (tags["fee"] === "no")  parts.push("Gratis")
-        else if (tags["fee"] === "yes") parts.push("De pago")
-        if (tags["capacity"]) parts.push(tags["capacity"] + " plazas")
-        if (tags["maxstay"])  parts.push("Máx. " + tags["maxstay"])
+        if      (tags["fee"] === "no")  parts.push(tr("Gratis"))
+        else if (tags["fee"] === "yes") parts.push(tr("De pago"))
+        if (tags["capacity"]) parts.push(tr("%1 plazas").arg(tags["capacity"]))
+        if (tags["maxstay"])  parts.push(tr("Máx. %1").arg(tags["maxstay"]))
         return parts.join(" · ")
     }
     if (type === "hospital") {
-        if (tags["emergency"] === "yes") return "Urgencias 24h"
-        if (tags["emergency"] === "no")  return "Sin urgencias"
+        if (tags["emergency"] === "yes") return tr("Urgencias 24h")
+        if (tags["emergency"] === "no")  return tr("Sin urgencias")
         return ""
     }
     if (type === "atm") {
@@ -728,14 +738,14 @@ function _overpassNext(tried, lat, lon) {
 function poiDef(type) { return _poiDefs[type] || null }
 
 var _poiDefs = {
-    "fuel":        { tag: "amenity", val: "fuel",        icon: "⛽", label: "Gasolinera",   q: "fuel station"  },
-    "parking":     { tag: "amenity", val: "parking",     icon: "🅿",  label: "Aparcamiento", q: "parking"       },
-    "hotel":       { tag: "tourism", val: "hotel",       icon: "🏨", label: "Hotel",         q: "hotel"         },
-    "restaurant":  { tag: "amenity", val: "restaurant",  icon: "🍽",  label: "Restaurante",  q: "restaurant"    },
-    "hospital":    { tag: "amenity", val: "hospital",    icon: "🏥", label: "Hospital",      q: "hospital"      },
-    "cafe":        { tag: "amenity", val: "cafe",        icon: "☕", label: "Cafetería",     q: "cafe"          },
-    "supermarket": { tag: "shop",    val: "supermarket", icon: "🛒", label: "Supermercado",  q: "supermarket"   },
-    "atm":         { tag: "amenity", val: "atm",         icon: "🏧", label: "Cajero",        q: "ATM"           }
+    "fuel":        { tag: "amenity", val: "fuel",        icon: "⛽", label: tr("Gasolinera"),   q: "fuel station"  },
+    "parking":     { tag: "amenity", val: "parking",     icon: "🅿",  label: tr("Aparcamiento"), q: "parking"       },
+    "hotel":       { tag: "tourism", val: "hotel",       icon: "🏨", label: tr("Hotel"),         q: "hotel"         },
+    "restaurant":  { tag: "amenity", val: "restaurant",  icon: "🍽",  label: tr("Restaurante"),  q: "restaurant"    },
+    "hospital":    { tag: "amenity", val: "hospital",    icon: "🏥", label: tr("Hospital"),      q: "hospital"      },
+    "cafe":        { tag: "amenity", val: "cafe",        icon: "☕", label: tr("Cafetería"),     q: "cafe"          },
+    "supermarket": { tag: "shop",    val: "supermarket", icon: "🛒", label: tr("Supermercado"),  q: "supermarket"   },
+    "atm":         { tag: "amenity", val: "atm",         icon: "🏧", label: tr("Cajero"),        q: "ATM"           }
 }
 
 function _haversineKm(lat1, lon1, lat2, lon2) {
@@ -761,7 +771,7 @@ var POI_LOCAL_MAX_PTS = 40
 function _poiOsmScout(meta, callback) {
     var def  = meta.def || {}
     var type = (def.tag && def.val) ? def.tag + "_" + def.val : ""
-    if (!type) { callback("Sin tipo de POI para el geocoder local", null, meta); return }
+    if (!type) { callback(tr("Sin tipo de POI para el geocoder local"), null, meta); return }
 
     // El geocoder consulta un punto y un radio, no una unión de «around» como
     // Overpass, así que en modo «en ruta» hay que repetir por cada muestra.
@@ -783,7 +793,7 @@ function _poiOsmScout(meta, callback) {
     function _step() {
         if (idx >= pts.length) {
             if (elements.length === 0 && errs === pts.length) {
-                callback("El geocoder del dispositivo no respondió", null, meta)
+                callback(tr("El geocoder del dispositivo no respondió"), null, meta)
             } else {
                 _logMsg("POI: " + elements.length + " en los mapas del dispositivo")
                 callback(null, { elements: elements }, meta)
@@ -844,8 +854,8 @@ function _poiPost(q, meta, callback, _tried, _zeroRetries) {
             _poiOsmScout(meta, callback)
             return
         }
-        if (_statusPush) _statusPush("Sin red · búsqueda POI", "#EF9A9A")
-        callback("Sin servidores Overpass disponibles", null, meta)
+        if (_statusPush) _statusPush(tr("Sin red · búsqueda POI"), "#EF9A9A")
+        callback(tr("Sin servidores Overpass disponibles"), null, meta)
         return
     }
     _tried = _tried.concat([_srv])
@@ -1130,7 +1140,7 @@ function route(waypoints, opts, callback) {
 
     function _parseRouteText(text, cb) {
         if (!text || (text.charAt(0) !== '{' && text.charAt(0) !== '[')) {
-            cb("Servidor: " + (text || "sin respuesta").substring(0, 80), null)
+            cb(tr("Servidor: %1").arg((text || tr("sin respuesta")).substring(0, 80)), null)
             return
         }
         try {
@@ -1180,7 +1190,7 @@ function route(waypoints, opts, callback) {
                 if (errFb) {
                     if (_statusPush) {
                         var isConn = errFb === "Timeout" || errFb.indexOf("HTTP 0") >= 0 || errFb.indexOf("HTTP 5") >= 0
-                        if (isConn) _statusPush("Sin red · ruta no calculada", "#EF9A9A")
+                        if (isConn) _statusPush(tr("Sin red · ruta no calculada"), "#EF9A9A")
                     }
                     callback(errFb, null); return
                 }
@@ -1216,7 +1226,7 @@ function route(waypoints, opts, callback) {
             }
             if (err) { _tryFallback(err); return }
             if (!text || (text.charAt(0) !== '{' && text.charAt(0) !== '[')) {
-                _tryFallback("Servidor: " + (text || "sin respuesta").substring(0, 60))
+                _tryFallback(tr("Servidor: %1").arg((text || tr("sin respuesta")).substring(0, 60)))
                 return
             }
             _parseRouteText(text, callback)

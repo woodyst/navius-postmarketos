@@ -81,7 +81,7 @@ ApplicationWindow {
             var pts = []
             try { pts = JSON.parse(json) } catch(e) {}
             if (pts.length < 2) {
-                root._startupMsg = "Track sin puntos suficientes"
+                root._startupMsg = i18n.tr("Track sin puntos suficientes")
                 startupMsgTimer.restart()
                 return
             }
@@ -1572,7 +1572,7 @@ ApplicationWindow {
                         _tramoSpeedAlertMs = nowMs
                         navTts.alert_beep()
                         if (root._effAlertSound === "tts") {
-                            navTts.say("Velocidad media excedida en el radar de tramo")
+                            navTts.say(i18n.tr("Velocidad media excedida en el radar de tramo"))
                         }
                     }
                 } else {
@@ -1611,18 +1611,18 @@ ApplicationWindow {
         if (best !== null) {
             _commAlertSpeed = best.velocidad ? best.velocidad : 0
             var _cm = {
-                "trafico":"Tráfico","policia":"Policía","accidente":"Accidente",
-                "peligro":"Peligro","carretera_cortada":"Cortada",
-                "carril_bloqueado":"Carril bloqueado","error_mapa":"Error mapa",
-                "mal_tiempo":"Mal tiempo","asistencia":"Asistencia","lugar":"Lugar",
-                "denso":"Tráfico denso","detenido":"Detenido",
-                "camara_movil":"Cámara móvil","oculto":"Radar oculto",
-                "colision_multiple":"Colisión múltiple","obras":"Obras",
-                "coche_arcen":"Coche en arcén","semaforo_estropeado":"Semáforo averiado",
-                "bache":"Bache","izquierdo":"Carril izq.","derecho":"Carril der.",
-                "central":"Carril central","calzada_resbaladiza":"Calzada resbaladiza",
-                "inundacion":"Inundación","nieve":"Nieve","niebla":"Niebla","hielo":"Hielo",
-                "companeros":"Ayuda compañeros","emergencia":"Emergencia"
+                "trafico":i18n.tr("Tráfico"),"policia":i18n.tr("Policía"),"accidente":i18n.tr("Accidente"),
+                "peligro":i18n.tr("Peligro"),"carretera_cortada":i18n.tr("Cortada"),
+                "carril_bloqueado":i18n.tr("Carril bloqueado"),"error_mapa":i18n.tr("Error mapa"),
+                "mal_tiempo":i18n.tr("Mal tiempo"),"asistencia":i18n.tr("Asistencia"),"lugar":i18n.tr("Lugar"),
+                "denso":i18n.tr("Tráfico denso"),"detenido":i18n.tr("Detenido"),
+                "camara_movil":i18n.tr("Cámara móvil"),"oculto":i18n.tr("Radar oculto"),
+                "colision_multiple":i18n.tr("Colisión múltiple"),"obras":i18n.tr("Obras"),
+                "coche_arcen":i18n.tr("Coche en arcén"),"semaforo_estropeado":i18n.tr("Semáforo averiado"),
+                "bache":i18n.tr("Bache"),"izquierdo":i18n.tr("Carril izq."),"derecho":i18n.tr("Carril der."),
+                "central":i18n.tr("Carril central"),"calzada_resbaladiza":i18n.tr("Calzada resbaladiza"),
+                "inundacion":i18n.tr("Inundación"),"nieve":i18n.tr("Nieve"),"niebla":i18n.tr("Niebla"),"hielo":i18n.tr("Hielo"),
+                "companeros":i18n.tr("Ayuda compañeros"),"emergencia":i18n.tr("Emergencia")
             }
             var lbl = (best.subtipo && best.subtipo !== "")
                 ? (_cm[best.subtipo] || best.subtipo)
@@ -1638,8 +1638,8 @@ ApplicationWindow {
                     if (root._effAlertSound === "beep") navTts.alert_beep()
                     else if (root._effAlertSound === "tts") {
                         navTts.alert_beep()
-                        var _ttsVel = best.velocidad ? ", límite " + best.velocidad + " kilómetros por hora" : ""
-                        navTts.say(lbl + " en " + Math.round(_dispDist) + " metros" + _ttsVel)
+                        var _ttsVel = best.velocidad ? i18n.tr(", límite %1 kilómetros por hora").arg(best.velocidad) : ""
+                        navTts.say(i18n.tr("%1 en %2 metros").arg(lbl).arg(Math.round(_dispDist)) + _ttsVel)
                     }
                 }
             }
@@ -1764,9 +1764,9 @@ ApplicationWindow {
                 if (!silent)
                     root._statusQueue.push({ text: i18n.tr("✓ Configuración guardada en el servidor"), color: "#81C784" })
             } else if (!silent) {
-                var msg = errCode === "net"  ? "Sin conexión: configuración no guardada"
-                        : errCode === "401"  ? "Sesión caducada: configuración no guardada"
-                        : "Error " + errCode + ": configuración no guardada"
+                var msg = errCode === "net"  ? i18n.tr("Sin conexión: configuración no guardada")
+                        : errCode === "401"  ? i18n.tr("Sesión caducada: configuración no guardada")
+                        : i18n.tr("Error %1: configuración no guardada").arg(errCode)
                 root._statusQueue.push({ text: msg, color: "#FF8A65" })
             }
         })
@@ -2837,6 +2837,10 @@ ApplicationWindow {
         NavMessages.setAppInfo(root._version, _plat)
         NavSettings.setAppInfo(root._version, _plat)
         NavAlerts.setAppInfo(root._version, _plat)
+        // Y con que traducir sus mensajes de error, que los lee el usuario en
+        // LoginPanel. .pragma library no ve el contexto QML, asi que no tiene
+        // i18n: sin esto salen en castellano.
+        NavAlerts.setTr(function (t) { return i18n.tr(t) })
         // Y el idioma, que viaja al servidor al registrarse para que el correo de
         // verificacion salga en el del usuario. Aqui la interfaz sigue al locale
         // del sistema, asi que sale de Qt.locale().
@@ -4593,19 +4597,19 @@ ApplicationWindow {
 
             // Viñetas de alertas comunitarias: icono arriba + texto+votos abajo
             var _vSubMap = {
-                "denso":"Tráfico denso","detenido":"Detenido",
-                "camara_movil":"Cámara móvil","oculto":"Oculto",
-                "colision_multiple":"Col. múltiple",
-                "obras":"Obras","coche_arcen":"Arcén","semaforo_estropeado":"Semáforo","bache":"Bache",
-                "izquierdo":"Carril izq.","derecho":"Carril der.","central":"Carril central",
-                "calzada_resbaladiza":"Resbaladiza","inundacion":"Inundación",
-                "nieve":"Nieve","niebla":"Niebla","hielo":"Hielo",
-                "companeros":"Compañeros","emergencia":"Emergencia"
+                "denso":i18n.tr("Tráfico denso"),"detenido":i18n.tr("Detenido"),
+                "camara_movil":i18n.tr("Cámara móvil"),"oculto":i18n.tr("Oculto"),
+                "colision_multiple":i18n.tr("Col. múltiple"),
+                "obras":i18n.tr("Obras"),"coche_arcen":i18n.tr("Arcén"),"semaforo_estropeado":i18n.tr("Semáforo"),"bache":i18n.tr("Bache"),
+                "izquierdo":i18n.tr("Carril izq."),"derecho":i18n.tr("Carril der."),"central":i18n.tr("Carril central"),
+                "calzada_resbaladiza":i18n.tr("Resbaladiza"),"inundacion":i18n.tr("Inundación"),
+                "nieve":i18n.tr("Nieve"),"niebla":i18n.tr("Niebla"),"hielo":i18n.tr("Hielo"),
+                "companeros":i18n.tr("Compañeros"),"emergencia":i18n.tr("Emergencia")
             }
             var _vCatMap = {
-                "trafico":"Tráfico","policia":"Policía","accidente":"Accidente",
-                "peligro":"Peligro","carretera_cortada":"Cortada",
-                "carril_bloqueado":"Carril","error_mapa":"Error mapa",
+                "trafico":i18n.tr("Tráfico"),"policia":i18n.tr("Policía"),"accidente":i18n.tr("Accidente"),
+                "peligro":i18n.tr("Peligro"),"carretera_cortada":i18n.tr("Cortada"),
+                "carril_bloqueado":i18n.tr("Carril"),"error_mapa":i18n.tr("Error mapa"),
                 "mal_tiempo":"Mal tiempo","asistencia":"Asistencia","lugar":"Lugar"
             }
             var _viISz = units.gu(6.5)   // tamaño icono
@@ -6066,7 +6070,7 @@ ApplicationWindow {
             Label {
                 anchors { left: parent.left; leftMargin: units.gu(0.8); verticalCenter: parent.verticalCenter }
                 text: root._osmScoutActive ? i18n.tr("OSM Scout Server  ·  límites de velocidad por tramo")
-                                           : "Valhalla: " + NavSearch.valhallaHost() + "  ·  límites por tramo"
+                                           : "Valhalla: " + NavSearch.valhallaHost() + "  ·  " + i18n.tr("límites por tramo")
                 color: root._osmScoutActive ? "#69F0AE" : "#90CAF9"
                 font.pixelSize: units.gu(1.1 * appSettings.textScale); font.bold: true; font.family: "Monospace"
             }
@@ -8459,7 +8463,7 @@ ApplicationWindow {
                                 })
                             } else if (appSettings.simMode) {
                                 searchPanel.setSimOrigin(
-                                    activeModel.pos_lat, activeModel.pos_lon, "Posición actual")
+                                    activeModel.pos_lat, activeModel.pos_lon, i18n.tr("Posición actual"))
                             }
                             root._pinVisible = false
                         }
@@ -8541,30 +8545,30 @@ ApplicationWindow {
 
         function _catInfo(cat) {
             var _m = {
-                "trafico":           ["🚗","Tráfico"],
-                "policia":           ["👮","Policía"],
-                "accidente":         ["💥","Accidente"],
-                "peligro":           ["⚠️","Peligro"],
-                "carretera_cortada": ["🚧","Carretera cortada"],
-                "carril_bloqueado":  ["⛔","Carril bloqueado"],
-                "error_mapa":        ["🗺️","Error mapa"],
-                "mal_tiempo":        ["🌧️","Mal tiempo"],
-                "asistencia":        ["🆘","Asistencia"],
-                "lugar":             ["📍","Lugar"]
+                "trafico":           ["🚗",i18n.tr("Tráfico")],
+                "policia":           ["👮",i18n.tr("Policía")],
+                "accidente":         ["💥",i18n.tr("Accidente")],
+                "peligro":           ["⚠️",i18n.tr("Peligro")],
+                "carretera_cortada": ["🚧",i18n.tr("Carretera cortada")],
+                "carril_bloqueado":  ["⛔",i18n.tr("Carril bloqueado")],
+                "error_mapa":        ["🗺️",i18n.tr("Error mapa")],
+                "mal_tiempo":        ["🌧️",i18n.tr("Mal tiempo")],
+                "asistencia":        ["🆘",i18n.tr("Asistencia")],
+                "lugar":             ["📍",i18n.tr("Lugar")]
             }
-            return _m[cat] || ["⚠️","Alerta"]
+            return _m[cat] || ["⚠️",i18n.tr("Alerta")]
         }
         function _subLabel(sub) {
             var _m = {
-                "denso":"Tráfico denso","detenido":"Detenido",
-                "camara_movil":"Cámara móvil","oculto":"Policía oculto",
+                "denso":i18n.tr("Tráfico denso"),"detenido":i18n.tr("Detenido"),
+                "camara_movil":i18n.tr("Cámara móvil"),"oculto":i18n.tr("Policía oculto"),
                 "colision_multiple":"Colisión múltiple",
-                "obras":"Obras","coche_arcen":"Coche en arcén",
-                "semaforo_estropeado":"Semáforo averiado","bache":"Bache",
-                "izquierdo":"Carril izquierdo","derecho":"Carril derecho","central":"Carril central",
-                "calzada_resbaladiza":"Calzada resbaladiza","inundacion":"Inundación",
-                "nieve":"Nieve","niebla":"Niebla","hielo":"Hielo",
-                "companeros":"Compañeros","emergencia":"Emergencia"
+                "obras":i18n.tr("Obras"),"coche_arcen":i18n.tr("Coche en arcén"),
+                "semaforo_estropeado":i18n.tr("Semáforo averiado"),"bache":i18n.tr("Bache"),
+                "izquierdo":i18n.tr("Carril izquierdo"),"derecho":i18n.tr("Carril derecho"),"central":i18n.tr("Carril central"),
+                "calzada_resbaladiza":i18n.tr("Calzada resbaladiza"),"inundacion":i18n.tr("Inundación"),
+                "nieve":i18n.tr("Nieve"),"niebla":i18n.tr("Niebla"),"hielo":i18n.tr("Hielo"),
+                "companeros":i18n.tr("Compañeros"),"emergencia":i18n.tr("Emergencia")
             }
             return _m[sub] || sub
         }
@@ -9377,8 +9381,8 @@ ApplicationWindow {
             Label {
                 width: parent.width
                 text: settingsConflictDialog._serverUpdatedAt
-                    ? "Guardada el " + settingsConflictDialog._serverUpdatedAt.replace("T", " ").slice(0, 16)
-                    : "Hay configuración guardada en el servidor."
+                    ? i18n.tr("Guardada el %1").arg(settingsConflictDialog._serverUpdatedAt.replace("T", " ").slice(0, 16))
+                    : i18n.tr("Hay configuración guardada en el servidor.")
                 color: "#B0BEC5"
                 font.pixelSize: units.gu(1.8 * appSettings.textScale)
                 wrapMode: Text.WordWrap

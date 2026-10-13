@@ -563,7 +563,7 @@ Rectangle {
                                     verticalCenter: parent.verticalCenter
                                     leftMargin: units.gu(1.2); rightMargin: units.gu(1.2)
                                 }
-                                text: "Mi vehículo"; color: pal.fgData; font.pixelSize: ts(2.0)
+                                text: i18n.tr("Mi vehículo"); color: pal.fgData; font.pixelSize: ts(2.0)
                                 selectionColor: "#29B6F6"
                                 onActiveFocusChanged: if (activeFocus) panel._kbdFocusItem = this
                             }
@@ -607,7 +607,7 @@ Rectangle {
                                         vehiclesSection._typeList[vehiclesSection._newTypeIdx].value)
                                     panel.vehicleMgr.setActive(id)
                                     vehiclesSection._addMode = false
-                                    newVehName.text = "Mi vehículo"
+                                    newVehName.text = i18n.tr("Mi vehículo")
                                 }
                             }
                         }
@@ -841,7 +841,8 @@ Rectangle {
                                 width: parent.width - units.gu(10)
                                 Label { text: "OSM Scout Server (dispositivo)"; color: pal.fgPrimary; font.pixelSize: ts(1.8); font.bold: true }
                                 Label {
-                                    text: panel.osmScoutActive ? "✓ activo · puerto 8553 · offline" : "✗ no detectado · puerto 8553"
+                                    text: panel.osmScoutActive ? i18n.tr("✓ activo · puerto 8553 · offline")
+                                                          : i18n.tr("✗ no detectado · puerto 8553")
                                     color: panel.osmScoutActive ? "#66BB6A" : "#EF5350"
                                     font.pixelSize: ts(1.5)
                                 }
@@ -1978,7 +1979,8 @@ Rectangle {
                     tracksSection._refresh()
                 }
                 function onGpx_ready(id, path) {
-                    tracksSection._gpxMsg = path !== "" ? "✓ GPX: " + path.split("/").pop() : "✗ Error al exportar"
+                    tracksSection._gpxMsg = path !== "" ? i18n.tr("✓ GPX: %1").arg(path.split("/").pop())
+                                                        : i18n.tr("✗ Error al exportar")
                     gpxMsgTimer.restart()
                 }
             }
@@ -2092,7 +2094,7 @@ Rectangle {
                             }
                             Label {
                                 text: td.date + "  ·  " + td.dur + "  ·  " + td.dist + "  ·  " + td.npts + " pts"
-                                      + (td.has_route ? "  ·  con ruta" : "")
+                                      + (td.has_route ? "  ·  " + i18n.tr("con ruta") : "")
                                 color: pal.fgDataSub; font.pixelSize: ts(1.5)
                                 wrapMode: Text.WordWrap; width: parent.width
                             }
@@ -3370,7 +3372,7 @@ Rectangle {
                     TextField {
                         id: manLatField
                         width: parent.width
-                        placeholderText: "Latitud  (ej. 40.322130)"
+                        placeholderText: i18n.tr("Latitud  (ej. 40.322130)")
                         // Controls 2 pinta por omision el texto y la sugerencia en gris
                         // oscuro, y sobre el fondo oscuro de Navius no hay quien los lea.
                         // Como el resto del panel, los colores salen de la paleta.
@@ -3382,7 +3384,7 @@ Rectangle {
                     TextField {
                         id: manLonField
                         width: parent.width
-                        placeholderText: "Longitud  (ej. -3.515801)"
+                        placeholderText: i18n.tr("Longitud  (ej. -3.515801)")
                         // Controls 2 pinta por omision el texto y la sugerencia en gris
                         // oscuro, y sobre el fondo oscuro de Navius no hay quien los lea.
                         // Como el resto del panel, los colores salen de la paleta.
@@ -3512,7 +3514,7 @@ Rectangle {
                     TextField {
                         id: gpsFailProbField
                         width: parent.width
-                        placeholderText: "ej. 5.00"
+                        placeholderText: i18n.tr("ej. 5.00")
                         // Controls 2 pinta por omision el texto y la sugerencia en gris
                         // oscuro, y sobre el fondo oscuro de Navius no hay quien los lea.
                         // Como el resto del panel, los colores salen de la paleta.
@@ -3532,7 +3534,7 @@ Rectangle {
                     TextField {
                         id: gpsFailDistField
                         width: parent.width
-                        placeholderText: "ej. 50"
+                        placeholderText: i18n.tr("ej. 50")
                         // Controls 2 pinta por omision el texto y la sugerencia en gris
                         // oscuro, y sobre el fondo oscuro de Navius no hay quien los lea.
                         // Como el resto del panel, los colores salen de la paleta.
@@ -3552,7 +3554,7 @@ Rectangle {
                     TextField {
                         id: gpsFailTicksField
                         width: parent.width
-                        placeholderText: "ej. 3"
+                        placeholderText: i18n.tr("ej. 3")
                         // Controls 2 pinta por omision el texto y la sugerencia en gris
                         // oscuro, y sobre el fondo oscuro de Navius no hay quien los lea.
                         // Como el resto del panel, los colores salen de la paleta.

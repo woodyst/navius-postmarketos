@@ -12,6 +12,22 @@ function setAppInfo(version, plataforma) {
     _appVersion  = version    || ""
     _appPlatform = plataforma || ""
 }
+// Traduccion. Este fichero es .pragma library, asi que no ve el contexto QML y
+// aqui no existe i18n: Main.qml inyecta la funcion con setTr() al arrancar, igual
+// que inyecta la version. Mientras no lo haga, tr() devuelve el castellano, que
+// es lo que se veia antes. xgettext extrae las llamadas tr("...") porque la
+// tuberia usa --keyword=tr (ver scripts/update-po.sh).
+var _traduce = null
+function setTr(fn) { _traduce = fn }
+function tr(s) { return _traduce ? _traduce(s) : s }
+
+// Idioma de la interfaz, en dos letras. Se manda al registrarse para que el
+// servidor escriba el correo de verificacion en el idioma del usuario: hasta el
+// 27/09/2026 salia siempre en castellano, y un tester aleman con la app en
+// ingles recibio un correo que no entendia.
+var _idioma = "es"
+function setIdioma(cod) { if (cod) _idioma = cod }
+
 function _addAppHeaders(xhr) {
     if (_appVersion)  xhr.setRequestHeader("X-App-Version", _appVersion)
     if (_appPlatform) xhr.setRequestHeader("X-App-Platform", _appPlatform)
@@ -71,11 +87,11 @@ function login(email, password, callback) {
                      try {
                          var data = JSON.parse(body)
                          callback(true, data.token, data.id || 0, "")
-                     } catch(e) { callback(false, null, 0, "Respuesta inválida") }
+                     } catch(e) { callback(false, null, 0, tr("Respuesta inválida")) }
                  } else if (status === 401) {
-                     callback(false, null, 0, "Email o contraseña incorrectos")
+                     callback(false, null, 0, tr("Email o contraseña incorrectos"))
                  } else if (status === 403) {
-                     callback(false, null, 0, "Confirma tu email antes de iniciar sesión")
+                     callback(false, null, 0, tr("Confirma tu email antes de iniciar sesión"))
                  } else {
                      callback(false, null, 0, "Error " + status)
                  }
@@ -101,10 +117,10 @@ function registro(email, password, callback) {
                      try {
                          var data = JSON.parse(body)
                          if (data.error === "email_no_verificado")
-                             callback(false, "Este email está registrado pero no verificado.", true)
+                             callback(false, tr("Este email está registrado pero no verificado."), true)
                          else
-                             callback(false, "Ese email ya está registrado.", false)
-                     } catch(e) { callback(false, "Ese email ya está registrado.", false) }
+                             callback(false, tr("Ese email ya está registrado."), false)
+                     } catch(e) { callback(false, tr("Ese email ya está registrado."), false) }
                  } else {
                      callback(false, "Error " + status, false)
                  }
@@ -270,9 +286,9 @@ function borrarCuenta(token, password, callback) {
     xhr.onreadystatechange = function() {
         if (xhr.readyState !== XMLHttpRequest.DONE) return
         if (xhr.status === 200)      callback(true,  "")
-        else if (xhr.status === 401) callback(false, "Contraseña incorrecta")
-        else if (xhr.status === 404) callback(false, "La cuenta ya no existe")
-        else if (xhr.status === 0)   callback(false, "Sin conexión")
+        else if (xhr.status === 401) callback(false, tr("Contraseña incorrecta"))
+        else if (xhr.status === 404) callback(false, tr("La cuenta ya no existe"))
+        else if (xhr.status === 0)   callback(false, tr("Sin conexión"))
         else                         callback(false, "Error " + xhr.status)
     }
     xhr.send(JSON.stringify({ email: "", password: password }))
