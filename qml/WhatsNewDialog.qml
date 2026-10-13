@@ -19,7 +19,16 @@ Item {
         {
             date:    "13 octubre 2026 · 16:00",
             changes: [
-                {
+                { icon: "🌍", text: i18n.tr("La aplicación está de verdad en once idiomas: faltaban 239 textos por traducir y salían en castellano dentro de pantallas en otro idioma") },
+                { icon: "🔎", text: i18n.tr("Si tu destino no aparece en la lista, ahora tienes un enlace para buscarlo en Google Maps sin volver a escribirlo") },
+                { icon: "🌐", text: i18n.tr("Los resultados que están en otro país se agrupan aparte, en un desplegable, para que no se mezclen con los de aquí") },
+                { icon: "🗺", text: i18n.tr("Google Maps dentro de la app: fuera los botones de «Cómo llegar», «Iniciar» y «Abrir aplicación», que llevaban a navegar donde no toca. Al elegir un sitio vuelves a la lista de destinos, y el nombre llega limpio") },
+                { icon: "🛰", text: i18n.tr("Aviso claro cuando todavía no hay posición GPS, en vez de descubrirlo al calcular la ruta") },
+                { icon: "⌨", text: i18n.tr("La lista de resultados ya no se queda debajo del teclado, y la flecha de volver atrás se ve como es debido") },
+                { icon: "✉", text: i18n.tr("El correo de confirmación de la cuenta llega en tu idioma, y su enlace ya no se parte por la mitad") }
+            ]
+        },
+        {
             date:    "2 mayo 2026 · 12:09",
             changes: [
                 { icon: "📍", text: i18n.tr("Búsqueda de puntos de interés cerca de ti: gasolineras, parking, restaurantes, hoteles y más") },
